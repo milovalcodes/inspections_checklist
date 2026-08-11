@@ -1,0 +1,1128 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Move-In Inspection</title>
+<meta name="theme-color" content="#16181A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Move-In">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Move-in and move-out condition inspection, built for phones and usable offline.">
+<link rel="manifest" href="manifest-in.json">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%2316181A'/><path d='M14 34l12 12 24-28' stroke='%23F4C21B' stroke-width='8' fill='none' stroke-linecap='square'/></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ink:#16181A; --slate:#4A5157; --mute:#858C91;
+  --paper:#F1F0EC; --card:#FFFFFF; --rule:#D8D6CF; --hair:#EDEBE5;
+  --hivis:#F4C21B;
+  --ok:#2E7245; --d:#A9741B; --b:#BE3319; --c:#2B5D8A; --r:#16181A; --na:#9AA0A5;
+  --flag:#BE3319;
+}
+body[data-mode="out"]{ --hivis:#4FC3E8; }
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%; overscroll-behavior-x:none}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.5;
+  padding-bottom:calc(88px + env(safe-area-inset-bottom));
+}
+h1,h2,h3{font-family:"Archivo","Helvetica Neue",Arial,sans-serif;margin:0;letter-spacing:-0.01em}
+button,input,textarea,select{font-family:inherit;font-size:15px}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
+textarea,input,select{font-size:16px}
+.wrap{max-width:880px;margin:0 auto;padding:0 14px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace}
+:focus-visible{outline:2.5px solid var(--hivis);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---------- masthead ---------- */
+.mast{background:var(--ink);color:var(--paper);padding:20px 0 0}
+.mast .sub{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--hivis);text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+.mast h1{font-size:25px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;line-height:1.05}
+.mast .lede{color:#B9BEC2;font-size:13px;margin:8px 0 0;max-width:58ch}
+.mast .pad{height:18px}
+.rail{display:flex;gap:7px;overflow-x:auto;padding:14px 14px 15px;margin:0 auto;max-width:880px}
+.rail::-webkit-scrollbar{height:5px}
+.rail::-webkit-scrollbar-thumb{background:#3A4045;border-radius:9px}
+.chip{flex:0 0 auto;background:#22262A;border:1px solid #33383D;color:#D6DADD;border-radius:2px;
+  padding:7px 10px;text-align:left;min-width:118px;font-size:12.5px;line-height:1.3}
+.chip b{display:block;font-weight:600;color:#fff;white-space:nowrap}
+.chip span{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10px;color:var(--mute);letter-spacing:.06em}
+.chip.on{background:var(--hivis);border-color:var(--hivis)}
+.chip.on b,.chip.on span{color:#2A2100}
+.chip .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--b);margin-left:5px;vertical-align:middle}
+.chip.on .dot{background:#7A1D08}
+.chip .tick{color:#7DBF97;font-weight:700}
+.chip.on .tick{color:#1D4A2C}
+
+/* ---------- cards ---------- */
+.card{background:var(--card);border:1px solid var(--rule);border-top:3px solid var(--ink);padding:15px;margin:16px 0}
+.card h2{font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:.01em}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate)}
+
+/* header form */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.grid .full{grid-column:1/-1}
+label.f{display:block}
+label.f > span{display:block;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);margin-bottom:3px}
+.in{width:100%;border:1px solid var(--rule);background:#FBFAF7;padding:9px 10px;border-radius:2px;color:var(--ink)}
+.in:focus{background:#fff;border-color:var(--slate)}
+textarea.in{resize:vertical;min-height:60px;line-height:1.45}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;min-height:42px;border:1px solid var(--rule);background:#FBFAF7;color:var(--slate);border-radius:2px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.seg button.on{background:var(--ink);border-color:var(--ink);color:var(--hivis)}
+
+/* progress strip */
+.strip{margin-top:14px;height:12px;background:repeating-linear-gradient(45deg,#E4E2DB 0 6px,#DBD9D1 6px 12px);position:relative;overflow:hidden}
+.strip i{position:absolute;inset:0 auto 0 0;width:0;background:var(--hivis);transition:width .4s cubic-bezier(.2,.8,.2,1)}
+.strip.done i{background:var(--ok)}
+.strip.blocked i{background:var(--b)}
+.tally{display:flex;justify-content:space-between;align-items:baseline;margin-top:7px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.06em;color:var(--slate)}
+.tally b{font-size:15px;color:var(--ink)}
+
+/* legend */
+.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:13px;padding-top:13px;border-top:1px solid var(--rule)}
+.lg{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--slate)}
+.tag{width:26px;height:26px;flex:0 0 auto;display:grid;place-items:center;border-radius:2px;color:#fff;
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600;font-size:13px}
+.t-ok{background:var(--ok)} .t-d{background:var(--d)} .t-b{background:var(--b)}
+.t-c{background:var(--c)} .t-r{background:var(--r);color:var(--hivis)} .t-na{background:var(--na)}
+
+/* ---------- spaces ---------- */
+.sec{background:var(--card);border:1px solid var(--rule);margin-bottom:10px}
+.sec>summary{list-style:none;padding:12px 14px;display:flex;align-items:center;gap:9px;font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-weight:600;font-size:15.5px}
+.sec>summary::-webkit-details-marker{display:none}
+.caret{color:var(--mute);font-size:11px;transition:transform .2s}
+details[open]>summary .caret{transform:rotate(90deg)}
+.count{margin-left:auto;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--slate);letter-spacing:.05em;white-space:nowrap}
+.count.flag{color:var(--b);font-weight:600}
+.count.ok{color:var(--ok)}
+.sectools{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 11px;border-bottom:1px solid var(--rule)}
+.mini{border:1px solid var(--rule);background:#FBFAF7;color:var(--slate);border-radius:2px;padding:7px 10px;min-height:36px;
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
+.mini:hover{border-color:var(--slate);color:var(--ink)}
+.mini.go{border-color:var(--ok);color:var(--ok)}
+.mini.warn{border-color:var(--rule);color:var(--b)}
+
+.item{padding:11px 14px;border-top:1px solid var(--hair)}
+.item.flagged{background:#FDF3F0}
+.item.is-na .iname{color:var(--na);text-decoration:line-through}
+.itop{display:flex;align-items:center;gap:9px}
+.iname{flex:1;font-size:14.5px;line-height:1.35}
+.base{display:block;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.06em;color:var(--mute);text-transform:uppercase;margin-top:2px}
+.base.chg{color:var(--b);font-weight:600}
+.cam{flex:0 0 auto;width:38px;height:38px;border:1px solid var(--rule);background:#FBFAF7;border-radius:2px;font-size:16px;line-height:1;position:relative}
+.cam b{position:absolute;top:-6px;right:-6px;background:var(--ink);color:var(--hivis);border-radius:9px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10px;padding:1px 5px}
+.pad6{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:9px}
+.k{min-height:42px;border:1px solid var(--rule);background:#FBFAF7;border-radius:2px;
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600;font-size:14px;color:var(--slate);display:grid;place-items:center;line-height:1}
+.k small{display:block;white-space:nowrap;font-size:8px;letter-spacing:.06em;font-weight:400;margin-top:1px;color:var(--mute)}
+.k:hover{border-color:var(--slate)}
+.k.on{color:#fff;border-color:transparent}
+.k.on small{color:rgba(255,255,255,.75)}
+.k.on.k-ok{background:var(--ok)} .k.on.k-d{background:var(--d)} .k.on.k-b{background:var(--b)}
+.k.on.k-c{background:var(--c)} .k.on.k-r{background:var(--r);color:var(--hivis)} .k.on.k-na{background:var(--na)}
+.k.on.k-r small{color:rgba(244,194,27,.7)}
+.note{width:100%;margin-top:8px;border:1px solid var(--rule);border-left:3px solid var(--b);padding:8px 9px;
+  background:#fff;resize:vertical;min-height:40px;font-size:16px;line-height:1.45;display:none}
+.item.flagged .note{display:block}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.thumbs img{width:56px;height:56px;object-fit:cover;border:1px solid var(--rule);border-radius:2px;cursor:pointer}
+.pcode,.pnote{display:none}
+
+/* exceptions block */
+.block{background:var(--ink);color:var(--paper);padding:15px;margin-bottom:12px}
+.block h3{color:var(--hivis);font-size:11.5px;text-transform:uppercase;letter-spacing:.14em;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+.block ul{margin:10px 0 0;padding-left:17px;font-size:13.5px;color:#DDE1E4}
+.block li{margin-bottom:6px}
+.block li b{color:#fff}
+.block .none{margin-top:8px;font-size:13.5px;color:#9BA1A6}
+.block .code{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;color:var(--hivis);font-size:11px;letter-spacing:.08em}
+
+/* worksheet */
+.wk{border-top:1px solid var(--rule);margin-top:12px;padding-top:10px}
+.wkrow{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--hair);flex-wrap:wrap}
+.wkrow .wn{flex:1 1 100%;font-size:13.5px}
+.wkrow .wn i{font-style:normal;color:var(--slate);font-size:12px}
+.wkrow .money{width:104px}
+.wkrow .seg{flex:1;min-width:180px}
+.wkrow .seg button{min-height:36px;font-size:10.5px}
+.wtot{display:flex;justify-content:space-between;align-items:baseline;padding-top:11px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.06em;color:var(--slate)}
+.wtot b{font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-size:20px;color:var(--ink)}
+
+/* signatures */
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.sigbox{border:1px solid var(--rule);background:#FBFAF7;padding:9px}
+.sigbox canvas{width:100%;height:110px;background:#fff;border:1px dashed var(--rule);touch-action:none;display:block}
+.sigbox .row{display:flex;gap:6px;align-items:center;margin-top:7px}
+.ack{font-size:12.5px;color:var(--slate);margin-top:11px;line-height:1.5;border-left:3px solid var(--hivis);padding-left:10px}
+
+/* home */
+.new{display:grid;grid-template-columns:1fr;gap:9px;margin-top:12px}
+.newbtn{border:1px solid var(--ink);background:var(--ink);color:var(--paper);text-align:left;padding:14px;border-radius:2px}
+.newbtn b{display:block;font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-weight:800;font-size:16px;text-transform:uppercase;letter-spacing:.02em;color:#fff}
+.newbtn span{display:block;font-size:12.5px;color:#A9AFB4;margin-top:3px}
+.newbtn.alt{background:var(--card);color:var(--ink)}
+.newbtn.alt b{color:var(--ink)} .newbtn.alt span{color:var(--slate)}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.rec{display:flex;align-items:center;gap:11px;padding:12px 14px;border:0;border-top:1px solid var(--hair);background:var(--card);width:100%;text-align:left}
+.rec:first-of-type{border-top:none}
+.rec .badge{flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border-radius:2px;background:var(--ink);color:var(--hivis);
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;font-weight:600;letter-spacing:.04em}
+.rec .badge.out{background:#0E3B4C;color:#4FC3E8}
+.rec .rt{flex:1;min-width:0}
+.rec .rt b{display:block;font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec .rt span{display:block;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--slate);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec .pc{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--slate)}
+.empty{padding:22px 14px;text-align:center;color:var(--slate);font-size:13.5px;background:var(--card);border:1px dashed var(--rule)}
+
+/* bottom bar */
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--ink);z-index:30;
+  padding:9px 14px calc(9px + env(safe-area-inset-bottom));display:flex;gap:7px;align-items:center}
+.bar .st{flex:1;min-width:0;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;color:var(--slate);letter-spacing:.05em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .st b{color:var(--ink)}
+.act{font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-weight:600;font-size:13px;border:1px solid var(--ink);background:var(--card);color:var(--ink);
+  padding:11px 13px;border-radius:2px;white-space:nowrap;min-height:44px}
+.act:hover{background:var(--hivis)}
+.act.ghost{border-color:var(--rule);color:var(--slate)}
+.act.ghost:hover{background:#F3F1EA;color:var(--ink)}
+.act.solid{background:var(--ink);color:#fff}
+.act.solid:hover{background:#000}
+
+/* lightbox + toast */
+.lb{position:fixed;inset:0;background:rgba(10,11,12,.92);z-index:60;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;padding:16px}
+.lb.on{display:flex}
+.lb img{max-width:100%;max-height:74vh;object-fit:contain}
+.mcard{background:var(--card);border-top:3px solid var(--ink);width:100%;max-width:430px;padding:16px;max-height:82vh;overflow:auto}
+.mcard .rec{border-top:1px solid var(--hair)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));background:var(--ink);color:#fff;
+  padding:10px 16px;border-radius:2px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.06em;z-index:70;opacity:0;
+  pointer-events:none;transition:opacity .25s}
+.toast.on{opacity:1}
+.foot{font-size:12px;color:var(--mute);padding:16px 0 8px;line-height:1.6}
+.hide{display:none!important}
+
+@media (max-width:560px){
+  .mast h1{font-size:21px}
+  .grid{grid-template-columns:1fr}
+  .sigs{grid-template-columns:1fr}
+  .legend{grid-template-columns:repeat(2,1fr)}
+  .bar .st{display:none}
+  .act{flex:1;text-align:center;padding:11px 6px}
+}
+
+@media (min-width:620px){
+  .item{display:grid;grid-template-columns:1fr auto;column-gap:14px;align-items:center}
+  .itop{grid-column:1}
+  .pad6{grid-column:2;margin-top:0;grid-template-columns:repeat(6,48px)}
+  .note,.thumbs{grid-column:1/-1}
+}
+@media print{
+  @page{margin:12mm}
+  .mast .lede,.rail,.bar,.sectools,.pad6,.cam,.mini,.toast,.lb,.noprint{display:none!important}
+  body{background:#fff;padding:0;font-size:11pt}
+  .mast{background:#fff;color:#000;padding:0;border-bottom:2px solid #000}
+  .mast .sub{color:#000}
+  .card{border-color:#999;break-inside:avoid;margin:8px 0}
+  .sec{border-color:#999;margin:8px 0;break-inside:auto}
+  .sec>summary{break-after:avoid}
+  .item{break-inside:avoid}
+  .caret{display:none}
+  .sec>summary{border-bottom:1px solid #999}
+  details{display:block}
+  details>summary{list-style:none}
+  .item{border-top:1px solid #ddd;padding:5px 10px;background:#fff!important}
+  .itop{align-items:baseline}
+  .pcode{display:inline-block;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:9pt;font-weight:600;border:1px solid #333;padding:1px 6px;white-space:nowrap}
+  .note{display:none!important}
+  .pnote{display:block;border-left:3px solid #333;padding:2px 8px;margin:3px 0 3px 2px;font-style:italic}
+  .pnote:empty{display:none}
+  ::placeholder{color:transparent!important}
+  input[type=date]::-webkit-calendar-picker-indicator{display:none}
+  .block li b,.block li i{color:#000}
+  .item{padding:4px 10px}
+  .iname{font-size:10.5pt}
+  .base{color:#444}
+  .in,.seg button{border-color:#999;background:#fff}
+  .thumbs img{width:92px;height:92px}
+  .block{background:#fff;color:#000;border:1px solid #333}
+  .block h3,.block .code{color:#000}
+  .block ul{color:#000}
+  .strip{display:none}
+}
+</style>
+
+<header class="mast">
+  <div class="wrap">
+    <div class="sub" id="mastSub">CIMCO Property Management</div>
+    <h1 id="mastTitle">Move-in inspection</h1>
+    <p class="lede" id="mastLede">Every line gets a code. Anything not “Good” needs a note and a photo — that is what protects the deposit.</p>
+  </div>
+  <div class="rail hide" id="rail"></div>
+  <div class="pad" id="mastPad"></div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ HOME ============ -->
+  <section id="home">
+    <div class="card">
+      <div class="eyebrow">Start</div>
+      <h2>New inspection</h2>
+      <div class="new" id="newBtns"></div>
+    </div>
+
+    <div class="card" style="padding:0;border-top-width:3px">
+      <div style="padding:15px 15px 11px">
+        <div class="eyebrow">Saved on this device</div>
+        <h2>Inspections</h2>
+        <input class="in" id="search" placeholder="Filter by address or tenant" style="margin-top:11px">
+      </div>
+      <div id="list"></div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Move a file between phones</div>
+      <h2>Backup &amp; transfer</h2>
+      <p style="font-size:13px;color:var(--slate);margin:9px 0 0">
+        Inspections live in this browser only. Export a file to hand the record to the office, or to open it on another phone.
+      </p>
+      <div class="row" style="margin-top:12px">
+        <button class="act ghost" id="expAll">Export all</button>
+        <button class="act ghost" id="impBtn">Import file</button>
+        <input type="file" id="impFile" accept="application/json,.json" class="hide">
+      </div>
+    </div>
+    <p class="foot">Works offline once loaded. Add it to your home screen and it opens like an app.</p>
+  </section>
+
+  <!-- ============ EDITOR ============ -->
+  <section id="editor" class="hide">
+    <div class="card">
+      <div class="eyebrow" id="edEyebrow">Move-in</div>
+      <h2 id="edAddr">Untitled</h2>
+      <div class="strip" id="strip"><i></i></div>
+      <div class="tally">
+        <span><b id="pct">0%</b> marked</span>
+        <span id="tallyRight"></span>
+      </div>
+
+      <details id="metaBox">
+        <summary class="mini" style="margin-top:13px;display:inline-block">Header &amp; details</summary>
+        <div class="grid">
+          <label class="f"><span>Date</span><input class="in m" data-m="date" type="date"></label>
+          <label class="f"><span>Inspector</span><input class="in m" data-m="inspector" placeholder="Who is walking it"></label>
+          <label class="f full"><span>Address</span><input class="in m" data-m="address" placeholder="Street address"></label>
+          <label class="f"><span>Unit</span><input class="in m" data-m="unit" placeholder="#2"></label>
+          <label class="f"><span>Phone</span><input class="in m" data-m="phone" type="tel" placeholder="Contact number"></label>
+          <label class="f full"><span>Tenant(s)</span><input class="in m" data-m="tenant" placeholder="Names on the lease"></label>
+          <label class="f full"><span>Owner</span><input class="in m" data-m="owner" placeholder="Owner or LLC"></label>
+          <label class="f"><span>Electric meter</span><input class="in m" data-m="meterE" placeholder="Reading"></label>
+          <label class="f"><span>Water meter</span><input class="in m" data-m="meterW" placeholder="Reading"></label>
+          <label class="f full" id="keysWrap"><span id="keysLabel">Keys issued</span><input class="in m" data-m="keys" placeholder="2 keys to front door, 1 mail key"></label>
+          <label class="f full outonly"><span>Tenant forwarding address</span><input class="in m" data-m="fwd" placeholder="Where the deposit letter goes"></label>
+          <div class="f full">
+            <span style="display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);margin-bottom:3px">House / apartment clean</span>
+            <div class="seg" id="cleanSeg">
+              <button data-clean="yes">Yes</button>
+              <button data-clean="no">No</button>
+            </div>
+          </div>
+          <label class="f full"><span>Misc. notes</span><textarea class="in m" data-m="misc" placeholder="Anything the sheet has no line for"></textarea></label>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="mini" id="dupBtn">Duplicate</button>
+          <button class="mini" id="expOne">Export this one</button>
+          <button class="mini warn" id="delBtn">Delete inspection</button>
+        </div>
+      </details>
+
+      <div class="legend">
+        <div class="lg"><i class="tag t-ok">✓</i> Good</div>
+        <div class="lg"><i class="tag t-d">D</i> Dirty</div>
+        <div class="lg"><i class="tag t-b">B</i> Broken</div>
+        <div class="lg"><i class="tag t-c">C</i> Not working</div>
+        <div class="lg"><i class="tag t-r">R</i> Replace</div>
+        <div class="lg"><i class="tag t-na">–</i> N/A</div>
+      </div>
+    </div>
+
+    <div class="block" id="block"></div>
+    <div id="spaces"></div>
+
+    <div class="row" style="margin:0 0 16px">
+      <button class="mini" data-add="bedroom">+ Bedroom</button>
+      <button class="mini" data-add="bathroom">+ Bathroom</button>
+      <button class="mini" data-add="living">+ Living / dining</button>
+      <button class="mini" data-add="other">+ Other space</button>
+    </div>
+
+    <!-- move-out only: deposit worksheet -->
+    <div class="card outonly" id="wkCard">
+      <div class="eyebrow">Move-out</div>
+      <h2>Damage worksheet</h2>
+      <p style="font-size:13px;color:var(--slate);margin:9px 0 0">
+        Every flagged line lands here. Mark it normal wear or tenant damage and put a figure on it. Only tenant damage adds to the total.
+      </p>
+      <div class="wk" id="wk"></div>
+      <div class="wtot"><span>Tenant damage total</span><b id="wkTotal">$0.00</b></div>
+      <p class="ack">Florida gives a landlord 30 days after the tenant leaves to mail written notice of a claim on the deposit, and 15 days to return it when no claim is made (Fla. Stat. 83.49). Confirm the dates and wording with your broker or attorney before the letter goes out.</p>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Sign-off</div>
+      <h2>Signatures</h2>
+      <p class="ack" id="ackText"></p>
+      <div class="sigs">
+        <div class="sigbox">
+          <div class="eyebrow">Tenant</div>
+          <canvas id="sigT" width="600" height="220"></canvas>
+          <div class="row"><input class="in m" data-m="tenantSigName" placeholder="Printed name"><button class="mini" data-clear="T">Clear</button></div>
+        </div>
+        <div class="sigbox">
+          <div class="eyebrow">Inspector / agent</div>
+          <canvas id="sigI" width="600" height="220"></canvas>
+          <div class="row"><input class="in m" data-m="inspSigName" placeholder="Printed name"><button class="mini" data-clear="I">Clear</button></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="foot" id="edFoot"></p>
+  </section>
+</main>
+
+<div class="bar" id="bar"></div>
+
+<div class="lb" id="lb">
+  <img id="lbImg" alt="Inspection photo">
+  <div class="row">
+    <button class="act ghost" id="lbDel" style="background:#fff">Delete photo</button>
+    <button class="act solid" id="lbClose">Close</button>
+  </div>
+</div>
+<div class="lb" id="modal"><div class="mcard" id="modalBody"></div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="camIn" accept="image/*" multiple class="hide">
+
+<script>
+"use strict";
+const MODE_LOCK = "in";      /* null = both modes in one app */
+const ORG = "CIMCO Property Management";
+const KEY = "cimco.inspections.v1";
+
+/* ---------------- templates from the paper sheet ---------------- */
+const T = {
+  living:  {label:"Living room", items:["Floor","Walls","Closet","Blinds","Lights","Baseboard","Outlets / plates","Windows","Doors","A/C vents"]},
+  kitchen: {label:"Kitchen", items:["Floor","Walls","Lights","Cabinets","Handles","Faucet","Sink / disposal","Fridge","Oven / range","Vent hood","Microwave","Counter","Outlets / GFCI"]},
+  laundry: {label:"Laundry & appliances", items:["Washer","Dryer","Dishwasher","Hookups / hoses","Dryer vent","Floor / walls"]},
+  bedroom: {label:"Bedroom", items:["Floor","Walls","Closet","Blinds","Lights","Baseboard","Outlets / plates","Windows","Doors","A/C vents"]},
+  bathroom:{label:"Bathroom", items:["Vanity","Faucet","Toilet","Tub","Shower","Shower handle","Shower walls","Mirror","Windows","Vent","Floor","GFCI"]},
+  systems: {label:"Safety & systems", items:["Smoke detectors","CO detector","A/C filter (size noted)","Thermostat","A/C cools","Water heater","Breaker panel","Main water shutoff","Locks / deadbolts"]},
+  outside: {label:"Outside", items:["Front yard","Backyard","Front door","Back door","Exterior lights","Fence","Trees","Shed","Roof / siding","Screens / lanai","Garage / carport","Driveway","Pool","Mailbox"]},
+  other:   {label:"Other space", items:["Floor","Walls","Lights","Windows","Doors","Outlets / plates"]}
+};
+const DEFAULT_SPACES = [
+  ["living","Living room"],["kitchen","Kitchen"],["laundry","Laundry & appliances"],
+  ["bedroom","Bedroom #1"],["bathroom","Master bath"],["systems","Safety & systems"],["outside","Outside"]
+];
+const CODES = [["ok","✓","Good"],["d","D","Dirty"],["b","B","Broken"],["c","C","N.work"],["r","R","Replace"],["na","–","N/A"]];
+const CODE_LABEL = {ok:"Good", d:"Dirty", b:"Broken", c:"Not working", r:"Replace", na:"N/A"};
+const FLAGS = ["d","b","c","r"];
+
+/* ---------------- state ---------------- */
+let LIST = [];
+let cur = null;
+let photos = {};            /* itemKey -> [{id,data}] */
+let camTarget = null;
+let lbCurrent = null;
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function today(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function fmtDate(s){ if(!s) return ""; const p=s.split("-"); return p.length===3 ? p[1]+"/"+p[2]+"/"+p[0].slice(2) : s; }
+function money(n){ return "$" + (Math.round((n||0)*100)/100).toFixed(2); }
+
+function loadAll(){ try{ const r=localStorage.getItem(KEY); LIST = r?JSON.parse(r):[]; }catch(e){ LIST=[]; } if(!Array.isArray(LIST)) LIST=[]; }
+let saveTimer;
+function save(){
+  if(cur) cur.updated = Date.now();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    try{ localStorage.setItem(KEY, JSON.stringify(LIST)); }
+    catch(e){ toast("Storage is full — export and delete an old inspection"); }
+  }, 250);
+}
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+
+/* ---------------- photos (IndexedDB, optional) ---------------- */
+let dbP = null;
+function db(){
+  if(dbP) return dbP;
+  dbP = new Promise((res,rej)=>{
+    if(!("indexedDB" in window)) return rej(new Error("no idb"));
+    const r = indexedDB.open("cimco-photos", 1);
+    r.onupgradeneeded = ()=>{ const d=r.result; if(!d.objectStoreNames.contains("p")) d.createObjectStore("p",{keyPath:"id"}); };
+    r.onsuccess = ()=>res(r.result);
+    r.onerror = ()=>rej(r.error);
+  }).catch(e=>{ dbP=null; throw e; });
+  return dbP;
+}
+async function photoPut(rec){ const d=await db(); return new Promise((res,rej)=>{ const t=d.transaction("p","readwrite"); t.objectStore("p").put(rec); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+async function photoDelete(id){ const d=await db(); return new Promise((res,rej)=>{ const t=d.transaction("p","readwrite"); t.objectStore("p").delete(id); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+async function photoLoad(inspId){
+  const d = await db();
+  return new Promise((res,rej)=>{
+    const out={}, t=d.transaction("p","readonly"), rq=t.objectStore("p").getAll();
+    rq.onsuccess = ()=>{ (rq.result||[]).filter(o=>o.insp===inspId).sort((a,b)=>a.ts-b.ts)
+      .forEach(o=>{ (out[o.key] = out[o.key]||[]).push(o); }); res(out); };
+    rq.onerror = ()=>rej(rq.error);
+  });
+}
+async function allPhotos(){
+  try{
+    const d = await db();
+    return await new Promise((res,rej)=>{
+      const rq = d.transaction("p","readonly").objectStore("p").getAll();
+      rq.onsuccess = ()=>res(rq.result||[]); rq.onerror = ()=>rej(rq.error);
+    });
+  }catch(e){ return []; }
+}
+async function photoDeleteInsp(inspId){
+  try{
+    const d = await db();
+    const t = d.transaction("p","readwrite"), st = t.objectStore("p"), rq = st.getAll();
+    rq.onsuccess = ()=> (rq.result||[]).filter(o=>o.insp===inspId).forEach(o=>st.delete(o.id));
+  }catch(e){}
+}
+function shrink(file){
+  return new Promise(res=>{
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = ()=>{
+      const max = 1280, sc = Math.min(1, max/Math.max(img.width,img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.max(1,Math.round(img.width*sc)); c.height = Math.max(1,Math.round(img.height*sc));
+      c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      try{ res(c.toDataURL("image/jpeg",0.6)); }catch(e){ res(null); }
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); res(null); };
+    img.src = url;
+  });
+}
+
+/* ---------------- records ---------------- */
+function makeSpaces(){
+  return DEFAULT_SPACES.map(([type,name])=>({
+    id: uid(), type, name,
+    items: T[type].items.map(t=>({t, s:"", n:"", base:""}))
+  }));
+}
+function newInspection(mode, from){
+  const rec = {
+    id: uid(), mode, created: Date.now(), updated: Date.now(),
+    meta: {date: today(), address:"", unit:"", tenant:"", owner:"", inspector:"", phone:"",
+           meterE:"", meterW:"", keys:"", fwd:"", misc:"", clean:"", tenantSigName:"", inspSigName:""},
+    spaces: makeSpaces(), wk:{}, sig:{t:"", i:""}, from: null
+  };
+  if(from){
+    rec.meta.address = from.meta.address; rec.meta.unit = from.meta.unit;
+    rec.meta.tenant = from.meta.tenant; rec.meta.owner = from.meta.owner;
+    rec.from = from.id;
+    rec.spaces = from.spaces.map(sp=>({
+      id: uid(), type: sp.type, name: sp.name,
+      items: sp.items.map(it=>({t: it.t, s:"", n:"", base: it.s}))
+    }));
+  }
+  LIST.unshift(rec); save();
+  return rec;
+}
+function title(rec){
+  const a = (rec.meta.address||"").trim();
+  const u = (rec.meta.unit||"").trim();
+  if(a) return a + (u ? " " + (/^#/.test(u)?u:"#"+u) : "");
+  return rec.meta.tenant ? rec.meta.tenant.trim() : "Untitled inspection";
+}
+function stats(rec){
+  let total=0, done=0, flags=0;
+  rec.spaces.forEach(sp=>sp.items.forEach(it=>{
+    total++; if(it.s) done++; if(FLAGS.indexOf(it.s)>=0) flags++;
+  }));
+  return {total, done, flags, pct: total? Math.round(done/total*100) : 0};
+}
+function flagged(rec){
+  const out=[];
+  rec.spaces.forEach(sp=>sp.items.forEach((it,i)=>{
+    if(FLAGS.indexOf(it.s)>=0) out.push({sp, it, key: sp.id+":"+i});
+  }));
+  return out;
+}
+
+/* ---------------- routing ---------------- */
+function go(view){
+  const home = view==="home";
+  document.getElementById("home").classList.toggle("hide", !home);
+  document.getElementById("editor").classList.toggle("hide", home);
+  document.getElementById("rail").classList.toggle("hide", home);
+  document.getElementById("mastPad").classList.toggle("hide", !home);
+  document.getElementById("mastLede").classList.toggle("hide", !home);
+  document.body.dataset.mode = home ? (MODE_LOCK||"in") : cur.mode;
+  document.body.dataset.view = view;
+  window.scrollTo({top:0});
+  if(home){ cur=null; photos={}; renderHome(); } else { renderEditor(); }
+  renderBar();
+}
+async function openRec(rec){
+  cur = rec; photos = {};
+  document.getElementById("wk").dataset.sig = "";
+  go("editor");
+  try{ photos = await photoLoad(rec.id); renderSpaces(); }catch(e){}
+}
+
+/* ---------------- home ---------------- */
+function renderHome(){
+  document.getElementById("mastTitle").textContent = MODE_LOCK==="in" ? "Move-in inspection"
+    : MODE_LOCK==="out" ? "Move-out inspection" : "Move in / move out";
+
+  const nb = document.getElementById("newBtns");
+  const btn = (mode,t,s)=>`<button class="newbtn ${mode==="out"?"alt":""}" data-new="${mode}"><b>${t}</b><span>${s}</span></button>`;
+  let html = "";
+  if(MODE_LOCK !== "out") html += btn("in","Start a move-in","Record condition before the keys change hands");
+  if(MODE_LOCK !== "in")  html += btn("out","Start a move-out","Compare against the move-in and price the damage");
+  nb.innerHTML = html;
+
+  const q = (document.getElementById("search").value||"").toLowerCase();
+  const rows = LIST
+    .filter(r=> !q || (title(r)+" "+(r.meta.tenant||"")).toLowerCase().indexOf(q)>=0)
+    .sort((a,b)=>b.updated-a.updated);
+
+  document.getElementById("list").innerHTML = rows.length ? rows.map(r=>{
+    const s = stats(r);
+    return `<button class="rec" data-open="${r.id}">
+      <span class="badge ${r.mode==="out"?"out":""}">${r.mode==="out"?"OUT":"IN"}</span>
+      <span class="rt"><b>${esc(title(r))}</b>
+        <span>${fmtDate(r.meta.date)}${r.meta.tenant? " · "+esc(r.meta.tenant):""}</span></span>
+      <span class="pc">${s.done}/${s.total}${s.flags? " · "+s.flags+" flagged":""}</span>
+    </button>`;
+  }).join("") : `<div class="empty">Nothing saved yet. Start an inspection above and it will be waiting here.</div>`;
+}
+
+/* ---------------- editor ---------------- */
+function renderEditor(){
+  const m = cur.meta, isOut = cur.mode==="out";
+  document.getElementById("mastTitle").textContent = isOut ? "Move-out inspection" : "Move-in inspection";
+  document.getElementById("edEyebrow").textContent = isOut ? "Move-out" : "Move-in";
+  document.querySelectorAll(".outonly").forEach(el=>el.classList.toggle("hide", !isOut));
+  document.getElementById("keysLabel").textContent = isOut ? "Keys returned" : "Keys issued";
+  document.getElementById("ackText").textContent = isOut
+    ? "By signing, both parties confirm this sheet records the condition of the unit at move-out. Codes and photos taken today support any claim against the deposit."
+    : "By signing, the tenant confirms they have walked the unit and that this sheet records its condition at move-in. Anything not listed here is presumed to have been in good order at handover.";
+
+  document.querySelectorAll(".m").forEach(el=>{ el.value = m[el.dataset.m] || ""; });
+  document.querySelectorAll("#cleanSeg button").forEach(b=> b.classList.toggle("on", m.clean===b.dataset.clean));
+
+  document.getElementById("edFoot").textContent = cur.from
+    ? "Baseline loaded from the move-in inspection for this address — every line shows how it was handed over."
+    : "Saves as you go, on this phone. Export the file or print to PDF to send it in.";
+
+  drawSig("T", cur.sig.t); drawSig("I", cur.sig.i);
+  renderHead(); renderSpaces();
+}
+
+function renderHead(){
+  const s = stats(cur);
+  document.getElementById("edAddr").textContent = title(cur);
+  const strip = document.getElementById("strip");
+  strip.querySelector("i").style.width = s.pct + "%";
+  strip.className = "strip" + (s.flags ? " blocked" : (s.pct===100 ? " done" : ""));
+  document.getElementById("pct").textContent = s.pct + "%";
+  document.getElementById("tallyRight").textContent = s.done + "/" + s.total + " lines" + (s.flags ? "  ·  " + s.flags + " flagged" : "");
+  renderRail(); renderBlock(); renderWk(); renderBar();
+}
+
+function renderRail(){
+  document.getElementById("rail").innerHTML = cur.spaces.map(sp=>{
+    let d=0,f=0;
+    sp.items.forEach(it=>{ if(it.s) d++; if(FLAGS.indexOf(it.s)>=0) f++; });
+    const badge = f ? '<span class="dot"></span>' : (d===sp.items.length && d ? '<span class="tick">✓</span>' : "");
+    return `<button class="chip" data-jump="${sp.id}"><b>${esc(sp.name)}${badge}</b><span>${d}/${sp.items.length}</span></button>`;
+  }).join("");
+}
+
+function renderBlock(){
+  const rows = flagged(cur);
+  document.getElementById("block").innerHTML =
+    `<h3>Flagged lines · ${rows.length}</h3>` + (rows.length
+      ? `<ul>${rows.map(o=>`<li><b>${esc(o.sp.name)}</b> — ${esc(o.it.t)} <span class="code">[${CODE_LABEL[o.it.s].toUpperCase()}]</span>${o.it.n? " <i>— "+esc(o.it.n)+"</i>" : ' <i style="color:var(--hivis)">— note needed</i>'}</li>`).join("")}</ul>`
+      : `<p class="none">Nothing flagged yet. Anything marked dirty, broken, not working, or replace collects here.</p>`);
+}
+
+function renderSpaces(){
+  const openIds = {};
+  document.querySelectorAll("#spaces details.sec").forEach(d=>{ openIds[d.dataset.sp] = d.open; });
+
+  document.getElementById("spaces").innerHTML = cur.spaces.map((sp, si)=>{
+    let d=0,f=0;
+    sp.items.forEach(it=>{ if(it.s) d++; if(FLAGS.indexOf(it.s)>=0) f++; });
+    const cls = f ? "flag" : (d===sp.items.length && d ? "ok" : "");
+    const isOpen = openIds[sp.id] !== undefined ? openIds[sp.id] : (si===0 || f>0);
+
+    const items = sp.items.map((it,i)=>{
+      const k = sp.id + ":" + i;
+      const flag = FLAGS.indexOf(it.s)>=0;
+      const pics = photos[k] || [];
+      const baseHtml = it.base
+        ? `<span class="base ${it.base!==it.s && it.s ? "chg" : ""}">Move-in: ${esc(CODE_LABEL[it.base]||it.base)}${it.base!==it.s && it.s ? " → " + esc(CODE_LABEL[it.s]) : ""}</span>`
+        : "";
+      return `<div class="item ${flag?"flagged":""} ${it.s==="na"?"is-na":""}" data-key="${k}">
+        <div class="itop">
+          <div class="iname">${esc(it.t)}${baseHtml}
+            <span class="pcode">${it.s ? esc(CODE_LABEL[it.s]) : "—"}</span></div>
+          <button class="cam" data-cam="${k}" aria-label="Add photo of ${esc(it.t)}">📷${pics.length?`<b>${pics.length}</b>`:""}</button>
+        </div>
+        <div class="pad6">${CODES.map(([v,g,lab])=>
+          `<button class="k k-${v} ${it.s===v?"on":""}" data-k="${k}" data-v="${v}" aria-label="${lab}">${g}<small>${lab.toUpperCase()}</small></button>`).join("")}</div>
+        <textarea class="note" data-note="${k}" placeholder="What is wrong, and what it needs">${esc(it.n)}</textarea>
+        <div class="pnote"></div>
+        <div class="thumbs">${pics.map(p=>`<img src="${p.data}" data-ph="${p.id}" alt="Photo of ${esc(it.t)}">`).join("")}</div>
+      </div>`;
+    }).join("");
+
+    return `<details class="sec" data-sp="${sp.id}" ${isOpen?"open":""}>
+      <summary><span class="caret">▶</span>${esc(sp.name)}<span class="count ${cls}">${d}/${sp.items.length}${f?" · "+f+" flagged":""}</span></summary>
+      <div class="sectools">
+        <button class="mini go" data-allok="${sp.id}">Mark rest good</button>
+        <button class="mini" data-additem="${sp.id}">+ Line</button>
+        <button class="mini" data-rename="${sp.id}">Rename</button>
+        <button class="mini warn" data-delsp="${sp.id}">Remove space</button>
+      </div>
+      ${items}
+    </details>`;
+  }).join("");
+}
+
+function paintItem(sp, idx){
+  const it = sp.items[idx], k = sp.id + ":" + idx;
+  const el = document.querySelector('.item[data-key="' + k + '"]');
+  if(!el) return;
+  const flag = FLAGS.indexOf(it.s) >= 0;
+  el.classList.toggle("flagged", flag);
+  el.classList.toggle("is-na", it.s === "na");
+  el.querySelectorAll(".k").forEach(b => b.classList.toggle("on", b.dataset.v === it.s));
+  const pc = el.querySelector(".pcode");
+  if(pc) pc.textContent = it.s ? CODE_LABEL[it.s] : "—";
+  const base = el.querySelector(".base");
+  if(base && it.base){
+    const chg = it.base !== it.s && it.s;
+    base.className = "base" + (chg ? " chg" : "");
+    base.textContent = "Move-in: " + (CODE_LABEL[it.base] || it.base) + (chg ? " → " + CODE_LABEL[it.s] : "");
+  }
+  const note = el.querySelector(".note");
+  if(note && !flag) note.value = "";
+}
+function paintSection(sp){
+  const d = document.querySelector('details[data-sp="' + sp.id + '"]');
+  if(!d) return;
+  let done = 0, f = 0;
+  sp.items.forEach(it => { if(it.s) done++; if(FLAGS.indexOf(it.s) >= 0) f++; });
+  const c = d.querySelector("summary .count");
+  c.className = "count " + (f ? "flag" : (done === sp.items.length && done ? "ok" : ""));
+  c.textContent = done + "/" + sp.items.length + (f ? " · " + f + " flagged" : "");
+}
+function pickBaseline(){
+  const ins = LIST.filter(r => r.mode === "in").sort((a,b) => b.updated - a.updated).slice(0,12);
+  document.getElementById("modalBody").innerHTML =
+    '<div class="eyebrow">New move-out</div><h2>Start from a move-in?</h2>' +
+    '<p style="font-size:13px;color:var(--slate);margin:9px 0 12px">Pick the move-in sheet for this unit. Every line will then show how the place was handed over.</p>' +
+    ins.map(r => '<button class="rec" data-base="' + r.id + '"><span class="badge">IN</span>' +
+      '<span class="rt"><b>' + esc(title(r)) + '</b><span>' + fmtDate(r.meta.date) +
+      (r.meta.tenant ? " · " + esc(r.meta.tenant) : "") + '</span></span></button>').join("") +
+    '<div class="row" style="margin-top:14px"><button class="act" data-base="none">Blank move-out</button>' +
+    '<button class="act ghost" id="modalClose">Cancel</button></div>';
+  document.getElementById("modal").classList.add("on");
+}
+function wkTotal(){
+  let tot = 0;
+  flagged(cur).forEach(o=>{ const w = cur.wk[o.key]; if(w && w.k==="dmg") tot += parseFloat(w.c||0) || 0; });
+  document.getElementById("wkTotal").textContent = money(tot);
+  return tot;
+}
+function renderWk(){
+  if(cur.mode!=="out") return;
+  const rows = flagged(cur);
+  const el = document.getElementById("wk");
+  const sig = rows.map(o=>o.key+o.it.s).join("|");
+  if(el.dataset.sig === sig){ wkTotal(); return; }   /* same lines — leave the inputs alone */
+  el.dataset.sig = sig;
+  if(!rows.length){ el.innerHTML = `<p style="font-size:13px;color:var(--slate);padding:6px 0">Nothing flagged yet.</p>`;
+    document.getElementById("wkTotal").textContent = money(0); return; }
+  el.innerHTML = rows.map(o=>{
+    const w = cur.wk[o.key] || {};
+    return `<div class="wkrow">
+      <div class="wn"><b>${esc(o.sp.name)}</b> — ${esc(o.it.t)} <i>(${esc(CODE_LABEL[o.it.s])}${o.it.base? "; move-in: "+esc(CODE_LABEL[o.it.base]||o.it.base):""})</i></div>
+      <div class="seg">
+        <button data-wear="${o.key}" data-val="wear" class="${w.k==="wear"?"on":""}">Normal wear</button>
+        <button data-wear="${o.key}" data-val="dmg" class="${w.k==="dmg"?"on":""}">Tenant damage</button>
+      </div>
+      <input class="in money" inputmode="decimal" data-cost="${o.key}" placeholder="$ 0.00" value="${esc(w.c||"")}">
+    </div>`;
+  }).join("");
+  wkTotal();
+}
+
+function renderBar(){
+  const bar = document.getElementById("bar");
+  if(document.body.dataset.view === "home"){
+    bar.innerHTML = `<div class="st">${LIST.length} saved · ${ORG}</div>
+      <button class="act solid" data-new="${MODE_LOCK||"in"}">New inspection</button>`;
+    return;
+  }
+  const s = stats(cur);
+  bar.innerHTML = `<div class="st"><b>${esc(title(cur))}</b> — ${s.done}/${s.total}${s.flags? " · "+s.flags+" flagged":""}</div>
+    <button class="act ghost" id="homeBtn">All</button>
+    <button class="act" id="copyBtn">Copy report</button>
+    <button class="act solid" id="printBtn">Print / PDF</button>`;
+}
+
+/* ---------------- signature pads ---------------- */
+function sigCanvas(which){ return document.getElementById(which==="T" ? "sigT" : "sigI"); }
+function drawSig(which, data){
+  const c = sigCanvas(which), ctx = c.getContext("2d");
+  ctx.clearRect(0,0,c.width,c.height);
+  if(data){ const img = new Image(); img.onload = ()=>ctx.drawImage(img,0,0,c.width,c.height); img.src = data; }
+}
+function initSig(which){
+  const c = sigCanvas(which), ctx = c.getContext("2d");
+  ctx.lineWidth = 2.5; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#16181A";
+  let drawing = false;
+  const pos = e=>{ const r = c.getBoundingClientRect();
+    return [(e.clientX-r.left)*(c.width/r.width), (e.clientY-r.top)*(c.height/r.height)]; };
+  c.addEventListener("pointerdown", e=>{ drawing = true; c.setPointerCapture(e.pointerId);
+    const [x,y] = pos(e); ctx.beginPath(); ctx.moveTo(x,y); });
+  c.addEventListener("pointermove", e=>{ if(!drawing) return; e.preventDefault();
+    const [x,y] = pos(e); ctx.lineTo(x,y); ctx.stroke(); });
+  const end = ()=>{ if(!drawing) return; drawing = false;
+    if(!cur) return;
+    try{ cur.sig[which==="T"?"t":"i"] = c.toDataURL("image/png"); save(); }catch(e){} };
+  c.addEventListener("pointerup", end);
+  c.addEventListener("pointerleave", end);
+  c.addEventListener("pointercancel", end);
+}
+
+function printNow(){
+  document.querySelectorAll("#spaces details.sec").forEach(d=>d.open = true);
+  document.getElementById("metaBox").open = true;
+  document.querySelectorAll(".item").forEach(el=>{
+    const ta = el.querySelector(".note"), pn = el.querySelector(".pnote");
+    if(ta && pn) pn.textContent = ta.value.trim();
+  });
+  setTimeout(()=>window.print(), 80);
+}
+
+/* ---------------- report text ---------------- */
+function reportText(rec){
+  const m = rec.meta, s = stats(rec), L = [];
+  L.push((rec.mode==="out" ? "MOVE-OUT" : "MOVE-IN") + " INSPECTION — " + ORG.toUpperCase());
+  L.push(title(rec));
+  L.push("Date: " + (fmtDate(m.date)||"—") + "   Inspector: " + (m.inspector||"—"));
+  if(m.tenant) L.push("Tenant: " + m.tenant);
+  if(m.owner) L.push("Owner: " + m.owner);
+  if(m.clean) L.push("Unit clean: " + m.clean.toUpperCase());
+  if(m.keys) L.push((rec.mode==="out" ? "Keys returned: " : "Keys issued: ") + m.keys);
+  if(m.meterE || m.meterW) L.push("Meters — electric: " + (m.meterE||"—") + ", water: " + (m.meterW||"—"));
+  if(rec.mode==="out" && m.fwd) L.push("Forwarding address: " + m.fwd);
+  L.push(s.done + " of " + s.total + " lines marked · " + s.flags + " flagged");
+  L.push("");
+
+  rec.spaces.forEach(sp=>{
+    const bad = sp.items.filter(it=>FLAGS.indexOf(it.s)>=0);
+    if(!bad.length) return;
+    L.push(sp.name.toUpperCase());
+    bad.forEach(it=>{
+      L.push("  [" + CODE_LABEL[it.s].toUpperCase() + "] " + it.t
+        + (it.base ? "  (move-in: " + (CODE_LABEL[it.base]||it.base) + ")" : ""));
+      if(it.n) L.push("        " + it.n);
+    });
+    L.push("");
+  });
+  if(!s.flags) L.push("No flagged lines. Everything walked was in good order.");
+
+  if(rec.mode==="out"){
+    const rows = flagged(rec).filter(o=>{ const w = rec.wk[o.key]; return w && w.k==="dmg"; });
+    if(rows.length){
+      L.push("TENANT DAMAGE WORKSHEET");
+      let tot = 0;
+      rows.forEach(o=>{ const w = rec.wk[o.key], amt = parseFloat(w.c||0)||0; tot += amt;
+        L.push("  " + o.sp.name + " — " + o.it.t + ": " + money(amt)); });
+      L.push("  TOTAL: " + money(tot));
+      L.push("");
+    }
+  }
+  if(m.misc) L.push("MISC. NOTES\n  " + m.misc);
+  return L.join("\n");
+}
+
+function download(name, text){
+  const blob = new Blob([text], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function slug(rec){
+  return ((rec.mode==="out"?"moveout":"movein") + "-" + title(rec) + "-" + (rec.meta.date||today()))
+    .toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") + ".json";
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener("click", async e=>{
+  const t = e.target;
+
+  const nw = t.closest("[data-new]");
+  if(nw){
+    const mode = nw.dataset.new;
+    if(mode==="out" && LIST.some(r=>r.mode==="in")) return pickBaseline();
+    return openRec(newInspection(mode, null));
+  }
+
+  const bs = t.closest("[data-base]");
+  if(bs){
+    document.getElementById("modal").classList.remove("on");
+    const from = bs.dataset.base==="none" ? null : LIST.find(r=>r.id===bs.dataset.base);
+    return openRec(newInspection("out", from));
+  }
+  if(t.id==="modalClose" || t.id==="modal"){ document.getElementById("modal").classList.remove("on"); return; }
+
+  const rec = t.closest("[data-open]");
+  if(rec){ const r = LIST.find(x=>x.id===rec.dataset.open); if(r) openRec(r); return; }
+
+  if(t.id==="homeBtn"){ go("home"); return; }
+
+  const jump = t.closest("[data-jump]");
+  if(jump){
+    const d = document.querySelector('details[data-sp="'+jump.dataset.jump+'"]');
+    if(d){ d.open = true; d.scrollIntoView({behavior:"smooth", block:"start"}); }
+    return;
+  }
+
+  const kb = t.closest("[data-k]");
+  if(kb){
+    const [spId, idx] = kb.dataset.k.split(":");
+    const sp = cur.spaces.find(x=>x.id===spId), it = sp.items[+idx];
+    it.s = (it.s === kb.dataset.v) ? "" : kb.dataset.v;
+    if(FLAGS.indexOf(it.s) < 0) it.n = "";
+    save(); paintItem(sp, +idx); paintSection(sp); renderHead();
+    return;
+  }
+
+  const allok = t.closest("[data-allok]");
+  if(allok){
+    const sp = cur.spaces.find(x=>x.id===allok.dataset.allok);
+    sp.items.forEach(it=>{ if(!it.s) it.s = "ok"; });
+    save(); renderSpaces(); renderHead(); toast("Unmarked lines set to good");
+    return;
+  }
+
+  const addItem = t.closest("[data-additem]");
+  if(addItem){
+    const sp = cur.spaces.find(x=>x.id===addItem.dataset.additem);
+    const name = prompt("Add a line to " + sp.name);
+    if(name && name.trim()){ sp.items.push({t:name.trim(), s:"", n:"", base:""}); save(); renderSpaces(); renderHead(); }
+    return;
+  }
+
+  const ren = t.closest("[data-rename]");
+  if(ren){
+    const sp = cur.spaces.find(x=>x.id===ren.dataset.rename);
+    const name = prompt("Name this space", sp.name);
+    if(name && name.trim()){ sp.name = name.trim(); save(); renderSpaces(); renderHead(); }
+    return;
+  }
+
+  const delsp = t.closest("[data-delsp]");
+  if(delsp){
+    const i = cur.spaces.findIndex(x=>x.id===delsp.dataset.delsp);
+    if(i>=0 && confirm("Remove " + cur.spaces[i].name + " and everything marked in it?")){
+      cur.spaces.splice(i,1); save(); renderSpaces(); renderHead();
+    }
+    return;
+  }
+
+  const add = t.closest("[data-add]");
+  if(add){
+    const type = add.dataset.add;
+    const n = cur.spaces.filter(s=>s.type===type).length + 1;
+    const base = T[type].label;
+    const name = prompt("Name this space", type==="bedroom" ? "Bedroom #"+n : type==="bathroom" ? (n===1?"Bathroom":"Bathroom "+n) : base);
+    if(name===null) return;
+    cur.spaces.push({id:uid(), type, name: name.trim()||base, items: T[type].items.map(x=>({t:x, s:"", n:"", base:""}))});
+    save(); renderSpaces(); renderHead();
+    const d = document.querySelector('details[data-sp="'+cur.spaces[cur.spaces.length-1].id+'"]');
+    if(d) d.scrollIntoView({behavior:"smooth", block:"center"});
+    return;
+  }
+
+  const clean = t.closest("[data-clean]");
+  if(clean){
+    cur.meta.clean = cur.meta.clean===clean.dataset.clean ? "" : clean.dataset.clean;
+    document.querySelectorAll("#cleanSeg button").forEach(b=>b.classList.toggle("on", cur.meta.clean===b.dataset.clean));
+    save(); return;
+  }
+
+  const wear = t.closest("[data-wear]");
+  if(wear){
+    const k = wear.dataset.wear, w = cur.wk[k] = cur.wk[k] || {};
+    w.k = w.k===wear.dataset.val ? "" : wear.dataset.val;
+    document.querySelectorAll('[data-wear="'+k+'"]').forEach(b=>b.classList.toggle("on", b.dataset.val===w.k));
+    save(); wkTotal(); return;
+  }
+
+  const clr = t.closest("[data-clear]");
+  if(clr){
+    const which = clr.dataset.clear;
+    cur.sig[which==="T"?"t":"i"] = ""; drawSig(which, ""); save(); return;
+  }
+
+  const cam = t.closest("[data-cam]");
+  if(cam){ camTarget = cam.dataset.cam; document.getElementById("camIn").click(); return; }
+
+  const ph = t.closest("[data-ph]");
+  if(ph){
+    lbCurrent = ph.dataset.ph;
+    document.getElementById("lbImg").src = ph.src;
+    document.getElementById("lb").classList.add("on");
+    return;
+  }
+
+  if(t.id==="lbClose" || t.id==="lb"){ document.getElementById("lb").classList.remove("on"); return; }
+  if(t.id==="lbDel"){
+    if(lbCurrent){
+      await photoDelete(lbCurrent).catch(()=>{});
+      Object.keys(photos).forEach(k=>{ photos[k] = photos[k].filter(p=>p.id!==lbCurrent); });
+      renderSpaces();
+    }
+    document.getElementById("lb").classList.remove("on");
+    return;
+  }
+
+  if(t.id==="copyBtn"){
+    const txt = reportText(cur);
+    try{ await navigator.clipboard.writeText(txt); }
+    catch(err){
+      const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta);
+      ta.select(); try{ document.execCommand("copy"); }catch(e2){} ta.remove();
+    }
+    toast("Report copied"); return;
+  }
+  if(t.id==="printBtn"){ printNow(); return; }
+  if(t.id==="expOne"){
+    const pics = [];
+    Object.keys(photos).forEach(k=>photos[k].forEach(o=>pics.push(o)));
+    download(slug(cur), JSON.stringify({type:"cimco-inspection", v:1, records:[Object.assign({}, cur, {photos:pics})]}, null, 2));
+    return;
+  }
+  if(t.id==="expAll"){
+    const all = await allPhotos();
+    const recs = LIST.map(r=>Object.assign({}, r, {photos: all.filter(o=>o.insp===r.id)}));
+    download("inspections-"+today()+".json", JSON.stringify({type:"cimco-inspection", v:1, records:recs}, null, 2));
+    toast("Exported " + recs.length + " with photos");
+    return;
+  }
+  if(t.id==="impBtn"){ document.getElementById("impFile").click(); return; }
+  if(t.id==="dupBtn"){
+    const copy = JSON.parse(JSON.stringify(cur));
+    copy.id = uid(); copy.created = copy.updated = Date.now();
+    copy.spaces.forEach(sp=>sp.id = uid());
+    LIST.unshift(copy); save(); openRec(copy); toast("Duplicated"); return;
+  }
+  if(t.id==="delBtn"){
+    if(!confirm("Delete this inspection and its photos? This cannot be undone.")) return;
+    const id = cur.id;
+    LIST = LIST.filter(r=>r.id!==id); save(); photoDeleteInsp(id); go("home"); toast("Deleted"); return;
+  }
+});
+
+document.addEventListener("input", e=>{
+  const t = e.target;
+  if(t.classList.contains("m") && cur){
+    cur.meta[t.dataset.m] = t.value; save();
+    if(t.dataset.m==="address" || t.dataset.m==="unit"){
+      document.getElementById("edAddr").textContent = title(cur); renderBar();
+    }
+    return;
+  }
+  if(t.dataset.note && cur){
+    const [spId, idx] = t.dataset.note.split(":");
+    const sp = cur.spaces.find(x=>x.id===spId);
+    sp.items[+idx].n = t.value; save(); return;
+  }
+  if(t.dataset.cost && cur){
+    const w = cur.wk[t.dataset.cost] = cur.wk[t.dataset.cost] || {};
+    w.c = t.value.replace(/[^0-9.]/g,"");
+    if(!w.k) w.k = "dmg";
+    save(); wkTotal();
+    document.querySelectorAll('[data-wear="'+t.dataset.cost+'"]').forEach(b=>b.classList.toggle("on", b.dataset.val===w.k));
+    return;
+  }
+  if(t.id==="search"){ renderHome(); }
+});
+document.addEventListener("change", e=>{
+  if(e.target.dataset.note && cur){ renderBlock(); renderWk(); }
+});
+
+document.getElementById("camIn").addEventListener("change", async e=>{
+  const files = [...e.target.files]; e.target.value = "";
+  if(!files.length || !camTarget) return;
+  for(const f of files){
+    const data = await shrink(f);
+    if(!data) continue;
+    const rec = {id: uid(), insp: cur.id, key: camTarget, data, ts: Date.now()};
+    try{ await photoPut(rec); (photos[camTarget] = photos[camTarget] || []).push(rec); }
+    catch(err){ toast("Photos are not available in this browser"); return; }
+  }
+  renderSpaces(); toast("Photo saved");
+});
+
+document.getElementById("impFile").addEventListener("change", e=>{
+  const f = e.target.files[0]; e.target.value = "";
+  if(!f) return;
+  const fr = new FileReader();
+  fr.onload = ()=>{
+    try{
+      const data = JSON.parse(fr.result);
+      const recs = Array.isArray(data) ? data : (data.records||[]);
+      if(!recs.length) return toast("No inspections in that file");
+      let added = 0;
+      recs.forEach(r=>{
+        if(!r || !r.spaces) return;
+        const pics = r.photos || []; delete r.photos;
+        if(LIST.some(x=>x.id===r.id)) r.id = uid();
+        LIST.unshift(r); added++;
+        pics.forEach(o=>{ photoPut({id: uid(), insp: r.id, key: o.key, data: o.data, ts: o.ts||Date.now()}).catch(()=>{}); });
+      });
+      save(); renderHome(); toast(added + " imported");
+    }catch(err){ toast("That file could not be read"); }
+  };
+  fr.readAsText(f);
+});
+
+/* ---------------- boot ---------------- */
+loadAll();
+initSig("T"); initSig("I");
+document.getElementById("mastSub").textContent = ORG;
+go("home");
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
+}
+</script>
