@@ -134,7 +134,9 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .item.flagged .note{display:block}
 .thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .thumbs img{width:56px;height:56px;object-fit:cover;border:1px solid var(--rule);border-radius:2px;cursor:pointer}
-.pcode,.pnote{display:none}
+.pcode,.pnote,.pfigs{display:none}
+@media print{#dictCard{display:none!important}}
+.appx{display:none}
 
 /* exceptions block */
 .block{background:var(--ink);color:var(--paper);padding:15px;margin-bottom:12px}
@@ -162,6 +164,19 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .sigbox canvas{width:100%;height:110px;background:#fff;border:1px dashed var(--rule);touch-action:none;display:block}
 .sigbox .row{display:flex;gap:6px;align-items:center;margin-top:7px}
 .ack{font-size:12.5px;color:var(--slate);margin-top:11px;line-height:1.5;border-left:3px solid var(--hivis);padding-left:10px}
+
+/* dictation */
+.drow{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--hair);font-size:13.5px}
+.drow .dt{flex:1;min-width:0}
+.drow .dt b{font-weight:600}
+.drow .dt i{display:block;font-style:normal;font-size:12px;color:var(--slate);margin-top:1px}
+.dtag{flex:0 0 auto;padding:3px 8px;border-radius:2px;color:#fff;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.05em}
+.dtag.k-ok{background:var(--ok)} .dtag.k-d{background:var(--d)} .dtag.k-b{background:var(--b)}
+.dtag.k-c{background:var(--c)} .dtag.k-r{background:var(--r);color:var(--hivis)} .dtag.k-na{background:var(--na)}
+.drop{border:0;background:none;color:var(--mute);font-size:17px;line-height:1;padding:4px 6px}
+.drop:hover{color:var(--b)}
+.dnote{font-size:12.5px;color:var(--slate);margin:10px 0 0;padding-left:10px;border-left:3px solid var(--hivis)}
+#micBtn.live{background:var(--b);border-color:var(--b);color:#fff}
 
 /* home */
 .new{display:grid;grid-template-columns:1fr;gap:9px;margin-top:12px}
@@ -251,36 +266,23 @@ details[open]>summary .caret{transform:rotate(90deg)}
   .iname{font-size:10.5pt}
   .base{color:#444}
   .in,.seg button{border-color:#999;background:#fff}
-  .thumbs img{width:92px;height:92px}
+  .thumbs{display:none!important}
+  .pfigs{display:inline-block;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8pt;color:#444;margin-left:7px}
+  .appx{display:block;break-before:page}
+  .appx h3{font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-size:13pt;text-transform:uppercase;letter-spacing:.02em;margin:0 0 4px}
+  .appx .lead{font-size:9pt;color:#444;margin:0 0 10px}
+  .appx figure{margin:0 0 12px;display:inline-block;vertical-align:top;break-inside:avoid;padding-right:10px}
+  .appx figcaption{font-size:8.5pt;color:#222;margin-top:4px;line-height:1.35}
+  .appx img{width:100%;border:1px solid #999;display:block}
+  .appx.sz-sm figure{width:31.5%}
+  .appx.sz-md figure{width:48%}
+  .appx.sz-lg figure{width:100%;break-after:page}
+  .appx.sz-lg img{max-height:8.2in;object-fit:contain}
   .block{background:#fff;color:#000;border:1px solid #333}
   .block h3,.block .code{color:#000}
   .block ul{color:#000}
   .strip{display:none}
-  .thumbs{display:none!important}
-  .photo-appendix{display:block!important}
-  .photo-appendix:empty{display:none!important}
-  .pa-head{break-before:page;page-break-before:always;border-bottom:2px solid #000;padding-bottom:4mm;margin-bottom:5mm}
-  .pa-head h2{font-size:17pt;margin:1mm 0}
-  .pa-head p{font-size:9.5pt;color:#333;margin:0}
-  .pa-photo{break-inside:avoid;page-break-inside:avoid;margin:0 0 7mm;padding:0 0 5mm;border-bottom:1px solid #bbb}
-  .pa-photo img{display:block;width:100%;height:auto;object-fit:contain;margin:0 auto 3mm}
-  .pa-cap{font-size:9.5pt;line-height:1.35}
-  .pa-cap b{font-size:10.5pt}
-  .pa-meta{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:8.5pt;color:#444;margin-top:1mm}
-  .photo-appendix[data-layout="large"] .pa-photo img{max-height:188mm}
-  .photo-appendix[data-layout="large"] .pa-photo:not(:first-child){break-before:page;page-break-before:always}
-  .photo-appendix[data-layout="standard"] .pa-photo img{max-height:91mm}
-  .photo-appendix[data-layout="standard"] .pa-photo:nth-child(2n+1):not(:first-child){break-before:page;page-break-before:always}
 }
-
-.photo-appendix{display:none}
-.report-choice{display:block;border:1px solid var(--rule);background:#FBFAF7;padding:11px;margin:9px 0;cursor:pointer}
-.report-choice input{margin-right:8px}
-.report-choice b{display:block;margin-left:26px;font-size:13.5px}
-.report-choice span{display:block;margin:2px 0 0 26px;font-size:12px;color:var(--slate);line-height:1.4}
-.report-note{font-size:12.5px;color:var(--slate);line-height:1.5;margin:10px 0}
-.report-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}
-@media(max-width:460px){.report-actions{grid-template-columns:1fr}}
 </style>
 
 <header class="mast">
@@ -359,11 +361,18 @@ details[open]>summary .caret{transform:rotate(90deg)}
               <button data-clean="no">No</button>
             </div>
           </div>
+          <label class="f full"><span>Photos in the printout</span>
+            <select class="in m" data-m="photoSize">
+              <option value="md">Large — two across</option>
+              <option value="sm">Small — three across</option>
+              <option value="lg">Full page each</option>
+            </select></label>
           <label class="f full"><span>Misc. notes</span><textarea class="in m" data-m="misc" placeholder="Anything the sheet has no line for"></textarea></label>
         </div>
         <div class="row" style="margin-top:12px">
           <button class="mini" id="dupBtn">Duplicate</button>
-          <button class="mini" id="expOne">Backup (.json)</button>
+          <button class="mini" id="repBtn">Save report (web page)</button>
+          <button class="mini" id="expOne">Export data file</button>
           <button class="mini warn" id="delBtn">Delete inspection</button>
         </div>
       </details>
@@ -376,6 +385,25 @@ details[open]>summary .caret{transform:rotate(90deg)}
         <div class="lg"><i class="tag t-r">R</i> Replace</div>
         <div class="lg"><i class="tag t-na">–</i> N/A</div>
       </div>
+    </div>
+
+    <div class="card" id="dictCard">
+      <div class="eyebrow">Hands-free</div>
+      <h2>Dictate the walkthrough</h2>
+      <p style="font-size:13px;color:var(--slate);margin:9px 0 0">
+        Talk through the unit room by room — “Kitchen. Floor good, fridge not working, ice maker doesn’t fill.”
+        Paste a transcript from a video here, or record straight into the app. Nothing is applied until you review it.
+      </p>
+      <div class="row" style="margin-top:11px">
+        <button class="mini" id="micBtn">🎤 Start recording</button>
+        <button class="mini" id="dictHelp">What to say</button>
+      </div>
+      <textarea class="in" id="dictText" placeholder="Paste the transcript here, or hit record and talk." style="margin-top:10px;min-height:92px"></textarea>
+      <div class="row" style="margin-top:9px">
+        <button class="act solid" id="dictRun" style="font-size:12.5px;padding:10px 13px">Read it</button>
+        <button class="act ghost" id="dictClear" style="font-size:12.5px;padding:10px 13px">Clear</button>
+      </div>
+      <div id="dictOut"></div>
     </div>
 
     <div class="block" id="block"></div>
@@ -418,7 +446,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
       </div>
     </div>
 
-    <section id="photoAppendix" class="photo-appendix" aria-label="Photo evidence appendix"></section>
+    <section class="appx" id="appendix"></section>
 
     <p class="foot" id="edFoot"></p>
   </section>
@@ -442,7 +470,6 @@ details[open]>summary .caret{transform:rotate(90deg)}
 const MODE_LOCK = "out";      /* null = both modes in one app */
 const ORG = "CIMCO Property Management";
 const KEY = "cimco.inspections.v1";
-const REPORT_LAYOUT_KEY = KEY + ".report-layout";
 
 /* ---------------- templates from the paper sheet ---------------- */
 const T = {
@@ -536,7 +563,6 @@ function shrink(file){
   return new Promise(res=>{
     const url = URL.createObjectURL(file), img = new Image();
     img.onload = ()=>{
-      /* Enough detail for full-page evidence while keeping offline storage reasonable. */
       const max = 1600, sc = Math.min(1, max/Math.max(img.width,img.height));
       const c = document.createElement("canvas");
       c.width = Math.max(1,Math.round(img.width*sc)); c.height = Math.max(1,Math.round(img.height*sc));
@@ -560,7 +586,7 @@ function newInspection(mode, from){
   const rec = {
     id: uid(), mode, created: Date.now(), updated: Date.now(),
     meta: {date: today(), address:"", unit:"", tenant:"", owner:"", inspector:"", phone:"",
-           meterE:"", meterW:"", keys:"", fwd:"", misc:"", clean:"", tenantSigName:"", inspSigName:""},
+           meterE:"", meterW:"", keys:"", fwd:"", misc:"", clean:"", photoSize:"md", tenantSigName:"", inspSigName:""},
     spaces: makeSpaces(), wk:{}, sig:{t:"", i:""}, from: null
   };
   if(from){
@@ -598,6 +624,8 @@ function flagged(rec){
 
 /* ---------------- routing ---------------- */
 function go(view){
+  if(REC){ try{ REC.stop(); }catch(e){} }
+  DICT = [];
   const home = view==="home";
   document.getElementById("home").classList.toggle("hide", !home);
   document.getElementById("editor").classList.toggle("hide", home);
@@ -613,6 +641,7 @@ function go(view){
 async function openRec(rec){
   cur = rec; photos = {};
   document.getElementById("wk").dataset.sig = "";
+  const dt = document.getElementById("dictText"); if(dt) dt.value = "";
   go("editor");
   try{ photos = await photoLoad(rec.id); renderSpaces(); }catch(e){}
 }
@@ -656,13 +685,14 @@ function renderEditor(){
     ? "By signing, both parties confirm this sheet records the condition of the unit at move-out. Codes and photos taken today support any claim against the deposit."
     : "By signing, the tenant confirms they have walked the unit and that this sheet records its condition at move-in. Anything not listed here is presumed to have been in good order at handover.";
 
-  document.querySelectorAll(".m").forEach(el=>{ el.value = m[el.dataset.m] || ""; });
+  document.querySelectorAll(".m").forEach(el=>{ el.value = m[el.dataset.m] || (el.dataset.m==="photoSize" ? "md" : ""); });
   document.querySelectorAll("#cleanSeg button").forEach(b=> b.classList.toggle("on", m.clean===b.dataset.clean));
 
   document.getElementById("edFoot").textContent = cur.from
     ? "Baseline loaded from the move-in inspection for this address — every line shows how it was handed over."
     : "Saves as you go, on this phone. Export the file or print to PDF to send it in.";
 
+  renderDict();
   drawSig("T", cur.sig.t); drawSig("I", cur.sig.i);
   renderHead(); renderSpaces();
 }
@@ -715,7 +745,7 @@ function renderSpaces(){
       return `<div class="item ${flag?"flagged":""} ${it.s==="na"?"is-na":""}" data-key="${k}">
         <div class="itop">
           <div class="iname">${esc(it.t)}${baseHtml}
-            <span class="pcode">${it.s ? esc(CODE_LABEL[it.s]) : "—"}</span></div>
+            <span class="pcode">${it.s ? esc(CODE_LABEL[it.s]) : "—"}</span><span class="pfigs"></span></div>
           <button class="cam" data-cam="${k}" aria-label="Add photo of ${esc(it.t)}">📷${pics.length?`<b>${pics.length}</b>`:""}</button>
         </div>
         <div class="pad6">${CODES.map(([v,g,lab])=>
@@ -819,7 +849,7 @@ function renderBar(){
   bar.innerHTML = `<div class="st"><b>${esc(title(cur))}</b> — ${s.done}/${s.total}${s.flags? " · "+s.flags+" flagged":""}</div>
     <button class="act ghost" id="homeBtn">All</button>
     <button class="act" id="copyBtn">Copy report</button>
-    <button class="act solid" id="printBtn">Save report</button>`;
+    <button class="act solid" id="printBtn">Print / PDF</button>`;
 }
 
 /* ---------------- signature pads ---------------- */
@@ -847,65 +877,144 @@ function initSig(which){
   c.addEventListener("pointercancel", end);
 }
 
-function getReportLayout(){
-  try{ const v=localStorage.getItem(REPORT_LAYOUT_KEY); return v==="standard" ? "standard" : "large"; }catch(e){ return "large"; }
-}
-function setReportLayout(v){
-  const layout=v==="standard" ? "standard" : "large";
-  try{ localStorage.setItem(REPORT_LAYOUT_KEY, layout); }catch(e){}
-  return layout;
-}
-function photoEntries(rec){
-  const out=[];
-  rec.spaces.forEach(sp=>sp.items.forEach((it,i)=>{
-    const key=sp.id+":"+i, arr=photos[key]||[];
-    arr.forEach((p,j)=>out.push({sp,it,key,p,num:j+1,total:arr.length}));
+/* every photo in walking order, numbered — used by print and by the web report */
+function photoLog(){
+  const out = []; let n = 0;
+  cur.spaces.forEach(sp=>sp.items.forEach((it,i)=>{
+    (photos[sp.id+":"+i] || []).forEach(p=>out.push({n: ++n, key: sp.id+":"+i, p, sp, it}));
   }));
   return out;
 }
-function photoStamp(ts){
-  if(!ts) return "";
-  try{ return new Date(ts).toLocaleString([], {year:"numeric",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}); }
-  catch(e){ return new Date(ts).toLocaleString(); }
+function figRefs(log){
+  const map = {};
+  log.forEach(o=>{ (map[o.key] = map[o.key] || []).push(o.n); });
+  return map;
 }
-function renderPhotoAppendix(layout){
-  const el=document.getElementById("photoAppendix"), rows=photoEntries(cur);
-  el.dataset.layout=layout;
-  if(!rows.length){ el.innerHTML=""; return; }
-  el.innerHTML = `<div class="pa-head"><div class="eyebrow">Evidence appendix</div><h2>Photo evidence · ${rows.length}</h2>` +
-    `<p>${esc(title(cur))} · ${fmtDate(cur.meta.date)||"Undated"}. Each image is labeled to the inspection line it documents.</p></div>` +
-    `<div class="pa-list">${rows.map(o=>{
-      const status=CODE_LABEL[o.it.s]||"Unmarked";
-      const base=o.it.base ? ` · Move-in: ${esc(CODE_LABEL[o.it.base]||o.it.base)}` : "";
-      const note=o.it.n ? `<div>${esc(o.it.n)}</div>` : "";
-      const stamp=photoStamp(o.p.ts);
-      return `<article class="pa-photo"><img src="${o.p.data}" alt="${esc(o.sp.name+" — "+o.it.t)}">` +
-        `<div class="pa-cap"><b>${esc(o.sp.name)} — ${esc(o.it.t)}</b>${note}` +
-        `<div class="pa-meta">${esc(status)}${base} · Photo ${o.num} of ${o.total}${stamp?" · Saved "+esc(stamp):""}</div></div></article>`;
-    }).join("")}</div>`;
+function caption(o){
+  return "Fig " + o.n + " — " + o.sp.name + " / " + o.it.t
+    + (o.it.s ? " [" + CODE_LABEL[o.it.s] + "]" : "")
+    + (o.it.n ? " — " + o.it.n : "");
 }
-function printNow(layout){
-  layout=setReportLayout(layout||getReportLayout());
-  renderPhotoAppendix(layout);
+
+function printNow(){
   document.querySelectorAll("#spaces details.sec").forEach(d=>d.open = true);
   document.getElementById("metaBox").open = true;
   document.querySelectorAll(".item").forEach(el=>{
-    const ta=el.querySelector(".note"), pn=el.querySelector(".pnote");
-    if(ta && pn) pn.textContent=ta.value.trim();
+    const ta = el.querySelector(".note"), pn = el.querySelector(".pnote");
+    if(ta && pn) pn.textContent = ta.value.trim();
   });
-  setTimeout(()=>window.print(),80);
+
+  const log = photoLog(), refs = figRefs(log);
+  document.querySelectorAll(".item").forEach(el=>{
+    const f = el.querySelector(".pfigs"), r = refs[el.dataset.key];
+    if(f) f.textContent = r ? (r.length > 1 ? "Figs " + r[0] + "–" + r[r.length-1] : "Fig " + r[0]) : "";
+  });
+
+  const appx = document.getElementById("appendix");
+  appx.className = "appx sz-" + (cur.meta.photoSize || "md");
+  appx.innerHTML = log.length
+    ? "<h3>Photo log</h3><p class=\"lead\">" + log.length + " photo" + (log.length===1?"":"s")
+      + " taken " + (fmtDate(cur.meta.date)||"on inspection") + " at " + esc(title(cur)) + ".</p>"
+      + log.map(o=>'<figure><img src="' + o.p.data + '"><figcaption>' + esc(caption(o)) + "</figcaption></figure>").join("")
+    : "";
+
+  setTimeout(()=>window.print(), 120);
 }
-function openReportModal(){
-  const count=photoEntries(cur).length, chosen=getReportLayout();
-  document.getElementById("modalBody").innerHTML =
-    `<div class="eyebrow">Save report</div><h2>PDF + photo evidence</h2>` +
-    `<p class="report-note">${count ? `${count} photo${count===1?"":"s"} will be added as a labeled appendix. Choose how large they should print.` : `This inspection has no photos yet. You can still save the PDF or HTML report.`}</p>` +
-    `<label class="report-choice"><input type="radio" name="reportLayout" value="large" ${chosen==="large"?"checked":""}><b>Evidence size · 1 photo per page</b><span>Best for zooming, damage details, and deposit documentation. Larger PDF.</span></label>` +
-    `<label class="report-choice"><input type="radio" name="reportLayout" value="standard" ${chosen==="standard"?"checked":""}><b>Standard size · 2 photos per page</b><span>Still readable, with fewer pages and a smaller PDF.</span></label>` +
-    `<p class="report-note"><b>HTML report:</b> one self-contained file with the embedded photos. Open it in any browser, tap a photo to view it by itself, or print it to PDF later. The JSON backup remains the format used to import an inspection back into this app.</p>` +
-    `<div class="report-actions"><button class="act solid" id="doPrint">Print / Save PDF</button><button class="act" id="saveHtml">Save HTML report</button></div>` +
-    `<div class="row" style="margin-top:8px"><button class="act ghost" id="modalClose">Cancel</button></div>`;
-  document.getElementById("modal").classList.add("on");
+
+/* a self-contained web page: full-size photos, opens anywhere, no app needed */
+function reportHTML(rec){
+  const m = rec.meta, s = stats(rec), log = photoLog(), refs = figRefs(log);
+  const head = [
+    ["Date", fmtDate(m.date)], ["Inspector", m.inspector], ["Tenant", m.tenant], ["Owner", m.owner],
+    ["Phone", m.phone], ["Unit clean", m.clean ? m.clean.toUpperCase() : ""],
+    [rec.mode==="out" ? "Keys returned" : "Keys issued", m.keys],
+    ["Electric meter", m.meterE], ["Water meter", m.meterW],
+    ["Forwarding address", rec.mode==="out" ? m.fwd : ""]
+  ].filter(r=>r[1]);
+
+  const lines = rec.spaces.map(sp=>{
+    const rows = sp.items.map((it,i)=>{
+      const r = refs[sp.id+":"+i];
+      return "<tr class=\"" + (FLAGS.indexOf(it.s)>=0 ? "bad" : "") + "\"><td>" + esc(it.t) + "</td>"
+        + "<td class=\"c\">" + (it.s ? esc(CODE_LABEL[it.s]) : "—") + "</td>"
+        + "<td>" + esc(it.n||"") + (r ? " <span class=\"fig\">Fig " + r.join(", ") + "</span>" : "") + "</td></tr>";
+    }).join("");
+    return "<h2>" + esc(sp.name) + "</h2><table>" + rows + "</table>";
+  }).join("");
+
+  let wk = "";
+  if(rec.mode==="out"){
+    const rows = flagged(rec).filter(o=>{ const w = rec.wk[o.key]; return w && (w.k || w.c); });
+    if(rows.length){
+      let tot = 0;
+      const tr = rows.map(o=>{
+        const w = rec.wk[o.key], amt = w.k==="dmg" ? (parseFloat(w.c||0)||0) : 0;
+        tot += amt;
+        return "<tr><td>" + esc(o.sp.name + " / " + o.it.t) + "</td><td class=\"c\">"
+          + (w.k==="dmg" ? "Tenant damage" : "Normal wear") + "</td><td class=\"c\">"
+          + (w.k==="dmg" ? money(amt) : "—") + "</td></tr>";
+      }).join("");
+      wk = "<h2>Damage worksheet</h2><table>" + tr
+        + "<tr class=\"tot\"><td>Tenant damage total</td><td></td><td class=\"c\">" + money(tot) + "</td></tr></table>";
+    }
+  }
+
+  const sigs = "<div class=\"sigs\">"
+    + "<div><span>Tenant" + (m.tenantSigName ? " — " + esc(m.tenantSigName) : "") + "</span>"
+    + (rec.sig.t ? '<img src="' + rec.sig.t + '">' : "<i>not signed</i>") + "</div>"
+    + "<div><span>Inspector" + (m.inspSigName ? " — " + esc(m.inspSigName) : "") + "</span>"
+    + (rec.sig.i ? '<img src="' + rec.sig.i + '">' : "<i>not signed</i>") + "</div></div>";
+
+  const gallery = log.length
+    ? "<h2>Photo log</h2><div class=\"gal\">" + log.map(o=>
+        '<figure><img src="' + o.p.data + '" alt="' + esc(caption(o)) + '"><figcaption>'
+        + esc(caption(o)) + "</figcaption></figure>").join("") + "</div>"
+    : "";
+
+  return "<!doctype html><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+    + "<title>" + esc((rec.mode==="out"?"Move-out":"Move-in") + " — " + title(rec)) + "</title><style>"
+    + "body{font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#16181A;background:#F1F0EC;margin:0;padding:24px}"
+    + ".w{max-width:900px;margin:0 auto;background:#fff;border:1px solid #D8D6CF;padding:26px}"
+    + "h1{font-size:21px;text-transform:uppercase;letter-spacing:.02em;margin:0 0 2px}"
+    + ".sub{font:12px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#4A5157;margin-bottom:14px}"
+    + "h2{font-size:15px;text-transform:uppercase;letter-spacing:.02em;margin:22px 0 6px;border-bottom:2px solid #16181A;padding-bottom:4px}"
+    + "table{width:100%;border-collapse:collapse;font-size:13.5px}"
+    + "td{border-bottom:1px solid #EDEBE5;padding:6px 8px;vertical-align:top}"
+    + "td.c{width:120px;font:12px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:#4A5157}"
+    + "tr.bad td{background:#FDF3F0}tr.bad td.c{color:#BE3319;font-weight:600}tr.tot td{font-weight:700;background:#F1F0EC}"
+    + ".meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin:14px 0}"
+    + ".meta div{border-left:3px solid #F4C21B;padding-left:9px}"
+    + ".meta b{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#4A5157}"
+    + ".fig{font:11px ui-monospace,Menlo,monospace;color:#4A5157;white-space:nowrap}"
+    + ".gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:12px}"
+    + ".gal figure{margin:0}.gal img{width:100%;border:1px solid #D8D6CF;display:block}"
+    + ".gal figcaption{font-size:12.5px;color:#4A5157;margin-top:5px}"
+    + "@media print{.gal{display:block}.gal figure{display:inline-block;width:48%;vertical-align:top;margin:0 1% 14px 0}}"
+    + ".sigs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}"
+    + ".sigs span{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#4A5157;margin-bottom:4px}"
+    + ".sigs img{width:100%;max-width:280px;border-bottom:1px solid #16181A}"
+    + "@media print{body{background:#fff;padding:0}.w{border:0;padding:0}.gal{grid-template-columns:1fr 1fr}figure{break-inside:avoid}}"
+    + "</style><div class=\"w\"><div class=\"sub\">" + esc(ORG) + " · " + (rec.mode==="out" ? "Move-out" : "Move-in") + " inspection</div>"
+    + "<h1>" + esc(title(rec)) + "</h1>"
+    + "<div class=\"meta\">" + head.map(r=>"<div><b>" + esc(r[0]) + "</b>" + esc(r[1]) + "</div>").join("")
+    + "<div><b>Lines</b>" + s.done + " of " + s.total + " marked, " + s.flags + " flagged</div></div>"
+    + lines + wk + (m.misc ? "<h2>Misc. notes</h2><p>" + esc(m.misc) + "</p>" : "")
+    + "<h2>Sign-off</h2>" + sigs + gallery + "</div>";
+}
+
+async function sendFile(name, text, mime){
+  const blob = new Blob([text], {type: mime});
+  try{
+    const f = new File([blob], name, {type: mime});
+    if(navigator.canShare && navigator.canShare({files:[f]})){
+      await navigator.share({files:[f], title: name});
+      return;
+    }
+  }catch(e){ if(e && e.name === "AbortError") return; }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 600);
 }
 
 /* ---------------- report text ---------------- */
@@ -951,39 +1060,321 @@ function reportText(rec){
   return L.join("\n");
 }
 
-function download(name,text,type){
-  const blob=new Blob([text],{type:type||"application/octet-stream"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob); a.download=name;
+function download(name, text){
+  const blob = new Blob([text], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
   document.body.appendChild(a); a.click();
-  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1200);
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
-function slugBase(rec){
-  return ((rec.mode==="out"?"moveout":"movein")+"-"+title(rec)+"-"+(rec.meta.date||today()))
-    .toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+function slug(rec){
+  return ((rec.mode==="out"?"moveout":"movein") + "-" + title(rec) + "-" + (rec.meta.date||today()))
+    .toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") + ".json";
 }
-function slug(rec){return slugBase(rec)+".json";}
-function htmlReport(rec,layout){
-  const m=rec.meta,st=stats(rec),pics=photoEntries(rec),isOut=rec.mode==="out";
-  const fields=[["Date",fmtDate(m.date)||"—"],["Inspector",m.inspector||"—"],["Address",title(rec)],["Tenant(s)",m.tenant||"—"],["Owner",m.owner||"—"],[isOut?"Keys returned":"Keys issued",m.keys||"—"],["Phone",m.phone||"—"],["Electric meter",m.meterE||"—"],["Water meter",m.meterW||"—"],["Unit clean",m.clean?m.clean.toUpperCase():"—"]];
-  if(isOut&&m.fwd) fields.push(["Forwarding address",m.fwd]);
-  const spaces=rec.spaces.map(sp=>`<section class="space"><h2>${esc(sp.name)}</h2><table><thead><tr><th>Inspection line</th><th>Condition</th><th>Notes</th></tr></thead><tbody>${sp.items.map(it=>{const cond=it.s?esc(CODE_LABEL[it.s]||it.s):"—";const base=it.base?`<span class="base">Move-in: ${esc(CODE_LABEL[it.base]||it.base)}</span>`:"";return `<tr class="${FLAGS.indexOf(it.s)>=0?"flag":""}"><td>${esc(it.t)}${base}</td><td><b>${cond}</b></td><td>${esc(it.n||"")}</td></tr>`;}).join("")}</tbody></table></section>`).join("");
-  let worksheet="";
-  if(isOut){const rows=flagged(rec).filter(o=>{const w=rec.wk[o.key];return w&&w.k;});if(rows.length){let total=0;worksheet=`<section><h2>Damage worksheet</h2><table><thead><tr><th>Line</th><th>Classification</th><th>Amount</th></tr></thead><tbody>${rows.map(o=>{const w=rec.wk[o.key]||{},amt=w.k==="dmg"?(parseFloat(w.c||0)||0):0;total+=amt;return `<tr><td>${esc(o.sp.name)} — ${esc(o.it.t)}</td><td>${w.k==="dmg"?"Tenant damage":"Normal wear"}</td><td>${w.k==="dmg"?money(amt):"—"}</td></tr>`;}).join("")}</tbody><tfoot><tr><td colspan="2"><b>Tenant damage total</b></td><td><b>${money(total)}</b></td></tr></tfoot></table></section>`;}}
-  const signatures=`<section><h2>Signatures</h2><div class="sigs"><div><b>Tenant</b>${rec.sig.t?`<img src="${rec.sig.t}" alt="Tenant signature">`:`<div class="nosig">No signature saved</div>`}<p>${esc(m.tenantSigName||"")}</p></div><div><b>Inspector / agent</b>${rec.sig.i?`<img src="${rec.sig.i}" alt="Inspector signature">`:`<div class="nosig">No signature saved</div>`}<p>${esc(m.inspSigName||"")}</p></div></div></section>`;
-  const gallery=pics.length?`<section class="photos"><div class="photohead"><div class="eyebrow">Evidence appendix</div><h2>Photo evidence · ${pics.length}</h2><p>Tap or click a photo to open the embedded image by itself at full available resolution.</p></div>${pics.map(o=>{const stamp=photoStamp(o.p.ts),base=o.it.base?` · Move-in: ${esc(CODE_LABEL[o.it.base]||o.it.base)}`:"";return `<article class="photo"><a href="${o.p.data}" target="_blank" rel="noopener"><img src="${o.p.data}" alt="${esc(o.sp.name+" — "+o.it.t)}"></a><div class="cap"><b>${esc(o.sp.name)} — ${esc(o.it.t)}</b>${o.it.n?`<div>${esc(o.it.n)}</div>`:""}<small>${esc(CODE_LABEL[o.it.s]||"Unmarked")}${base} · Photo ${o.num} of ${o.total}${stamp?" · Saved "+esc(stamp):""}</small></div></article>`;}).join("")}</section>`:"";
-  const css=`*{box-sizing:border-box}body{margin:0;background:#efeee9;color:#16181a;font-family:Arial,sans-serif;line-height:1.45}.page{max-width:980px;margin:auto;background:white;padding:34px}.top{border-bottom:4px solid #16181a;padding-bottom:16px;margin-bottom:18px}.eyebrow{font:700 11px/1.2 ui-monospace,monospace;text-transform:uppercase;letter-spacing:.12em;color:#596168}.top h1{font-size:28px;text-transform:uppercase;margin:5px 0}.top p{margin:3px 0;color:#596168}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.summary div{border:1px solid #d8d6cf;padding:9px}.summary span{display:block;font:700 10px ui-monospace,monospace;text-transform:uppercase;color:#596168;margin-bottom:3px}.stats{padding:10px 12px;background:#16181a;color:white;margin:14px 0}.space,section{margin:22px 0}.space h2,section h2{font-size:17px;text-transform:uppercase;margin:0 0 8px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #d8d6cf;padding:7px 8px;vertical-align:top;text-align:left}th{background:#f4f3ef;font-size:11px;text-transform:uppercase}.flag td{background:#fff3ef}.base{display:block;font-size:10px;color:#666;margin-top:2px}.sigs{display:grid;grid-template-columns:1fr 1fr;gap:14px}.sigs>div{border:1px solid #d8d6cf;padding:10px}.sigs img{width:100%;height:105px;object-fit:contain;background:#fff}.sigs p{margin:4px 0 0}.nosig{height:105px;display:grid;place-items:center;color:#888;border:1px dashed #ccc}.misc{white-space:pre-wrap;border-left:4px solid #16181a;padding:8px 12px;background:#f8f7f3}.photos{margin-top:34px}.photohead{border-bottom:3px solid #16181a;padding-bottom:8px;margin-bottom:14px}.photohead h2{font-size:22px;margin:3px 0}.photohead p{margin:0;color:#596168}.photo{border-bottom:1px solid #bbb;padding-bottom:14px;margin-bottom:18px}.photo img{display:block;max-width:100%;width:auto;height:auto;max-height:72vh;margin:0 auto 8px;object-fit:contain}.cap{font-size:14px}.cap small{display:block;font:11px ui-monospace,monospace;color:#596168;margin-top:3px}.footer{margin-top:28px;padding-top:10px;border-top:1px solid #bbb;font-size:11px;color:#666}@media(max-width:650px){.page{padding:18px}.summary{grid-template-columns:1fr 1fr}.sigs{grid-template-columns:1fr}table{font-size:12px}}@media print{@page{margin:12mm}body{background:white}.page{max-width:none;padding:0}.space h2{break-after:avoid}tr{break-inside:avoid}.photos{break-before:page}.photo{break-inside:avoid}.photo img{width:100%;max-height:${layout==="standard"?"91mm":"188mm"}}${layout==="large"?`.photo:not(:first-of-type){break-before:page}`:`.photo:nth-of-type(2n+1):not(:first-of-type){break-before:page}`}.footer{display:none}}`;
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc((isOut?"Move-out":"Move-in")+" inspection — "+title(rec))}</title><style>${css}</style></head><body><main class="page"><header class="top"><div class="eyebrow">${esc(ORG)}</div><h1>${isOut?"Move-out":"Move-in"} inspection</h1><p>${esc(title(rec))}</p></header><div class="summary">${fields.map(([k,v])=>`<div><span>${esc(k)}</span>${esc(v)}</div>`).join("")}</div><div class="stats">${st.done} of ${st.total} lines marked · ${st.flags} flagged · ${pics.length} photo${pics.length===1?"":"s"}</div>${m.misc?`<section><h2>Misc. notes</h2><div class="misc">${esc(m.misc)}</div></section>`:""}${spaces}${worksheet}${signatures}${gallery}<div class="footer">Self-contained report exported from ${esc(ORG)} on ${esc(new Date().toLocaleString())}. The JSON backup is the re-importable app record.</div></main></body></html>`;
+
+/* ============ DICTATION ============
+   Turns what the inspector said into marked lines.
+   Pasted transcript, or live speech where the browser supports it. */
+
+const SAY = [
+  ["c",  ["not working","not work","doesn't work","does not work","dont work","won't turn on","wont turn on","no power","doesn't turn on","not functioning","inoperable","dead","won't open","wont open","won't close","wont close","not draining","no hot water","leaking","leaks","running"]],
+  ["r",  ["needs replacing","needs to be replaced","need replacing","needs replaced","replace","replacement","shot","beyond repair"]],
+  ["b",  ["broken","cracked","crack","damaged","busted","bust","torn","ripped","hole","holes","chipped","chip","shattered","bent","loose","missing","split","rotted","rotten"]],
+  ["d",  ["dirty","filthy","needs cleaning","need cleaning","needs a clean","grimy","stained","stain","soiled","dusty","dust","mold","mildew","greasy","scuffed","scuffs","scuff","marks","marked up","hair","debris","trash"]],
+  ["na", ["not applicable","n/a","n a","doesn't have","does not have","no such","not present","not there","none here","skip"]],
+  ["ok", ["good","fine","okay","ok","clean","great","perfect","new","excellent","no issues","no issue","all good","looks good","nothing wrong","spotless","works","working","solid"]]
+];
+const NEG = ["not good","no good","not clean","not fine","not okay","not ok","not great","not new"];
+
+/* extra words that should match a line on the sheet */
+const ALIAS = {
+  "Outlets / plates":["outlet","outlets","plate","plates","switch","switches","receptacle"],
+  "A/C vents":["ac vent","a c vent","air vent","vent","vents","register","registers","supply"],
+  "Oven / range":["oven","range","stove","cooktop","burner","burners"],
+  "Sink / disposal":["sink","disposal","garbage disposal"],
+  "Vent hood":["hood","range hood","exhaust"],
+  "Shower handle":["handle","shower valve","valve"],
+  "Shower walls":["shower wall","tile","tiles","surround"],
+  "Outlets / GFCI":["outlet","outlets","gfci","plug","plugs"],
+  "Baseboard":["baseboards","base board","trim","molding"],
+  "Blinds":["blind","shades","curtains","curtain"],
+  "Smoke detectors":["smoke detector","smoke alarm","smoke alarms","smokes"],
+  "CO detector":["carbon monoxide","co alarm","c o detector"],
+  "A/C filter (size noted)":["filter","air filter","ac filter"],
+  "A/C cools":["ac","air conditioning","air conditioner","cooling","cools","unit cools"],
+  "Water heater":["hot water heater","water tank"],
+  "Breaker panel":["breaker","breakers","panel","electrical panel"],
+  "Main water shutoff":["shutoff","shut off","water valve","main valve"],
+  "Locks / deadbolts":["lock","locks","deadbolt","deadbolts"],
+  "Screens / lanai":["screen","screens","lanai","porch","patio"],
+  "Garage / carport":["garage","carport"],
+  "Roof / siding":["roof","siding","soffit","gutters","gutter"],
+  "Front yard":["front lawn","front grass","landscaping"],
+  "Backyard":["back yard","back lawn","rear yard"],
+  "Exterior lights":["outside lights","porch light","exterior light"],
+  "Hookups / hoses":["hookup","hookups","hose","hoses","connections"],
+  "Dryer vent":["dryer duct","lint"],
+  "Windows":["window","glass","screen"],
+  "Doors":["door","doorway"],
+  "Walls":["wall","drywall","paint"],
+  "Floor":["floors","flooring","carpet","tile","laminate","vinyl","wood floor"],
+  "Lights":["light","lighting","fixture","fixtures","bulb","bulbs"],
+  "Closet":["closets","wardrobe"],
+  "Cabinets":["cabinet","cupboard","cupboards","drawers","drawer"],
+  "Counter":["counters","countertop","countertops"],
+  "Faucet":["faucets","tap","spout"],
+  "Fridge":["refrigerator","freezer","icemaker","ice maker"],
+  "Toilet":["commode","tank","bowl"],
+  "Tub":["bathtub","bath"],
+  "Vanity":["sink","basin","medicine cabinet"],
+  "Mirror":["mirrors"],
+  "Vent":["fan","exhaust fan","vent fan"],
+  "GFCI":["gfi","g f c i","reset button"],
+  "Thermostat":["stat","nest"],
+  "Microwave":["micro"],
+  "Dishwasher":["dish washer"],
+  "Washer":["washing machine"],
+  "Dryer":["clothes dryer"],
+  "Fence":["fencing","gate"],
+  "Trees":["tree","landscaping","bushes","shrubs"],
+  "Shed":["storage shed"],
+  "Pool":["swimming pool","spa"],
+  "Mailbox":["mail box"],
+  "Driveway":["drive","concrete","pavers"],
+  "Front door":["entry door","main door"],
+  "Back door":["rear door","slider","sliding door"]
+};
+
+/* words that mean "I'm in a different room now" */
+const SPACE_HINT = ["moving to","move to","now in","next up","heading to","going to","over to","in the","this is the","let's do","lets do","now the","onto the","on to the"];
+
+function norm(s){
+  return " " + String(s).toLowerCase()
+    .replace(/[""'']/g,"'").replace(/[^a-z0-9'/\s]/g," ")
+    .replace(/\s+/g," ").trim() + " ";
 }
-function saveHtmlReport(layout){
-  layout=setReportLayout(layout||getReportLayout());
-  download(slugBase(cur)+"-report.html",htmlReport(cur,layout),"text/html;charset=utf-8");
-  toast("HTML report saved");
+function aliasesFor(name){
+  const out = [name.toLowerCase()];
+  (ALIAS[name] || []).forEach(a=>out.push(a));
+  name.toLowerCase().split(/[/()]/).forEach(part=>{
+    part = part.replace(/size noted/,"").trim();
+    if(part.length > 2) out.push(part);
+  });
+  return out;
+}
+
+/* which room is this chunk talking about? */
+function matchSpace(txt){
+  let best = null, bestLen = 0;
+  cur.spaces.forEach(sp=>{
+    const cands = [sp.name.toLowerCase()];
+    const t = sp.type;
+    if(t==="living") cands.push("living room","living","front room","family room","dining","dining room","great room");
+    if(t==="kitchen") cands.push("kitchen","kitchenette");
+    if(t==="laundry") cands.push("laundry","laundry room","utility","appliances");
+    if(t==="bedroom") cands.push("bedroom","bed room","master bedroom","primary bedroom");
+    if(t==="bathroom") cands.push("bathroom","bath","master bath","guest bath","half bath","powder room","restroom");
+    if(t==="systems") cands.push("safety","systems","mechanicals","utilities");
+    if(t==="outside") cands.push("outside","exterior","outdoors","yard","out back","front");
+    cands.forEach(c=>{
+      const n = norm(c);
+      if(txt.indexOf(n.trim().length ? " " + n.trim() + " " : n) >= 0 && c.length > bestLen){
+        best = sp; bestLen = c.length;
+      }
+    });
+  });
+  return best;
+}
+
+/* which line on the sheet? scored so "shower walls" beats "walls" */
+function matchItem(sp, txt, leadOnly){
+  let best = null, score = 0;
+  const words = txt.trim().split(" ").length;
+  sp.items.forEach((it,i)=>{
+    aliasesFor(it.t).forEach(a=>{
+      const n = " " + a.trim() + " ";
+      if(!a.trim()) return;
+      const at = txt.indexOf(n);
+      if(at < 0 || a.length <= score) return;
+      /* "some marks near the light switch" describes the wall, it is not a new
+         line about switches — the line has to be named near the front. */
+      if(leadOnly && words > 5 && txt.slice(0, at + 1).trim().split(" ").filter(Boolean).length > 2) return;
+      best = {it, i}; score = a.length;
+    });
+  });
+  return best;
+}
+
+const STOP = ["is","are","was","were","the","a","an","and","but","it","its","it's","has","have","had","get","got","some","there","this","that","of","on","in","at","to","looks","look","seems","bit","very","really","kinda","pretty","all","up","down","side","one"];
+/* does the leftover text actually say anything, once the line name and the
+   condition word are taken out? if not, the note would just echo the code. */
+function noteWorthKeeping(part, itemName, codeHit){
+  let rest = " " + part.toLowerCase().replace(/[^a-z0-9'\s]/g," ") + " ";
+  aliasesFor(itemName).forEach(a=>{ rest = rest.split(" " + a.trim() + " ").join(" "); });
+  rest = rest.split(" " + codeHit + " ").join(" ");
+  const words = rest.split(/\s+/).filter(w=>w && STOP.indexOf(w) < 0);
+  return words.length >= 1;
+}
+
+function matchCode(txt){
+  for(const neg of NEG){ if(txt.indexOf(" " + neg + " ") >= 0) return {code:"b", hit:neg}; }
+  for(const [code, words] of SAY){
+    for(const w of words){
+      if(txt.indexOf(" " + w + " ") >= 0) return {code, hit:w};
+    }
+  }
+  return null;
+}
+
+/* transcript -> list of proposed changes */
+function parseDictation(text){
+  const out = [];
+  let space = null, last = null;
+
+  String(text).split(/[.\n;!?]+/).forEach(sentence=>{
+    if(!sentence.trim()) return;
+    const sTxt = norm(sentence);
+    const sHit = matchSpace(sTxt);
+    /* a room named with a lead-in, or named with nothing else in the sentence, switches rooms */
+    if(sHit){
+      const leadIn = SPACE_HINT.some(h=>sTxt.indexOf(" " + h + " ") >= 0);
+      if(leadIn || !matchItem(sHit, sTxt)) space = sHit;
+    }
+
+    sentence.split(",").forEach(part=>{
+      const txt = norm(part);
+      if(!txt.trim()) return;
+
+      const here = matchSpace(txt);
+      if(here) space = here;
+      if(!space) return;
+
+      const im = matchItem(space, txt, true);
+      const cm = matchCode(txt);
+
+      if(im && cm){
+        /* keep the note only when it says more than the code already does */
+        let note = "";
+        if(FLAGS.indexOf(cm.code) >= 0 && noteWorthKeeping(part, im.it.t, cm.hit)){
+          note = part.trim().replace(/\s+/g," ").replace(/^(and|but|then|also|okay|ok|so)\s+/i,"").trim();
+          note = note.charAt(0).toUpperCase() + note.slice(1);
+        }
+        last = {sp: space, idx: im.i, item: im.it.t, code: cm.code, note, raw: part.trim()};
+        out.push(last);
+      } else if(im && !cm){
+        last = null;
+      } else if(!im && !cm && last && FLAGS.indexOf(last.code) >= 0 && part.trim().length > 3){
+        /* trailing description belongs to the line we just flagged, unless the
+           inspector is announcing the next room */
+        if(SPACE_HINT.some(h=>txt.indexOf(" " + h + " ") >= 0) || matchSpace(txt)){ last = null; return; }
+        last.note = (last.note ? last.note + "; " : "") + part.trim();
+      }
+    });
+  });
+
+  /* last write wins per line */
+  const seen = {};
+  out.forEach(o=>{ seen[o.sp.id + ":" + o.idx] = o; });
+  return Object.keys(seen).map(k=>seen[k]);
+}
+
+function applyDictation(rows){
+  rows.forEach(r=>{
+    const it = r.sp.items[r.idx];
+    it.s = r.code;
+    if(r.note && FLAGS.indexOf(r.code) >= 0) it.n = it.n ? (it.n + "; " + r.note) : r.note;
+  });
+  save(); renderSpaces(); renderHead();
+}
+
+/* ---------------- dictation UI ---------------- */
+let DICT = [];
+function renderDict(){
+  const el = document.getElementById("dictOut");
+  if(!DICT.length){ el.innerHTML = ""; return; }
+  const flags = DICT.filter(r=>FLAGS.indexOf(r.code)>=0).length;
+  el.innerHTML = '<p class="dnote">' + DICT.length + " line" + (DICT.length===1?"":"s") +
+    " picked up" + (flags ? ", " + flags + " flagged" : "") +
+    ". Drop anything it misheard, then apply.</p>" +
+    DICT.map((r,i)=>'<div class="drow"><span class="dt"><b>' + esc(r.sp.name) + " / " + esc(r.item) + "</b>" +
+      (r.note ? "<i>" + esc(r.note) + "</i>" : "") + '</span>' +
+      '<span class="dtag k-' + r.code + '">' + esc(CODE_LABEL[r.code]) + "</span>" +
+      '<button class="drop" data-drop="' + i + '" aria-label="Discard">✕</button></div>').join("") +
+    '<div class="row" style="margin-top:11px"><button class="act solid" id="dictApply" style="font-size:12.5px;padding:10px 13px">Apply to the sheet</button></div>';
+}
+
+/* live speech, where the browser offers it */
+let REC = null;
+function toggleMic(){
+  const btn = document.getElementById("micBtn");
+  if(REC){ REC.stop(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    toast("This browser can't record speech — paste a transcript instead");
+    return;
+  }
+  const box = document.getElementById("dictText");
+  REC = new SR();
+  REC.continuous = true; REC.interimResults = true; REC.lang = "en-US";
+  let settled = box.value ? box.value.trim() + " " : "";
+  REC.onresult = ev=>{
+    let interim = "";
+    for(let i = ev.resultIndex; i < ev.results.length; i++){
+      const txt = ev.results[i][0].transcript;
+      if(ev.results[i].isFinal) settled += txt.trim() + ". "; else interim += txt;
+    }
+    box.value = settled + interim;
+    box.scrollTop = box.scrollHeight;
+  };
+  REC.onerror = ev=>{
+    toast(ev.error === "not-allowed" ? "Microphone blocked — allow it in your browser settings"
+      : ev.error === "network" ? "Speech needs a signal — dictate later or paste a transcript"
+      : "Recording stopped");
+  };
+  REC.onend = ()=>{ REC = null; btn.classList.remove("live"); btn.textContent = "🎤 Start recording";
+    if(document.getElementById("dictText").value.trim()) toast("Recording stopped — hit Read it"); };
+  try{
+    REC.start();
+    btn.classList.add("live"); btn.textContent = "■ Stop recording";
+    toast("Listening — say the room, then each line");
+  }catch(e){ REC = null; toast("Could not start the microphone"); }
 }
 
 /* ---------------- events ---------------- */
 document.addEventListener("click", async e=>{
   const t = e.target;
+
+  if(t.id==="dictRun"){
+    const txt = document.getElementById("dictText").value;
+    if(!txt.trim()){ toast("Nothing to read yet"); return; }
+    DICT = parseDictation(txt);
+    renderDict();
+    return;
+  }
+  if(t.id==="dictClear"){
+    document.getElementById("dictText").value = "";
+    DICT = []; renderDict(); return;
+  }
+  if(t.id==="dictApply"){
+    if(!DICT.length) return;
+    const n = DICT.length;
+    applyDictation(DICT);
+    DICT = []; renderDict();
+    toast(n + " line" + (n===1?"":"s") + " marked — check them over");
+    return;
+  }
+  const drop = t.closest("[data-drop]");
+  if(drop){ DICT.splice(+drop.dataset.drop, 1); renderDict(); return; }
+  if(t.id==="dictHelp"){
+    alert("Say the room, then each line and how it looks.\n\n" +
+      "\"Living room. Floor good, walls dirty, scuffs by the slider. Closet door broken.\"\n\n" +
+      "\"Moving to the kitchen. Cabinets fine, fridge not working, ice maker doesn't fill.\"\n\n" +
+      "Words it knows: good, clean, fine — dirty, stained, scuffed — broken, cracked, torn — " +
+      "not working, no power, leaking — replace — not applicable.\n\n" +
+      "Anything you say after a problem becomes the note on that line.");
+    return;
+  }
+  if(t.id==="micBtn"){ toggleMic(); return; }
 
   const nw = t.closest("[data-new]");
   if(nw){
@@ -1121,27 +1512,21 @@ document.addEventListener("click", async e=>{
     }
     toast("Report copied"); return;
   }
-  if(t.id==="printBtn"){ openReportModal(); return; }
-  if(t.id==="doPrint"){
-    const layout=document.querySelector('input[name="reportLayout"]:checked');
-    document.getElementById("modal").classList.remove("on");
-    printNow(layout?layout.value:getReportLayout()); return;
-  }
-  if(t.id==="saveHtml"){
-    const layout=document.querySelector('input[name="reportLayout"]:checked');
-    document.getElementById("modal").classList.remove("on");
-    saveHtmlReport(layout?layout.value:getReportLayout()); return;
+  if(t.id==="printBtn"){ printNow(); return; }
+  if(t.id==="repBtn"){
+    await sendFile(slug(cur).replace(/\.json$/, ".html"), reportHTML(cur), "text/html");
+    return;
   }
   if(t.id==="expOne"){
     const pics = [];
     Object.keys(photos).forEach(k=>photos[k].forEach(o=>pics.push(o)));
-    download(slug(cur), JSON.stringify({type:"cimco-inspection", v:1, records:[Object.assign({}, cur, {photos:pics})]}, null, 2), "application/json");
+    download(slug(cur), JSON.stringify({type:"cimco-inspection", v:1, records:[Object.assign({}, cur, {photos:pics})]}, null, 2));
     return;
   }
   if(t.id==="expAll"){
     const all = await allPhotos();
     const recs = LIST.map(r=>Object.assign({}, r, {photos: all.filter(o=>o.insp===r.id)}));
-    download("inspections-"+today()+".json", JSON.stringify({type:"cimco-inspection", v:1, records:recs}, null, 2), "application/json");
+    download("inspections-"+today()+".json", JSON.stringify({type:"cimco-inspection", v:1, records:recs}, null, 2));
     toast("Exported " + recs.length + " with photos");
     return;
   }
@@ -1185,6 +1570,9 @@ document.addEventListener("input", e=>{
 });
 document.addEventListener("change", e=>{
   if(e.target.dataset.note && cur){ renderBlock(); renderWk(); }
+  if(e.target.tagName === "SELECT" && e.target.classList.contains("m") && cur){
+    cur.meta[e.target.dataset.m] = e.target.value; save();
+  }
 });
 
 document.getElementById("camIn").addEventListener("change", async e=>{
