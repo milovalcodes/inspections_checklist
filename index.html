@@ -256,7 +256,31 @@ details[open]>summary .caret{transform:rotate(90deg)}
   .block h3,.block .code{color:#000}
   .block ul{color:#000}
   .strip{display:none}
+  .thumbs{display:none!important}
+  .photo-appendix{display:block!important}
+  .photo-appendix:empty{display:none!important}
+  .pa-head{break-before:page;page-break-before:always;border-bottom:2px solid #000;padding-bottom:4mm;margin-bottom:5mm}
+  .pa-head h2{font-size:17pt;margin:1mm 0}
+  .pa-head p{font-size:9.5pt;color:#333;margin:0}
+  .pa-photo{break-inside:avoid;page-break-inside:avoid;margin:0 0 7mm;padding:0 0 5mm;border-bottom:1px solid #bbb}
+  .pa-photo img{display:block;width:100%;height:auto;object-fit:contain;margin:0 auto 3mm}
+  .pa-cap{font-size:9.5pt;line-height:1.35}
+  .pa-cap b{font-size:10.5pt}
+  .pa-meta{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:8.5pt;color:#444;margin-top:1mm}
+  .photo-appendix[data-layout="large"] .pa-photo img{max-height:188mm}
+  .photo-appendix[data-layout="large"] .pa-photo:not(:first-child){break-before:page;page-break-before:always}
+  .photo-appendix[data-layout="standard"] .pa-photo img{max-height:91mm}
+  .photo-appendix[data-layout="standard"] .pa-photo:nth-child(2n+1):not(:first-child){break-before:page;page-break-before:always}
 }
+
+.photo-appendix{display:none}
+.report-choice{display:block;border:1px solid var(--rule);background:#FBFAF7;padding:11px;margin:9px 0;cursor:pointer}
+.report-choice input{margin-right:8px}
+.report-choice b{display:block;margin-left:26px;font-size:13.5px}
+.report-choice span{display:block;margin:2px 0 0 26px;font-size:12px;color:var(--slate);line-height:1.4}
+.report-note{font-size:12.5px;color:var(--slate);line-height:1.5;margin:10px 0}
+.report-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}
+@media(max-width:460px){.report-actions{grid-template-columns:1fr}}
 </style>
 
 <header class="mast">
@@ -339,7 +363,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
         </div>
         <div class="row" style="margin-top:12px">
           <button class="mini" id="dupBtn">Duplicate</button>
-          <button class="mini" id="expOne">Export this one</button>
+          <button class="mini" id="expOne">Backup (.json)</button>
           <button class="mini warn" id="delBtn">Delete inspection</button>
         </div>
       </details>
@@ -394,6 +418,8 @@ details[open]>summary .caret{transform:rotate(90deg)}
       </div>
     </div>
 
+    <section id="photoAppendix" class="photo-appendix" aria-label="Photo evidence appendix"></section>
+
     <p class="foot" id="edFoot"></p>
   </section>
 </main>
@@ -416,6 +442,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
 const MODE_LOCK = null;      /* null = both modes in one app */
 const ORG = "CIMCO Property Management";
 const KEY = "cimco.inspections.v1";
+const REPORT_LAYOUT_KEY = KEY + ".report-layout";
 
 /* ---------------- templates from the paper sheet ---------------- */
 const T = {
@@ -509,12 +536,13 @@ function shrink(file){
   return new Promise(res=>{
     const url = URL.createObjectURL(file), img = new Image();
     img.onload = ()=>{
-      const max = 1280, sc = Math.min(1, max/Math.max(img.width,img.height));
+      /* Enough detail for full-page evidence while keeping offline storage reasonable. */
+      const max = 1600, sc = Math.min(1, max/Math.max(img.width,img.height));
       const c = document.createElement("canvas");
       c.width = Math.max(1,Math.round(img.width*sc)); c.height = Math.max(1,Math.round(img.height*sc));
       c.getContext("2d").drawImage(img,0,0,c.width,c.height);
       URL.revokeObjectURL(url);
-      try{ res(c.toDataURL("image/jpeg",0.6)); }catch(e){ res(null); }
+      try{ res(c.toDataURL("image/jpeg",0.72)); }catch(e){ res(null); }
     };
     img.onerror = ()=>{ URL.revokeObjectURL(url); res(null); };
     img.src = url;
@@ -791,7 +819,7 @@ function renderBar(){
   bar.innerHTML = `<div class="st"><b>${esc(title(cur))}</b> — ${s.done}/${s.total}${s.flags? " · "+s.flags+" flagged":""}</div>
     <button class="act ghost" id="homeBtn">All</button>
     <button class="act" id="copyBtn">Copy report</button>
-    <button class="act solid" id="printBtn">Print / PDF</button>`;
+    <button class="act solid" id="printBtn">Save report</button>`;
 }
 
 /* ---------------- signature pads ---------------- */
@@ -819,14 +847,65 @@ function initSig(which){
   c.addEventListener("pointercancel", end);
 }
 
-function printNow(){
+function getReportLayout(){
+  try{ const v=localStorage.getItem(REPORT_LAYOUT_KEY); return v==="standard" ? "standard" : "large"; }catch(e){ return "large"; }
+}
+function setReportLayout(v){
+  const layout=v==="standard" ? "standard" : "large";
+  try{ localStorage.setItem(REPORT_LAYOUT_KEY, layout); }catch(e){}
+  return layout;
+}
+function photoEntries(rec){
+  const out=[];
+  rec.spaces.forEach(sp=>sp.items.forEach((it,i)=>{
+    const key=sp.id+":"+i, arr=photos[key]||[];
+    arr.forEach((p,j)=>out.push({sp,it,key,p,num:j+1,total:arr.length}));
+  }));
+  return out;
+}
+function photoStamp(ts){
+  if(!ts) return "";
+  try{ return new Date(ts).toLocaleString([], {year:"numeric",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}); }
+  catch(e){ return new Date(ts).toLocaleString(); }
+}
+function renderPhotoAppendix(layout){
+  const el=document.getElementById("photoAppendix"), rows=photoEntries(cur);
+  el.dataset.layout=layout;
+  if(!rows.length){ el.innerHTML=""; return; }
+  el.innerHTML = `<div class="pa-head"><div class="eyebrow">Evidence appendix</div><h2>Photo evidence · ${rows.length}</h2>` +
+    `<p>${esc(title(cur))} · ${fmtDate(cur.meta.date)||"Undated"}. Each image is labeled to the inspection line it documents.</p></div>` +
+    `<div class="pa-list">${rows.map(o=>{
+      const status=CODE_LABEL[o.it.s]||"Unmarked";
+      const base=o.it.base ? ` · Move-in: ${esc(CODE_LABEL[o.it.base]||o.it.base)}` : "";
+      const note=o.it.n ? `<div>${esc(o.it.n)}</div>` : "";
+      const stamp=photoStamp(o.p.ts);
+      return `<article class="pa-photo"><img src="${o.p.data}" alt="${esc(o.sp.name+" — "+o.it.t)}">` +
+        `<div class="pa-cap"><b>${esc(o.sp.name)} — ${esc(o.it.t)}</b>${note}` +
+        `<div class="pa-meta">${esc(status)}${base} · Photo ${o.num} of ${o.total}${stamp?" · Saved "+esc(stamp):""}</div></div></article>`;
+    }).join("")}</div>`;
+}
+function printNow(layout){
+  layout=setReportLayout(layout||getReportLayout());
+  renderPhotoAppendix(layout);
   document.querySelectorAll("#spaces details.sec").forEach(d=>d.open = true);
   document.getElementById("metaBox").open = true;
   document.querySelectorAll(".item").forEach(el=>{
-    const ta = el.querySelector(".note"), pn = el.querySelector(".pnote");
-    if(ta && pn) pn.textContent = ta.value.trim();
+    const ta=el.querySelector(".note"), pn=el.querySelector(".pnote");
+    if(ta && pn) pn.textContent=ta.value.trim();
   });
-  setTimeout(()=>window.print(), 80);
+  setTimeout(()=>window.print(),80);
+}
+function openReportModal(){
+  const count=photoEntries(cur).length, chosen=getReportLayout();
+  document.getElementById("modalBody").innerHTML =
+    `<div class="eyebrow">Save report</div><h2>PDF + photo evidence</h2>` +
+    `<p class="report-note">${count ? `${count} photo${count===1?"":"s"} will be added as a labeled appendix. Choose how large they should print.` : `This inspection has no photos yet. You can still save the PDF or HTML report.`}</p>` +
+    `<label class="report-choice"><input type="radio" name="reportLayout" value="large" ${chosen==="large"?"checked":""}><b>Evidence size · 1 photo per page</b><span>Best for zooming, damage details, and deposit documentation. Larger PDF.</span></label>` +
+    `<label class="report-choice"><input type="radio" name="reportLayout" value="standard" ${chosen==="standard"?"checked":""}><b>Standard size · 2 photos per page</b><span>Still readable, with fewer pages and a smaller PDF.</span></label>` +
+    `<p class="report-note"><b>HTML report:</b> one self-contained file with the embedded photos. Open it in any browser, tap a photo to view it by itself, or print it to PDF later. The JSON backup remains the format used to import an inspection back into this app.</p>` +
+    `<div class="report-actions"><button class="act solid" id="doPrint">Print / Save PDF</button><button class="act" id="saveHtml">Save HTML report</button></div>` +
+    `<div class="row" style="margin-top:8px"><button class="act ghost" id="modalClose">Cancel</button></div>`;
+  document.getElementById("modal").classList.add("on");
 }
 
 /* ---------------- report text ---------------- */
@@ -872,16 +951,34 @@ function reportText(rec){
   return L.join("\n");
 }
 
-function download(name, text){
-  const blob = new Blob([text], {type:"application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = name;
+function download(name,text,type){
+  const blob=new Blob([text],{type:type||"application/octet-stream"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=name;
   document.body.appendChild(a); a.click();
-  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1200);
 }
-function slug(rec){
-  return ((rec.mode==="out"?"moveout":"movein") + "-" + title(rec) + "-" + (rec.meta.date||today()))
-    .toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") + ".json";
+function slugBase(rec){
+  return ((rec.mode==="out"?"moveout":"movein")+"-"+title(rec)+"-"+(rec.meta.date||today()))
+    .toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+}
+function slug(rec){return slugBase(rec)+".json";}
+function htmlReport(rec,layout){
+  const m=rec.meta,st=stats(rec),pics=photoEntries(rec),isOut=rec.mode==="out";
+  const fields=[["Date",fmtDate(m.date)||"—"],["Inspector",m.inspector||"—"],["Address",title(rec)],["Tenant(s)",m.tenant||"—"],["Owner",m.owner||"—"],[isOut?"Keys returned":"Keys issued",m.keys||"—"],["Phone",m.phone||"—"],["Electric meter",m.meterE||"—"],["Water meter",m.meterW||"—"],["Unit clean",m.clean?m.clean.toUpperCase():"—"]];
+  if(isOut&&m.fwd) fields.push(["Forwarding address",m.fwd]);
+  const spaces=rec.spaces.map(sp=>`<section class="space"><h2>${esc(sp.name)}</h2><table><thead><tr><th>Inspection line</th><th>Condition</th><th>Notes</th></tr></thead><tbody>${sp.items.map(it=>{const cond=it.s?esc(CODE_LABEL[it.s]||it.s):"—";const base=it.base?`<span class="base">Move-in: ${esc(CODE_LABEL[it.base]||it.base)}</span>`:"";return `<tr class="${FLAGS.indexOf(it.s)>=0?"flag":""}"><td>${esc(it.t)}${base}</td><td><b>${cond}</b></td><td>${esc(it.n||"")}</td></tr>`;}).join("")}</tbody></table></section>`).join("");
+  let worksheet="";
+  if(isOut){const rows=flagged(rec).filter(o=>{const w=rec.wk[o.key];return w&&w.k;});if(rows.length){let total=0;worksheet=`<section><h2>Damage worksheet</h2><table><thead><tr><th>Line</th><th>Classification</th><th>Amount</th></tr></thead><tbody>${rows.map(o=>{const w=rec.wk[o.key]||{},amt=w.k==="dmg"?(parseFloat(w.c||0)||0):0;total+=amt;return `<tr><td>${esc(o.sp.name)} — ${esc(o.it.t)}</td><td>${w.k==="dmg"?"Tenant damage":"Normal wear"}</td><td>${w.k==="dmg"?money(amt):"—"}</td></tr>`;}).join("")}</tbody><tfoot><tr><td colspan="2"><b>Tenant damage total</b></td><td><b>${money(total)}</b></td></tr></tfoot></table></section>`;}}
+  const signatures=`<section><h2>Signatures</h2><div class="sigs"><div><b>Tenant</b>${rec.sig.t?`<img src="${rec.sig.t}" alt="Tenant signature">`:`<div class="nosig">No signature saved</div>`}<p>${esc(m.tenantSigName||"")}</p></div><div><b>Inspector / agent</b>${rec.sig.i?`<img src="${rec.sig.i}" alt="Inspector signature">`:`<div class="nosig">No signature saved</div>`}<p>${esc(m.inspSigName||"")}</p></div></div></section>`;
+  const gallery=pics.length?`<section class="photos"><div class="photohead"><div class="eyebrow">Evidence appendix</div><h2>Photo evidence · ${pics.length}</h2><p>Tap or click a photo to open the embedded image by itself at full available resolution.</p></div>${pics.map(o=>{const stamp=photoStamp(o.p.ts),base=o.it.base?` · Move-in: ${esc(CODE_LABEL[o.it.base]||o.it.base)}`:"";return `<article class="photo"><a href="${o.p.data}" target="_blank" rel="noopener"><img src="${o.p.data}" alt="${esc(o.sp.name+" — "+o.it.t)}"></a><div class="cap"><b>${esc(o.sp.name)} — ${esc(o.it.t)}</b>${o.it.n?`<div>${esc(o.it.n)}</div>`:""}<small>${esc(CODE_LABEL[o.it.s]||"Unmarked")}${base} · Photo ${o.num} of ${o.total}${stamp?" · Saved "+esc(stamp):""}</small></div></article>`;}).join("")}</section>`:"";
+  const css=`*{box-sizing:border-box}body{margin:0;background:#efeee9;color:#16181a;font-family:Arial,sans-serif;line-height:1.45}.page{max-width:980px;margin:auto;background:white;padding:34px}.top{border-bottom:4px solid #16181a;padding-bottom:16px;margin-bottom:18px}.eyebrow{font:700 11px/1.2 ui-monospace,monospace;text-transform:uppercase;letter-spacing:.12em;color:#596168}.top h1{font-size:28px;text-transform:uppercase;margin:5px 0}.top p{margin:3px 0;color:#596168}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.summary div{border:1px solid #d8d6cf;padding:9px}.summary span{display:block;font:700 10px ui-monospace,monospace;text-transform:uppercase;color:#596168;margin-bottom:3px}.stats{padding:10px 12px;background:#16181a;color:white;margin:14px 0}.space,section{margin:22px 0}.space h2,section h2{font-size:17px;text-transform:uppercase;margin:0 0 8px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #d8d6cf;padding:7px 8px;vertical-align:top;text-align:left}th{background:#f4f3ef;font-size:11px;text-transform:uppercase}.flag td{background:#fff3ef}.base{display:block;font-size:10px;color:#666;margin-top:2px}.sigs{display:grid;grid-template-columns:1fr 1fr;gap:14px}.sigs>div{border:1px solid #d8d6cf;padding:10px}.sigs img{width:100%;height:105px;object-fit:contain;background:#fff}.sigs p{margin:4px 0 0}.nosig{height:105px;display:grid;place-items:center;color:#888;border:1px dashed #ccc}.misc{white-space:pre-wrap;border-left:4px solid #16181a;padding:8px 12px;background:#f8f7f3}.photos{margin-top:34px}.photohead{border-bottom:3px solid #16181a;padding-bottom:8px;margin-bottom:14px}.photohead h2{font-size:22px;margin:3px 0}.photohead p{margin:0;color:#596168}.photo{border-bottom:1px solid #bbb;padding-bottom:14px;margin-bottom:18px}.photo img{display:block;max-width:100%;width:auto;height:auto;max-height:72vh;margin:0 auto 8px;object-fit:contain}.cap{font-size:14px}.cap small{display:block;font:11px ui-monospace,monospace;color:#596168;margin-top:3px}.footer{margin-top:28px;padding-top:10px;border-top:1px solid #bbb;font-size:11px;color:#666}@media(max-width:650px){.page{padding:18px}.summary{grid-template-columns:1fr 1fr}.sigs{grid-template-columns:1fr}table{font-size:12px}}@media print{@page{margin:12mm}body{background:white}.page{max-width:none;padding:0}.space h2{break-after:avoid}tr{break-inside:avoid}.photos{break-before:page}.photo{break-inside:avoid}.photo img{width:100%;max-height:${layout==="standard"?"91mm":"188mm"}}${layout==="large"?`.photo:not(:first-of-type){break-before:page}`:`.photo:nth-of-type(2n+1):not(:first-of-type){break-before:page}`}.footer{display:none}}`;
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc((isOut?"Move-out":"Move-in")+" inspection — "+title(rec))}</title><style>${css}</style></head><body><main class="page"><header class="top"><div class="eyebrow">${esc(ORG)}</div><h1>${isOut?"Move-out":"Move-in"} inspection</h1><p>${esc(title(rec))}</p></header><div class="summary">${fields.map(([k,v])=>`<div><span>${esc(k)}</span>${esc(v)}</div>`).join("")}</div><div class="stats">${st.done} of ${st.total} lines marked · ${st.flags} flagged · ${pics.length} photo${pics.length===1?"":"s"}</div>${m.misc?`<section><h2>Misc. notes</h2><div class="misc">${esc(m.misc)}</div></section>`:""}${spaces}${worksheet}${signatures}${gallery}<div class="footer">Self-contained report exported from ${esc(ORG)} on ${esc(new Date().toLocaleString())}. The JSON backup is the re-importable app record.</div></main></body></html>`;
+}
+function saveHtmlReport(layout){
+  layout=setReportLayout(layout||getReportLayout());
+  download(slugBase(cur)+"-report.html",htmlReport(cur,layout),"text/html;charset=utf-8");
+  toast("HTML report saved");
 }
 
 /* ---------------- events ---------------- */
@@ -1024,17 +1121,27 @@ document.addEventListener("click", async e=>{
     }
     toast("Report copied"); return;
   }
-  if(t.id==="printBtn"){ printNow(); return; }
+  if(t.id==="printBtn"){ openReportModal(); return; }
+  if(t.id==="doPrint"){
+    const layout=document.querySelector('input[name="reportLayout"]:checked');
+    document.getElementById("modal").classList.remove("on");
+    printNow(layout?layout.value:getReportLayout()); return;
+  }
+  if(t.id==="saveHtml"){
+    const layout=document.querySelector('input[name="reportLayout"]:checked');
+    document.getElementById("modal").classList.remove("on");
+    saveHtmlReport(layout?layout.value:getReportLayout()); return;
+  }
   if(t.id==="expOne"){
     const pics = [];
     Object.keys(photos).forEach(k=>photos[k].forEach(o=>pics.push(o)));
-    download(slug(cur), JSON.stringify({type:"cimco-inspection", v:1, records:[Object.assign({}, cur, {photos:pics})]}, null, 2));
+    download(slug(cur), JSON.stringify({type:"cimco-inspection", v:1, records:[Object.assign({}, cur, {photos:pics})]}, null, 2), "application/json");
     return;
   }
   if(t.id==="expAll"){
     const all = await allPhotos();
     const recs = LIST.map(r=>Object.assign({}, r, {photos: all.filter(o=>o.insp===r.id)}));
-    download("inspections-"+today()+".json", JSON.stringify({type:"cimco-inspection", v:1, records:recs}, null, 2));
+    download("inspections-"+today()+".json", JSON.stringify({type:"cimco-inspection", v:1, records:recs}, null, 2), "application/json");
     toast("Exported " + recs.length + " with photos");
     return;
   }

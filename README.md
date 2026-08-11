@@ -44,8 +44,10 @@ the fonts and files cache.
 4. **Mark rest good** fills the untouched lines in a room in one tap.
 5. **Add or rename rooms** as the unit needs — bedrooms, baths, anything else.
 6. **Sign** — tenant and inspector, on the screen.
-7. **Send it in** — *Copy report* for text, *Print / PDF* for the file copy,
-   or *Export this one* for a file that carries the photos with it.
+7. **Send it in** — *Copy report* for text, or **Save report** for either:
+   - a **PDF** with a labeled photo appendix (1 large photo/page or 2/page), or
+   - a **self-contained HTML report** with large embedded photos you can tap/click to view.
+   Use **Backup (.json)** when you need a re-importable app record that carries the photos with it.
 
 ## Where the data lives
 
@@ -54,10 +56,14 @@ That means:
 
 - Clearing browser data, or deleting the app, deletes the inspections.
 - Each inspector's phone holds only their own work.
-- To move records between phones or send them to the office, use **Export** and **Import**
-  on the home screen. Exported files include the photos.
+- To move records between phones, use the JSON **Backup / Export** and **Import** controls.
+  JSON backups include the photos.
+- For a human-readable office copy, use **Save report**. The PDF now adds every inspection photo
+  to a labeled evidence appendix. The HTML option is a single portable file with the photos embedded
+  at report resolution, so they remain easy to inspect on screen.
 
-Treat the printed PDF as the record of file.
+For recordkeeping, save the PDF and keep the JSON backup when you may need to restore the inspection.
+The HTML report is useful when staff need to review or zoom the photos without opening the app.
 
 ## Changing it
 
@@ -76,3 +82,11 @@ in each — or keep editing `index.html` only and let the team use that one.
 The move-out worksheet mentions Florida's deposit-claim timing (Fla. Stat. 83.49) as a
 reminder. Confirm the dates and the wording with your broker or attorney before anything
 goes out to a tenant.
+
+
+## Photo report behavior
+
+Newly added photos are resized to a maximum long edge of 1600 px at moderate JPEG compression.
+That is a balance between evidence detail and offline phone storage. Existing photos are left unchanged.
+The PDF checklist does not waste space on tiny thumbnails; instead, photos print in a dedicated appendix
+with the room, inspection line, condition, note, sequence number, and saved timestamp.
