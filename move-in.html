@@ -102,6 +102,17 @@ textarea.in{resize:vertical;min-height:60px;line-height:1.45}
 .pace-badge{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:9px;letter-spacing:.09em;color:#6E5837;border:1px solid #DEC9A9;border-radius:99px;padding:4px 6px;white-space:nowrap}
 .fieldpulse.complete .pace-badge{color:var(--ok);border-color:#A5D1B5}
 @keyframes progress-glow{0%{filter:brightness(1)}45%{filter:brightness(1.35);box-shadow:0 0 0 5px rgba(213,162,94,.2)}100%{filter:brightness(1);box-shadow:none}}
+.print-meta{display:none}
+.walk-progress{position:fixed;z-index:45;left:50%;top:9px;width:min(calc(100vw - 22px),460px);padding:8px 10px;border:1px solid #D8CCB7;border-radius:8px;background:rgba(255,253,249,.97);box-shadow:0 8px 22px rgba(31,52,53,.18);color:var(--ink);font:inherit;text-align:left;cursor:pointer;opacity:0;pointer-events:none;transform:translate(-50%,-130%);transition:transform .24s ease,opacity .2s ease;backdrop-filter:blur(12px)}
+.walk-progress.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.walk-progress-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.walk-progress-top b{font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-size:12px;line-height:1.1}
+.walk-progress-top small{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:9px;letter-spacing:.045em;color:var(--slate);white-space:nowrap}
+.walk-progress-line{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;margin-top:6px}
+.walk-progress-line i{display:block;height:6px;overflow:hidden;border-radius:99px;background:#E8E0D2}
+.walk-progress-line em{display:block;width:0;height:100%;border-radius:inherit;background:var(--hivis);transition:width .35s cubic-bezier(.2,.8,.2,1),background .25s}
+.walk-progress.complete .walk-progress-line em{background:var(--ok)}
+.walk-progress-line strong{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--ink)}
 
 /* legend */
 .legend{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:13px;padding-top:13px;border-top:1px solid var(--rule)}
@@ -280,12 +291,18 @@ body[data-mode="ready"] .inoutonly{display:none!important}
 }
 @media print{
   @page{margin:12mm}
-  .mast .lede,.rail,.bar,.sectools,.pad6,.cam,.mini,.toast,.lb,#celebrate,#fieldPulse,.noprint{display:none!important}
+  .mast .lede,.rail,.bar,.sectools,.pad6,.cam,.mini,.toast,.lb,#celebrate,#fieldPulse,#walkProgress,.noprint{display:none!important}
   body{background:#fff;padding:0;font-size:11pt}
   .mast{background:#fff;color:#000;padding:0;border-bottom:2px solid #000}
   .mast:after{display:none}
   .mast .sub{color:#000}
   .card{border-color:#999;break-inside:avoid;margin:8px 0}
+  #editor > .card:first-child{border:0!important;box-shadow:none!important;margin:0 0 7px!important;padding:0 0 7px!important;border-bottom:1px solid #999!important}
+  #editor > .card:first-child .strip,#editor > .card:first-child .tally,#editor > .card:first-child #metaBox,#editor > .card:first-child .legend{display:none!important}
+  .print-meta{display:flex;gap:0 11px;flex-wrap:wrap;margin-top:5px;color:#222}
+  .print-meta span{font-size:9.5pt;line-height:1.45;white-space:nowrap}
+  .print-meta span+span{border-left:1px solid #BBB;padding-left:11px}
+  .print-meta b{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:8pt;letter-spacing:.06em;text-transform:uppercase;color:#555;margin-right:4px}
   .sec{border-color:#999;margin:8px 0;break-inside:auto}
   .sec>summary{break-after:avoid}
   .item{break-inside:avoid}
@@ -336,6 +353,11 @@ body[data-mode="ready"] .inoutonly{display:none!important}
   <div class="rail hide" id="rail"></div>
   <div class="pad" id="mastPad"></div>
 </header>
+
+<button class="walk-progress" id="walkProgress" type="button" aria-label="Return to the inspection progress at the top of the page">
+  <span class="walk-progress-top"><b id="walkRoom">Walkthrough</b><small id="walkCount">0/0 lines</small></span>
+  <span class="walk-progress-line"><i><em id="walkFill"></em></i><strong id="walkPct">0%</strong></span>
+</button>
 
 <main class="wrap">
 
@@ -390,6 +412,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
         <span class="pace-copy"><b id="paceTitle">Ready to walk</b><small id="paceNote">One quick tap per line. The app saves as you go.</small></span>
         <span class="pace-badge" id="paceBadge">START</span>
       </div>
+      <div class="print-meta" id="printMeta"></div>
 
       <details id="metaBox">
         <summary class="mini" style="margin-top:13px;display:inline-block">Header &amp; details</summary>
@@ -438,6 +461,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
         </div>
         <div class="row" style="margin-top:12px">
           <button class="mini" id="dupBtn">Duplicate</button>
+          <button class="mini go readyonly" id="promoteReadyBtn">Create move-in copy</button>
           <button class="mini" id="repBtn">Save report (web page)</button>
           <button class="mini" id="expOne">Export data file</button>
           <button class="mini warn" id="delBtn">Delete inspection</button>
@@ -726,7 +750,33 @@ function renderMomentum(s){
 function setActiveSpace(id){
   ACTIVE_SPACE_ID = id || "";
   document.querySelectorAll("[data-jump]").forEach(btn=>btn.classList.toggle("on", btn.dataset.jump===ACTIVE_SPACE_ID));
+  if(cur) renderWalkProgress(stats(cur));
 }
+function renderWalkProgress(s){
+  const dock = document.getElementById("walkProgress");
+  if(!dock || !cur) return;
+  const active = activeSpaces(cur).find(sp=>sp.id===ACTIVE_SPACE_ID);
+  document.getElementById("walkRoom").textContent = active ? active.name : "Walkthrough";
+  document.getElementById("walkCount").textContent = s.done + "/" + s.total + " lines" + (s.flags ? " · " + s.flags + " need work" : "");
+  document.getElementById("walkPct").textContent = s.pct + "%";
+  document.getElementById("walkFill").style.width = s.pct + "%";
+  dock.classList.toggle("complete", !!s.total && s.pct===100);
+}
+let WALK_PROGRESS_FRAME = null;
+function syncWalkProgress(){
+  WALK_PROGRESS_FRAME = null;
+  const dock = document.getElementById("walkProgress");
+  const source = document.getElementById("fieldPulse");
+  if(!dock) return;
+  const shouldShow = document.body.dataset.view==="editor" && !!source && source.getBoundingClientRect().bottom < 12;
+  dock.classList.toggle("show", shouldShow);
+}
+function scheduleWalkProgress(){
+  if(WALK_PROGRESS_FRAME!==null) return;
+  WALK_PROGRESS_FRAME = requestAnimationFrame(syncWalkProgress);
+}
+window.addEventListener("scroll", scheduleWalkProgress, {passive:true});
+window.addEventListener("resize", scheduleWalkProgress, {passive:true});
 function watchSpaces(){
   if(SPACE_OBSERVER){ SPACE_OBSERVER.disconnect(); SPACE_OBSERVER=null; }
   if(!("IntersectionObserver" in window)) return;
@@ -856,6 +906,47 @@ function newInspection(mode, from, seed){
   LIST.unshift(rec); save();
   return rec;
 }
+
+/* A finished rent-ready walk can become the move-in record without making the
+   inspector re-check the same property. The original rent-ready stays intact. */
+async function createMoveInFromReady(){
+  if(!cur || cur.mode!=="ready") return;
+  const source = cur, m = source.meta || {}, spaceMap = {};
+  const spaces = activeSpaces(source).map(sp=>{
+    const id = uid(); spaceMap[sp.id] = id;
+    return {
+      id, type:sp.type, name:sp.name,
+      items:sp.items.map(it=>({t:it.t, s:normalizeStatus(it.s), n:it.n||"", base:"", dictRoom:!!it.dictRoom}))
+    };
+  });
+  const rec = {
+    id:uid(), mode:"in", created:Date.now(), updated:Date.now(), from:null, sourceReady:source.id,
+    meta:{date:today(), address:m.address||"", unit:m.unit||"", tenant:"", owner:m.owner||"", inspector:m.inspector||"", phone:"",
+      meterE:"", meterW:"", keys:"", fwd:"", misc:m.misc||"", clean:"", photoSize:m.photoSize||"md", tenantSigName:"", inspSigName:"",
+      access:"", marketStatus:"hold", responsible:"", estimatedCost:"", workCategories:[], readyTags:[]},
+    spaces, wk:{}, sig:{t:"",i:""}
+  };
+  LIST.unshift(rec); save();
+
+  let copiedPhotos = 0;
+  try{
+    const sourcePhotos = await photoLoad(source.id), writes=[];
+    Object.keys(sourcePhotos).forEach(oldKey=>{
+      const at = oldKey.indexOf(":");
+      const newSpaceId = spaceMap[oldKey.slice(0,at)];
+      if(!newSpaceId) return;
+      const newKey = newSpaceId + oldKey.slice(at);
+      sourcePhotos[oldKey].forEach(photo=>{
+        copiedPhotos++;
+        writes.push(photoPut({id:uid(), insp:rec.id, key:newKey, data:photo.data, ts:photo.ts||Date.now()}));
+      });
+    });
+    await Promise.all(writes);
+  }catch(e){ copiedPhotos=0; }
+
+  await openRec(rec);
+  toast("Move-in created from rent-ready" + (copiedPhotos ? " with " + copiedPhotos + " photo" + (copiedPhotos===1?"":"s") : "") + ".");
+}
 function activeSpaces(rec){
   if(rec.mode!=="ready") return rec.spaces;
   const tags = Array.isArray(rec.meta.readyTags) ? rec.meta.readyTags : [];
@@ -900,6 +991,7 @@ function go(view){
   window.scrollTo({top:0});
   if(home){ cur=null; photos={}; renderHome(); } else { renderEditor(); }
   renderBar();
+  scheduleWalkProgress();
 }
 async function openRec(rec){
   cur = normalizeRecord(rec); photos = {};
@@ -959,6 +1051,7 @@ function renderEditor(){
 
   document.getElementById("edFoot").textContent = cur.from
     ? "Baseline loaded from the move-in inspection for this address — every line shows how it was handed over."
+    : cur.sourceReady ? "Created from the rent-ready walkthrough. Condition, notes, and photos were carried over — add only the move-in details."
     : isReady ? "Walk the property, mark only what you reviewed, then share the turnover notation. Access details stay internal." : "Saves as you go, on this phone. Export the file or print to PDF to send it in.";
 
   renderDict();
@@ -975,7 +1068,7 @@ function renderHead(){
   document.getElementById("pct").textContent = s.pct + "%";
   document.getElementById("tallyRight").textContent = s.done + "/" + s.total + " lines" + (s.flags ? "  ·  " + s.flags + " need work" : "");
   renderMomentum(s);
-  renderRail(); renderBlock(); renderWk(); renderBar();
+  renderRail(); renderWalkProgress(s); renderBlock(); renderWk(); renderBar();
 }
 
 function renderRail(){
@@ -1176,9 +1269,32 @@ function caption(o){
     + (o.it.n ? " — " + o.it.n : "");
 }
 
+function renderPrintMeta(){
+  const el = document.getElementById("printMeta");
+  if(!el || !cur) return;
+  const m = cur.meta || {};
+  const fields = [["Date",fmtDate(m.date)]];
+  if(m.inspector) fields.push(["Inspector",m.inspector]);
+  if(m.owner) fields.push(["Owner",m.owner]);
+  if(cur.mode==="ready"){
+    if(m.marketStatus) fields.push(["Market",marketLabel(m.marketStatus)]);
+    if(workLabel(cur)) fields.push(["Work",workLabel(cur)]);
+    if(m.responsible) fields.push(["Responsible",m.responsible]);
+    if(m.estimatedCost) fields.push(["Est. cost",money(parseFloat(m.estimatedCost)||0)]);
+  }else{
+    if(m.tenant) fields.push(["Tenant",m.tenant]);
+    if(m.clean) fields.push(["Unit clean",m.clean.toUpperCase()]);
+    if(m.keys) fields.push([cur.mode==="out" ? "Keys returned" : "Keys issued",m.keys]);
+    if(m.meterE) fields.push(["Electric",m.meterE]);
+    if(m.meterW) fields.push(["Water",m.meterW]);
+  }
+  el.innerHTML = fields.filter(row=>row[1]).map(row=>
+    "<span><b>" + esc(row[0]) + "</b>" + esc(row[1]) + "</span>").join("");
+}
+
 function printNow(){
+  renderPrintMeta();
   document.querySelectorAll("#spaces details.sec").forEach(d=>d.open = true);
-  document.getElementById("metaBox").open = true;
   document.querySelectorAll(".item").forEach(el=>{
     const ta = el.querySelector(".note"), pn = el.querySelector(".pnote");
     if(ta && pn) pn.textContent = ta.value.trim();
@@ -1873,6 +1989,11 @@ document.addEventListener("click", async e=>{
 
   if(t.id==="homeBtn"){ go("home"); return; }
 
+  if(t.id==="walkProgress"){
+    window.scrollTo({top:0, behavior:"smooth"});
+    return;
+  }
+
   const jump = t.closest("[data-jump]");
   if(jump){
     setActiveSpace(jump.dataset.jump);
@@ -2034,6 +2155,10 @@ document.addEventListener("click", async e=>{
     return;
   }
   if(t.id==="impBtn"){ document.getElementById("impFile").click(); return; }
+  if(t.id==="promoteReadyBtn"){
+    await createMoveInFromReady();
+    return;
+  }
   if(t.id==="dupBtn"){
     const copy = JSON.parse(JSON.stringify(cur));
     copy.id = uid(); copy.created = copy.updated = Date.now();
