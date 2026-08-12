@@ -277,6 +277,8 @@ body[data-mode="ready"] .inoutonly{display:none!important}
 .lb img{max-width:100%;max-height:74vh;object-fit:contain}
 .mcard{background:var(--card);border-top:3px solid var(--ink);width:100%;max-width:430px;padding:16px;max-height:82vh;overflow:auto}
 .mcard .recrow{border-top:1px solid var(--hair)}
+.bugnote{margin:10px 0;padding:9px 10px;border-left:3px solid var(--hivis);background:#FFF8EC;color:var(--slate);font-size:12px;line-height:1.45}
+.bugstatus{margin:9px 0;padding:8px 10px;background:#F3F1EA;color:var(--slate);font:10.5px/1.45 "IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));background:var(--ink);color:#fff;
   padding:10px 16px;border-radius:2px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.06em;z-index:70;opacity:0;
   pointer-events:none;transition:opacity .25s}
@@ -508,7 +510,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
           <button class="mini" id="mediaPickBtn">Import video / audio</button>
           <input type="file" id="mediaIn" accept="video/*,audio/*,.m4a,.mp3,.wav,.webm" class="hide">
         </div>
-        <div class="voice-status" id="voiceStatus" role="status" aria-live="polite"><span id="voiceStatusText">Full voice pack downloads once on Wi-Fi, then works without signal.</span><b id="voiceStatusPercent" aria-hidden="true">0%</b><small id="voiceStatusDetail">About 156 MB · saved for offline use after download</small><i id="voiceStatusBar" role="progressbar" aria-label="Offline voice pack download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><em id="voiceStatusFill"></em></i></div>
+        <div class="voice-status" id="voiceStatus" role="status" aria-live="polite"><span id="voiceStatusText">Voice pack downloads once on Wi-Fi, then works without signal.</span><b id="voiceStatusPercent" aria-hidden="true">0%</b><small id="voiceStatusDetail">About 46 MB · saved for offline use after download</small><i id="voiceStatusBar" role="progressbar" aria-label="Offline voice pack download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><em id="voiceStatusFill"></em></i></div>
       </div>
       <textarea class="in" id="dictText" placeholder="Paste the transcript here, or hit record and talk." style="margin-top:10px;min-height:92px"></textarea>
       <div class="row" style="margin-top:9px">
@@ -582,6 +584,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
 "use strict";
 const MODE_LOCK = "in";      /* locked move-in shortcut */
 const ORG = "CIMCO Property Management";
+const APP_VERSION = "offline-v13";
 const KEY = "cimco.inspections.v1";
 
 /* ---------------- templates from the paper sheet ---------------- */
@@ -725,6 +728,45 @@ function toast(msg){
   const t = document.getElementById("toast");
   t.textContent = msg; t.classList.add("on");
   clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove("on"), 2200);
+}
+function voiceScreenStatus(){
+  return {
+    ready:!!VOICE_READY,
+    busy:!!VOICE_BUSY,
+    message:(document.getElementById("voiceStatusText") || {}).textContent || "",
+    detail:(document.getElementById("voiceStatusDetail") || {}).textContent || "",
+    progress:(document.getElementById("voiceStatusPercent") || {}).textContent || "",
+    last_engine_error:VOICE_LAST_ERROR || ""
+  };
+}
+function buildBugReport(){
+  const value = id=>(document.getElementById(id) || {}).value || "";
+  return {
+    report_type:"CIMCO Inspection App bug report", app_version:APP_VERSION,
+    created_at:new Date().toISOString(), issue_category:value("bugCategory"),
+    what_happened:value("bugWhat").trim(), expected_result:value("bugExpected").trim(),
+    context:{page:location.pathname || "/",inspection_mode:cur ? modeTitle(cur) : "Home page",online:navigator.onLine,language:navigator.language || "",browser:navigator.userAgent || "",viewport:window.innerWidth + "x" + window.innerHeight},
+    voice_transcription:voiceScreenStatus(),
+    privacy_note:"This report intentionally excludes the address, inspection answers, notes, photos, video, audio, and report contents."
+  };
+}
+async function copyBugReport(){
+  const text = JSON.stringify(buildBugReport(),null,2);
+  try{ await navigator.clipboard.writeText(text); }
+  catch(err){ const area = document.createElement("textarea"); area.value=text; document.body.appendChild(area); area.select(); try{document.execCommand("copy");}catch(ignore){} area.remove(); }
+  toast("Bug report copied — paste it into this chat");
+}
+function openBugReporter(){
+  const body = document.getElementById("modalBody"), voice = voiceScreenStatus();
+  body.innerHTML = '<div class="eyebrow">HELP &amp; FEEDBACK</div><h2 style="margin:4px 0 0">Report a problem</h2>'
+    + '<p style="font-size:13px;line-height:1.5;margin:7px 0">Describe what happened, then copy or download the report and send it here with a screenshot if useful.</p>'
+    + '<div class="bugnote"><b>Privacy-safe:</b> this excludes the property address, inspection answers, notes, photos, video, audio, and report contents.</div>'
+    + '<label class="lab">Area that needs help</label><select class="in" id="bugCategory"><option>Offline video / audio transcription</option><option>Voice dictation</option><option>Checklist or inspection form</option><option>Progress guide or navigation</option><option>Report, print, or PDF</option><option>Saved inspections</option><option>Something else</option></select>'
+    + '<label class="lab" style="margin-top:10px">What happened?</label><textarea class="in" id="bugWhat" placeholder="Example: I chose a video, the voice pack finished, then transcription stopped."></textarea>'
+    + '<label class="lab" style="margin-top:10px">What did you expect instead?</label><textarea class="in" id="bugExpected" placeholder="Example: The transcript should appear in the box."></textarea>'
+    + '<div class="bugstatus">Current diagnostic\n' + esc((voice.message || "No voice status yet") + (voice.detail ? "\n" + voice.detail : "") + (voice.last_engine_error ? "\n" + voice.last_engine_error : "")) + '</div>'
+    + '<div class="row" style="margin-top:12px"><button class="act ghost" id="bugClose">Close</button><button class="act" id="bugCopy">Copy bug report</button><button class="act solid" id="bugDownload">Download file</button></div>';
+  document.getElementById("modal").classList.add("on");
 }
 
 /* Small field-friendly rewards make progress visible without slowing the walk.
@@ -1242,12 +1284,14 @@ function renderBar(){
   const bar = document.getElementById("bar");
   if(document.body.dataset.view === "home"){
     bar.innerHTML = `<div class="st">${LIST.length} saved · ${ORG}</div>
+      <button class="act ghost" id="bugBtn">Report issue</button>
       <button class="act solid" data-new="${MODE_LOCK||"ready"}">New inspection</button>`;
     return;
   }
   const s = stats(cur);
   bar.innerHTML = `<div class="st"><b>${esc(title(cur))}</b> — ${s.done}/${s.total}${s.flags? " · "+s.flags+" needs work":""}</div>
     <button class="act ghost" id="homeBtn">All</button>
+    <button class="act ghost" id="bugBtn">Report issue</button>
     <button class="act" id="copyBtn">Copy report</button>
     <button class="act solid" id="printBtn">Print / PDF</button>`;
 }
@@ -1966,6 +2010,7 @@ let VOICE_READY = false;
 let VOICE_PACK_WAIT = null;
 let VOICE_TRANSCRIBE_WAIT = null;
 let VOICE_BUSY = false;
+let VOICE_LAST_ERROR = "";
 
 function voiceStatus(text, pct, state){
   const box = document.getElementById("voiceStatus");
@@ -2010,11 +2055,12 @@ function friendlyVoiceError(text){
     return "The download was interrupted. Connect to steady Wi-Fi, keep this page open, and try again.";
   }
   if(/memory|allocation|out of memory|not enough/i.test(detail)){
-    return "This phone does not have enough free memory for the full local voice pack. Close other apps and try again.";
+    return "This phone does not have enough free memory for the local voice pack. Close other apps and try again.";
   }
   return "This browser could not start the local voice engine. Update Chrome or Safari, then try the download again.";
 }
 function voiceFailure(text){
+  VOICE_LAST_ERROR = String(text || "Unknown voice transcription error");
   voiceStatus("Offline voice pack could not finish.", 0, "", friendlyVoiceError(text));
   const download = document.getElementById("voicePackBtn");
   if(download) download.textContent = "Try download again";
@@ -2031,6 +2077,7 @@ function getVoiceWorker(){
     }
     if(data.type==="ready"){
       VOICE_READY = true;
+      VOICE_LAST_ERROR = "";
       voiceStatus(data.text || "Offline voice pack is ready on this device.", 100, "done", data.detail || "Download complete");
       const download = document.getElementById("voicePackBtn");
       if(download) download.textContent = "Voice pack ready";
@@ -2051,8 +2098,9 @@ function getVoiceWorker(){
       if(VOICE_TRANSCRIBE_WAIT){ const wait=VOICE_TRANSCRIBE_WAIT; VOICE_TRANSCRIBE_WAIT=null; wait.reject(err); }
     }
   };
-  worker.onerror = ()=>{
-    const err = new Error("The local voice engine is not available in this browser.");
+  worker.onerror = event=>{
+    const detail = event && (event.message || (event.error && event.error.message));
+    const err = new Error(detail || "The local voice engine is not available in this browser.");
     if(VOICE_PACK_WAIT){ const wait=VOICE_PACK_WAIT; VOICE_PACK_WAIT=null; wait.reject(err); }
     if(VOICE_TRANSCRIBE_WAIT){ const wait=VOICE_TRANSCRIBE_WAIT; VOICE_TRANSCRIBE_WAIT=null; wait.reject(err); }
     VOICE_WORKER = null;
@@ -2202,6 +2250,15 @@ async function transcribeLocalMedia(file){
 /* ---------------- events ---------------- */
 document.addEventListener("click", async e=>{
   const t = e.target;
+
+  if(t.id==="bugBtn"){ openBugReporter(); return; }
+  if(t.id==="bugClose"){ document.getElementById("modal").classList.remove("on"); return; }
+  if(t.id==="bugCopy"){ await copyBugReport(); return; }
+  if(t.id==="bugDownload"){
+    download("cimco-bug-report-" + new Date().toISOString().slice(0,10) + ".json", JSON.stringify(buildBugReport(),null,2));
+    toast("Bug report downloaded — attach it here");
+    return;
+  }
 
   if(t.id==="voicePackBtn"){
     if(VOICE_BUSY) return;

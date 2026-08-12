@@ -97,11 +97,15 @@ spoken condition with a Needs work result, so review and tighten that note where
 
 The **Offline video transcription** area is part of Dictate the walkthrough. It keeps walkthrough media on the inspector's phone:
 
-1. While on Wi-Fi, tap **Download offline voice pack** once for each phone. The full-quality pack is intentionally used for wider iPhone and mobile-browser compatibility. The app shows the live percentage and downloaded amount; keep the page open until it says the pack is ready.
+1. While on Wi-Fi, tap **Download offline voice pack** once for each phone. The compact pack is about 46 MB and is designed for reliable browser use. The app shows the live percentage and downloaded amount; keep the page open until it says the pack is ready. If a phone cannot use the compact pack, the app automatically tries a full-compatibility pack instead.
 2. Choose a video or audio walkthrough. For a video, the app makes a temporary audio-only copy on the phone; it never uploads the original video.
 3. The on-device voice pack writes the transcript into the existing dictation box. Read and review it before applying the proposed checks.
 
 For phone reliability, keep the app open while it prepares the recording and use walkthroughs of 12 minutes or less. The audio-only copy is temporary and is discarded when transcription finishes. The local voice pack is an English quick-transcription model: always review the proposed inspection results before applying them.
+
+## Reporting a problem
+
+Tap **Report issue** in the bottom bar, describe the problem, then copy or download the bug report to send here. It includes the app version, browser/device details, current voice-engine status, and the exact local error. It deliberately excludes the address, inspection contents, notes, photos, video, audio, and report data.
 
 ## Saving the report
 
