@@ -2,14 +2,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Move-In Inspection</title>
-<meta name="theme-color" content="#16181A">
+<meta name="theme-color" content="#27424A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Inspection">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="description" content="Fast property inspections for move-in, move-out, and rent-ready turnovers.">
 <link rel="manifest" href="manifest-in.json">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%2316181A'/><path d='M14 34l12 12 24-28' stroke='%23F4C21B' stroke-width='8' fill='none' stroke-linecap='square'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='8' fill='%2327424A'/><path d='M14 34l12 12 24-28' stroke='%23D6A765' stroke-width='8' fill='none' stroke-linecap='square'/></svg>">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,18 +17,18 @@
 
 <style>
 :root{
-  --ink:#16181A; --slate:#4A5157; --mute:#858C91;
-  --paper:#F1F0EC; --card:#FFFFFF; --rule:#D8D6CF; --hair:#EDEBE5;
-  --hivis:#F4C21B;
-  --ok:#2E7245; --d:#A9741B; --b:#BE3319; --c:#2B5D8A; --r:#16181A; --na:#9AA0A5;
-  --flag:#BE3319;
+  --ink:#27424A; --slate:#5D6B69; --mute:#8D9791;
+  --paper:#F4F0E8; --card:#FFFDF9; --rule:#D9D1C3; --hair:#ECE5D9;
+  --hivis:#D5A25E;
+  --ok:#2F7866; --work:#B5553D; --na:#8E9992;
+  --flag:#B5553D;
 }
-body[data-mode="out"]{ --hivis:#4FC3E8; }
-body[data-mode="ready"]{ --hivis:#F0A43C; }
+body[data-mode="out"]{ --hivis:#6B9EAA; }
+body[data-mode="ready"]{ --hivis:#C98B4B; }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%; overscroll-behavior-x:none}
 body{
-  margin:0; background:var(--paper); color:var(--ink);
+  margin:0; background:linear-gradient(180deg,#F8F4ED 0,#F4F0E8 42%,#EEE8DC 100%); color:var(--ink);
   font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   font-size:15px; line-height:1.5;
   padding-bottom:calc(88px + env(safe-area-inset-bottom));
@@ -43,27 +43,29 @@ textarea,input,select{font-size:16px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* ---------- masthead ---------- */
-.mast{background:var(--ink);color:var(--paper);padding:20px 0 0}
+.mast{position:relative;overflow:hidden;background:linear-gradient(120deg,#203A42 0%,#2C4B51 58%,#3B5B5B 100%);color:var(--paper);padding:22px 0 0;border-bottom:4px solid var(--hivis);box-shadow:0 3px 12px rgba(33,51,50,.16)}
+.mast:after{content:"";position:absolute;inset:0 0 0 54%;pointer-events:none;opacity:.24;background:repeating-linear-gradient(135deg,transparent 0 18px,rgba(213,162,94,.34) 18px 19px),repeating-linear-gradient(45deg,transparent 0 46px,rgba(255,255,255,.12) 46px 47px)}
+.mast .wrap,.mast .rail,.mast .pad{position:relative;z-index:1}
 .mast .sub{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--hivis);text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
 .mast h1{font-size:25px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;line-height:1.05}
-.mast .lede{color:#B9BEC2;font-size:13px;margin:8px 0 0;max-width:58ch}
+.mast .lede{color:#D7DFD8;font-size:13px;margin:8px 0 0;max-width:58ch}
 .mast .pad{height:18px}
 .rail{display:flex;gap:7px;overflow-x:auto;padding:14px 14px 15px;margin:0 auto;max-width:880px}
 .rail::-webkit-scrollbar{height:5px}
 .rail::-webkit-scrollbar-thumb{background:#3A4045;border-radius:9px}
-.chip{flex:0 0 auto;background:#22262A;border:1px solid #33383D;color:#D6DADD;border-radius:2px;
+.chip{flex:0 0 auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#E7EDE7;border-radius:6px;
   padding:7px 10px;text-align:left;min-width:118px;font-size:12.5px;line-height:1.3}
 .chip b{display:block;font-weight:600;color:#fff;white-space:nowrap}
 .chip span{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10px;color:var(--mute);letter-spacing:.06em}
 .chip.on{background:var(--hivis);border-color:var(--hivis)}
-.chip.on b,.chip.on span{color:#2A2100}
-.chip .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--b);margin-left:5px;vertical-align:middle}
-.chip.on .dot{background:#7A1D08}
-.chip .tick{color:#7DBF97;font-weight:700}
-.chip.on .tick{color:#1D4A2C}
+.chip.on b,.chip.on span{color:#213E43}
+.chip .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#E98D76;margin-left:5px;vertical-align:middle}
+.chip.on .dot{background:#874130}
+.chip .tick{color:#9ED8BD;font-weight:700}
+.chip.on .tick{color:#225B4C}
 
 /* ---------- cards ---------- */
-.card{background:var(--card);border:1px solid var(--rule);border-top:3px solid var(--ink);padding:15px;margin:16px 0}
+.card{background:var(--card);border:1px solid var(--rule);border-top:3px solid var(--ink);padding:15px;margin:16px 0;border-radius:7px;box-shadow:0 5px 16px rgba(79,63,42,.055)}
 .card h2{font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:.01em}
 .eyebrow{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate)}
 
@@ -72,65 +74,62 @@ textarea,input,select{font-size:16px}
 .grid .full{grid-column:1/-1}
 label.f{display:block}
 label.f > span{display:block;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);margin-bottom:3px}
-.in{width:100%;border:1px solid var(--rule);background:#FBFAF7;padding:9px 10px;border-radius:2px;color:var(--ink)}
+.in{width:100%;border:1px solid var(--rule);background:#FFFEFB;padding:9px 10px;border-radius:5px;color:var(--ink)}
 .in:focus{background:#fff;border-color:var(--slate)}
 textarea.in{resize:vertical;min-height:60px;line-height:1.45}
 .seg{display:flex;gap:6px}
-.seg button{flex:1;min-height:42px;border:1px solid var(--rule);background:#FBFAF7;color:var(--slate);border-radius:2px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.seg button{flex:1;min-height:42px;border:1px solid var(--rule);background:#FFFEFB;color:var(--slate);border-radius:5px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 .seg button.on{background:var(--ink);border-color:var(--ink);color:var(--hivis)}
 
 /* progress strip */
-.strip{margin-top:14px;height:12px;background:repeating-linear-gradient(45deg,#E4E2DB 0 6px,#DBD9D1 6px 12px);position:relative;overflow:hidden}
+.strip{margin-top:14px;height:12px;background:repeating-linear-gradient(45deg,#E8E0D2 0 6px,#DDD3C4 6px 12px);position:relative;overflow:hidden;border-radius:99px}
 .strip i{position:absolute;inset:0 auto 0 0;width:0;background:var(--hivis);transition:width .4s cubic-bezier(.2,.8,.2,1)}
 .strip.done i{background:var(--ok)}
-.strip.blocked i{background:var(--b)}
+.strip.blocked i{background:var(--work)}
 .tally{display:flex;justify-content:space-between;align-items:baseline;margin-top:7px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.06em;color:var(--slate)}
 .tally b{font-size:15px;color:var(--ink)}
 
 /* legend */
 .legend{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:13px;padding-top:13px;border-top:1px solid var(--rule)}
 .lg{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--slate)}
-.tag{width:26px;height:26px;flex:0 0 auto;display:grid;place-items:center;border-radius:2px;color:#fff;
+.tag{width:26px;height:26px;flex:0 0 auto;display:grid;place-items:center;border-radius:5px;color:#fff;
   font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600;font-size:13px}
-.t-ok{background:var(--ok)} .t-d{background:var(--d)} .t-b{background:var(--b)}
-.t-c{background:var(--c)} .t-r{background:var(--r);color:var(--hivis)} .t-u{background:#6B5A8E} .t-na{background:var(--na)}
+.t-ok{background:var(--ok)} .t-work{background:var(--work)} .t-na{background:var(--na)}
 
 /* ---------- spaces ---------- */
-.sec{background:var(--card);border:1px solid var(--rule);margin-bottom:10px}
+.sec{background:var(--card);border:1px solid var(--rule);margin-bottom:10px;border-radius:7px;overflow:hidden;box-shadow:0 3px 10px rgba(79,63,42,.035)}
 .sec>summary{list-style:none;padding:12px 14px;display:flex;align-items:center;gap:9px;font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-weight:600;font-size:15.5px}
 .sec>summary::-webkit-details-marker{display:none}
 .caret{color:var(--mute);font-size:11px;transition:transform .2s}
 details[open]>summary .caret{transform:rotate(90deg)}
 .count{margin-left:auto;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--slate);letter-spacing:.05em;white-space:nowrap}
-.count.flag{color:var(--b);font-weight:600}
+.count.flag{color:var(--work);font-weight:600}
 .count.ok{color:var(--ok)}
 .sectools{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 11px;border-bottom:1px solid var(--rule)}
-.mini{border:1px solid var(--rule);background:#FBFAF7;color:var(--slate);border-radius:2px;padding:7px 10px;min-height:36px;
+.mini{border:1px solid var(--rule);background:#FFFEFB;color:var(--slate);border-radius:5px;padding:7px 10px;min-height:36px;
   font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
 .mini:hover{border-color:var(--slate);color:var(--ink)}
 .mini.go{border-color:var(--ok);color:var(--ok)}
-.mini.warn{border-color:var(--rule);color:var(--b)}
+.mini.warn{border-color:var(--rule);color:var(--work)}
 
 .item{padding:11px 14px;border-top:1px solid var(--hair)}
-.item.flagged{background:#FDF3F0}
+.item.flagged{background:#FFF5F0}
 .item.is-na .iname{color:var(--na);text-decoration:line-through}
 .itop{display:flex;align-items:center;gap:9px}
 .iname{flex:1;font-size:14.5px;line-height:1.35}
 .base{display:block;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.06em;color:var(--mute);text-transform:uppercase;margin-top:2px}
-.base.chg{color:var(--b);font-weight:600}
-.cam{flex:0 0 auto;width:38px;height:38px;border:1px solid var(--rule);background:#FBFAF7;border-radius:2px;font-size:16px;line-height:1;position:relative}
+.base.chg{color:var(--work);font-weight:600}
+.cam{flex:0 0 auto;width:38px;height:38px;border:1px solid var(--rule);background:#FFFEFB;border-radius:5px;font-size:16px;line-height:1;position:relative}
 .cam b{position:absolute;top:-6px;right:-6px;background:var(--ink);color:var(--hivis);border-radius:9px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10px;padding:1px 5px}
-.pad6{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:9px}
-.k{min-height:42px;border:1px solid var(--rule);background:#FBFAF7;border-radius:2px;
+.pad6{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
+.k{min-height:48px;border:1px solid var(--rule);background:#FFFEFB;border-radius:5px;
   font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600;font-size:14px;color:var(--slate);display:grid;place-items:center;line-height:1}
 .k small{display:block;white-space:nowrap;font-size:8px;letter-spacing:.06em;font-weight:400;margin-top:1px;color:var(--mute)}
 .k:hover{border-color:var(--slate)}
 .k.on{color:#fff;border-color:transparent}
 .k.on small{color:rgba(255,255,255,.75)}
-.k.on.k-ok{background:var(--ok)} .k.on.k-d{background:var(--d)} .k.on.k-b{background:var(--b)}
-.k.on.k-c{background:var(--c)} .k.on.k-r{background:var(--r);color:var(--hivis)} .k.on.k-u{background:#6B5A8E} .k.on.k-na{background:var(--na)}
-.k.on.k-r small{color:rgba(244,194,27,.7)}
-.note{width:100%;margin-top:8px;border:1px solid var(--rule);border-left:3px solid var(--b);padding:8px 9px;
+.k.on.k-ok{background:var(--ok)} .k.on.k-work{background:var(--work)} .k.on.k-na{background:var(--na)}
+.note{width:100%;margin-top:8px;border:1px solid var(--rule);border-left:3px solid var(--work);padding:8px 9px;
   background:#fff;resize:vertical;min-height:40px;font-size:16px;line-height:1.45;display:none}
 .item.flagged .note{display:block}
 .thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
@@ -140,7 +139,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .appx{display:none}
 
 /* exceptions block */
-.block{background:var(--ink);color:var(--paper);padding:15px;margin-bottom:12px}
+.block{background:linear-gradient(120deg,#243F46,#31565A);color:var(--paper);padding:15px;margin-bottom:12px;border-radius:7px;border:1px solid #203A42;box-shadow:0 5px 16px rgba(33,51,50,.12)}
 .block h3{color:var(--hivis);font-size:11.5px;text-transform:uppercase;letter-spacing:.14em;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600}
 .block ul{margin:10px 0 0;padding-left:17px;font-size:13.5px;color:#DDE1E4}
 .block li{margin-bottom:6px}
@@ -161,7 +160,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
 
 /* signatures */
 .sigs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.sigbox{border:1px solid var(--rule);background:#FBFAF7;padding:9px}
+.sigbox{border:1px solid var(--rule);background:#FFFEFB;padding:9px}
 .sigbox canvas{width:100%;height:110px;background:#fff;border:1px dashed var(--rule);touch-action:none;display:block}
 .sigbox .row{display:flex;gap:6px;align-items:center;margin-top:7px}
 .ack{font-size:12.5px;color:var(--slate);margin-top:11px;line-height:1.5;border-left:3px solid var(--hivis);padding-left:10px}
@@ -171,28 +170,27 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .drow .dt{flex:1;min-width:0}
 .drow .dt b{font-weight:600}
 .drow .dt i{display:block;font-style:normal;font-size:12px;color:var(--slate);margin-top:1px}
-.dtag{flex:0 0 auto;padding:3px 8px;border-radius:2px;color:#fff;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.05em}
-.dtag.k-ok{background:var(--ok)} .dtag.k-d{background:var(--d)} .dtag.k-b{background:var(--b)}
-.dtag.k-c{background:var(--c)} .dtag.k-r{background:var(--r);color:var(--hivis)} .dtag.k-u{background:#6B5A8E} .dtag.k-na{background:var(--na)}
+.dtag{flex:0 0 auto;padding:3px 8px;border-radius:5px;color:#fff;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.05em}
+.dtag.k-ok{background:var(--ok)} .dtag.k-work{background:var(--work)} .dtag.k-na{background:var(--na)}
 .drop{border:0;background:none;color:var(--mute);font-size:17px;line-height:1;padding:4px 6px}
-.drop:hover{color:var(--b)}
+.drop:hover{color:var(--work)}
 .dnote{font-size:12.5px;color:var(--slate);margin:10px 0 0;padding-left:10px;border-left:3px solid var(--hivis)}
-#micBtn.live{background:var(--b);border-color:var(--b);color:#fff}
+#micBtn.live{background:var(--work);border-color:var(--work);color:#fff}
 
 /* home */
 .new{display:grid;grid-template-columns:1fr;gap:9px;margin-top:12px}
-.newbtn{border:1px solid var(--ink);background:var(--ink);color:var(--paper);text-align:left;padding:14px;border-radius:2px}
+.newbtn{border:1px solid var(--ink);background:linear-gradient(120deg,#27424A,#31565A);color:var(--paper);text-align:left;padding:14px;border-radius:7px;box-shadow:0 3px 9px rgba(33,51,50,.12)}
 .newbtn b{display:block;font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-weight:800;font-size:16px;text-transform:uppercase;letter-spacing:.02em;color:#fff}
 .newbtn span{display:block;font-size:12.5px;color:#A9AFB4;margin-top:3px}
 .newbtn.alt{background:var(--card);color:var(--ink)}
 .newbtn.alt b{color:var(--ink)} .newbtn.alt span{color:var(--slate)}
-.newbtn.ready{background:#FFF8ED;border-color:#D88B20;color:var(--ink)}
-.newbtn.ready b{color:#8B5208}.newbtn.ready span{color:#765B36}
+.newbtn.ready{background:#FFF6E8;border-color:#C98B4B;color:var(--ink)}
+.newbtn.ready b{color:#7C4E20}.newbtn.ready span{color:#765B36}
 .quickstart{display:grid;grid-template-columns:1fr 120px;gap:9px;margin-top:12px}
 .quickstart .f{margin:0}
 .quickstart .f.full{grid-column:1/-1}
 .checkrow{display:flex;gap:7px;flex-wrap:wrap}
-.checkrow label{display:flex;align-items:center;gap:6px;border:1px solid var(--rule);background:#FBFAF7;border-radius:2px;padding:8px 10px;font-size:13px}
+.checkrow label{display:flex;align-items:center;gap:6px;border:1px solid var(--rule);background:#FFFEFB;border-radius:5px;padding:8px 10px;font-size:13px}
 .checkrow input{accent-color:var(--ink);width:16px;height:16px;margin:0}
 .readyonly{display:none}
 body[data-mode="ready"] .readyonly{display:block}
@@ -203,7 +201,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
 .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
 .rec{display:flex;align-items:center;gap:11px;padding:12px 14px;border:0;border-top:1px solid var(--hair);background:var(--card);width:100%;text-align:left}
 .rec:first-of-type{border-top:none}
-.rec .badge{flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border-radius:2px;background:var(--ink);color:var(--hivis);
+.rec .badge{flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border-radius:6px;background:var(--ink);color:var(--hivis);
   font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;font-weight:600;letter-spacing:.04em}
 .rec .badge.out{background:#0E3B4C;color:#4FC3E8}
 .rec .badge.ready{background:#FFF0D5;color:#8B5208}
@@ -214,13 +212,13 @@ body[data-mode="ready"] .inoutonly{display:none!important}
 .empty{padding:22px 14px;text-align:center;color:var(--slate);font-size:13.5px;background:var(--card);border:1px dashed var(--rule)}
 
 /* bottom bar */
-.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--ink);z-index:30;
+.bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,249,.96);border-top:2px solid var(--ink);z-index:30;
   padding:9px 14px calc(9px + env(safe-area-inset-bottom));display:flex;gap:7px;align-items:center}
 .bar .st{flex:1;min-width:0;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;color:var(--slate);letter-spacing:.05em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar .st b{color:var(--ink)}
 .act{font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-weight:600;font-size:13px;border:1px solid var(--ink);background:var(--card);color:var(--ink);
-  padding:11px 13px;border-radius:2px;white-space:nowrap;min-height:44px}
+  padding:11px 13px;border-radius:5px;white-space:nowrap;min-height:44px}
 .act:hover{background:var(--hivis)}
 .act.ghost{border-color:var(--rule);color:var(--slate)}
 .act.ghost:hover{background:#F3F1EA;color:var(--ink)}
@@ -253,7 +251,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
 @media (min-width:620px){
   .item{display:grid;grid-template-columns:1fr auto;column-gap:14px;align-items:center}
   .itop{grid-column:1}
-  .pad6{grid-column:2;margin-top:0;grid-template-columns:repeat(6,48px)}
+  .pad6{grid-column:2;margin-top:0;grid-template-columns:repeat(3,96px)}
   .note,.thumbs{grid-column:1/-1}
 }
 @media print{
@@ -261,6 +259,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
   .mast .lede,.rail,.bar,.sectools,.pad6,.cam,.mini,.toast,.lb,.noprint{display:none!important}
   body{background:#fff;padding:0;font-size:11pt}
   .mast{background:#fff;color:#000;padding:0;border-bottom:2px solid #000}
+  .mast:after{display:none}
   .mast .sub{color:#000}
   .card{border-color:#999;break-inside:avoid;margin:8px 0}
   .sec{border-color:#999;margin:8px 0;break-inside:auto}
@@ -418,11 +417,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
 
       <div class="legend">
         <div class="lg"><i class="tag t-ok">✓</i> Good</div>
-        <div class="lg"><i class="tag t-d">D</i> Dirty</div>
-        <div class="lg"><i class="tag t-b">B</i> Broken</div>
-        <div class="lg"><i class="tag t-c">C</i> Not working</div>
-        <div class="lg"><i class="tag t-r">R</i> Replace</div>
-        <div class="lg"><i class="tag t-u">?</i> Not tested</div>
+        <div class="lg"><i class="tag t-work">!</i> Needs work</div>
         <div class="lg"><i class="tag t-na">–</i> N/A</div>
       </div>
     </div>
@@ -431,8 +426,8 @@ body[data-mode="ready"] .inoutonly{display:none!important}
       <div class="eyebrow">Hands-free</div>
       <h2>Dictate the walkthrough</h2>
       <p style="font-size:13px;color:var(--slate);margin:9px 0 0">
-        Talk through the unit room by room — “Kitchen. Floor good, fridge not working, ice maker doesn’t fill.”
-        Paste a transcript from a video here, or record straight into the app. Nothing is applied until you review it.
+        Talk through the unit room by room — “Kitchen is clean,” or “Kitchen. Floor good, fridge not cooling.”
+        The app sorts every result into Good, Needs work, or N/A. Any reason it could not be tested stays in the note. Nothing is applied until you review it.
       </p>
       <div class="row" style="margin-top:11px">
         <button class="mini" id="micBtn">🎤 Start recording</button>
@@ -461,7 +456,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
       <div class="eyebrow">Move-out</div>
       <h2>Damage worksheet</h2>
       <p style="font-size:13px;color:var(--slate);margin:9px 0 0">
-        Every flagged line lands here. Mark it normal wear or tenant damage and put a figure on it. Only tenant damage adds to the total.
+        Every item needing attention lands here. Mark it normal wear or tenant damage and put a figure on it. Only tenant damage adds to the total.
       </p>
       <div class="wk" id="wk"></div>
       <div class="wtot"><span>Tenant damage total</span><b id="wkTotal">$0.00</b></div>
@@ -593,9 +588,12 @@ const READY_SPACES = [
     "Exception estimates (attached and kept separate from regular punch list)"
   ],"handover"]
 ];
-const CODES = [["ok","✓","Good"],["d","D","Dirty"],["b","B","Broken"],["c","C","N.work"],["r","R","Replace"],["u","?","Not tested"],["na","–","N/A"]];
-const CODE_LABEL = {ok:"Good", d:"Dirty", b:"Broken", c:"Not working", r:"Replace", u:"Not tested", na:"N/A"};
-const FLAGS = ["d","b","c","r","u"];
+/* Each inspected line has one simple outcome. Detailed language stays in
+   the note, so reports retain context without making field marking slow. */
+const CODES = [["ok","✓","Good"],["work","!","Needs work"],["na","–","N/A"]];
+const CODE_LABEL = {ok:"Good", work:"Needs work", na:"N/A"};
+const FLAGS = ["work"];
+const LEGACY_STATUS = {d:"work", b:"work", c:"work", r:"work", u:"work"};
 const MODE_LABEL = {in:"Move-in", out:"Move-out", ready:"Rent-ready"};
 
 /* ---------------- state ---------------- */
@@ -618,7 +616,24 @@ function today(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMon
 function fmtDate(s){ if(!s) return ""; const p=s.split("-"); return p.length===3 ? p[1]+"/"+p[2]+"/"+p[0].slice(2) : s; }
 function money(n){ return "$" + (Math.round((n||0)*100)/100).toFixed(2); }
 
-function loadAll(){ try{ const r=localStorage.getItem(KEY); LIST = r?JSON.parse(r):[]; }catch(e){ LIST=[]; } if(!Array.isArray(LIST)) LIST=[]; }
+function normalizeStatus(code){ return LEGACY_STATUS[code] || code || ""; }
+function normalizeRecord(rec){
+  if(!rec || !Array.isArray(rec.spaces)) return rec;
+  rec.spaces.forEach(sp=>(sp.items||[]).forEach(it=>{
+    const prior = it.s;
+    it.s = normalizeStatus(prior);
+    it.base = normalizeStatus(it.base);
+    if(prior === "u" && !/^not tested\b/i.test(it.n||"")){
+      it.n = "Not tested" + (it.n ? " — " + it.n : "");
+    }
+  }));
+  return rec;
+}
+function loadAll(){
+  try{ const r=localStorage.getItem(KEY); LIST = r?JSON.parse(r):[]; }catch(e){ LIST=[]; }
+  if(!Array.isArray(LIST)) LIST=[];
+  LIST.forEach(normalizeRecord);
+}
 let saveTimer;
 function save(){
   if(cur) cur.updated = Date.now();
@@ -722,7 +737,7 @@ function newInspection(mode, from, seed){
     rec.from = from.id;
     rec.spaces = from.spaces.map(sp=>({
       id: uid(), type: sp.type, name: sp.name,
-      items: sp.items.map(it=>({t: it.t, s:"", n:"", base: it.s}))
+      items: sp.items.map(it=>({t: it.t, s:"", n:"", base: normalizeStatus(it.s)}))
     }));
   }
   LIST.unshift(rec); save();
@@ -772,7 +787,7 @@ function go(view){
   renderBar();
 }
 async function openRec(rec){
-  cur = rec; photos = {};
+  cur = normalizeRecord(rec); photos = {};
   document.getElementById("wk").dataset.sig = "";
   const dt = document.getElementById("dictText"); if(dt) dt.value = "";
   go("editor");
@@ -803,7 +818,7 @@ function renderHome(){
       <span class="badge ${r.mode==="out"?"out":r.mode==="ready"?"ready":""}">${r.mode==="out"?"OUT":r.mode==="ready"?"READY":"IN"}</span>
       <span class="rt"><b>${esc(title(r))}</b>
         <span>${MODE_LABEL[r.mode]||r.mode} · ${fmtDate(r.meta.date)}${r.meta.tenant? " · "+esc(r.meta.tenant):""}</span></span>
-      <span class="pc">${s.done}/${s.total}${s.flags? " · "+s.flags+" flagged":""}</span>
+      <span class="pc">${s.done}/${s.total}${s.flags? " · "+s.flags+" needs work":""}</span>
     </button>`;
   }).join("") : `<div class="empty">Nothing saved yet. Start an inspection above and it will be waiting here.</div>`;
 }
@@ -843,7 +858,7 @@ function renderHead(){
   strip.querySelector("i").style.width = s.pct + "%";
   strip.className = "strip" + (s.flags ? " blocked" : (s.pct===100 ? " done" : ""));
   document.getElementById("pct").textContent = s.pct + "%";
-  document.getElementById("tallyRight").textContent = s.done + "/" + s.total + " lines" + (s.flags ? "  ·  " + s.flags + " flagged" : "");
+  document.getElementById("tallyRight").textContent = s.done + "/" + s.total + " lines" + (s.flags ? "  ·  " + s.flags + " need work" : "");
   renderRail(); renderBlock(); renderWk(); renderBar();
 }
 
@@ -859,9 +874,9 @@ function renderRail(){
 function renderBlock(){
   const rows = flagged(cur);
   document.getElementById("block").innerHTML =
-    `<h3>${cur.mode==="ready" ? "Work to address" : "Flagged lines"} · ${rows.length}</h3>` + (rows.length
+    `<h3>${cur.mode==="ready" ? "Work to address" : "Items needing attention"} · ${rows.length}</h3>` + (rows.length
       ? `<ul>${rows.map(o=>`<li><b>${esc(o.sp.name)}</b> — ${esc(o.it.t)} <span class="code">[${CODE_LABEL[o.it.s].toUpperCase()}]</span>${o.it.n? " <i>— "+esc(o.it.n)+"</i>" : ' <i style="color:var(--hivis)">— note needed</i>'}</li>`).join("")}</ul>`
-      : `<p class="none">Nothing flagged yet. Dirty, broken, not working, replace, and not tested lines collect here.</p>`);
+      : `<p class="none">Nothing needs work yet. Lines that need attention collect here.</p>`);
 }
 
 function renderSpaces(){
@@ -889,14 +904,14 @@ function renderSpaces(){
         </div>
         <div class="pad6">${CODES.map(([v,g,lab])=>
           `<button class="k k-${v} ${it.s===v?"on":""}" data-k="${k}" data-v="${v}" aria-label="${lab}">${g}<small>${lab.toUpperCase()}</small></button>`).join("")}</div>
-        <textarea class="note" data-note="${k}" placeholder="${it.s==="u" ? "Why wasn't it tested?" : "What is wrong, and what it needs"}">${esc(it.n)}</textarea>
+        <textarea class="note" data-note="${k}" placeholder="What needs work, or why it could not be tested">${esc(it.n)}</textarea>
         <div class="pnote"></div>
         <div class="thumbs">${pics.map(p=>`<img src="${p.data}" data-ph="${p.id}" alt="Photo of ${esc(it.t)}">`).join("")}</div>
       </div>`;
     }).join("");
 
     return `<details class="sec ${d?"":"no-reviewed"}" data-sp="${sp.id}" ${isOpen?"open":""}>
-      <summary><span class="caret">▶</span>${esc(sp.name)}<span class="count ${cls}">${d}/${sp.items.length}${f?" · "+f+" flagged":""}</span></summary>
+      <summary><span class="caret">▶</span>${esc(sp.name)}<span class="count ${cls}">${d}/${sp.items.length}${f?" · "+f+" needs work":""}</span></summary>
       <div class="sectools">
         <button class="mini go" data-allok="${sp.id}">Pass the rest</button>
         <button class="mini" data-additem="${sp.id}">+ Line</button>
@@ -927,7 +942,7 @@ function paintItem(sp, idx){
   }
   const note = el.querySelector(".note");
   if(note){
-    note.placeholder = it.s==="u" ? "Why wasn't it tested?" : "What is wrong, and what it needs";
+    note.placeholder = "What needs work, or why it could not be tested";
     if(!flag) note.value = "";
   }
 }
@@ -938,7 +953,7 @@ function paintSection(sp){
   sp.items.forEach(it => { if(it.s) done++; if(FLAGS.indexOf(it.s) >= 0) f++; });
   const c = d.querySelector("summary .count");
   c.className = "count " + (f ? "flag" : (done === sp.items.length && done ? "ok" : ""));
-  c.textContent = done + "/" + sp.items.length + (f ? " · " + f + " flagged" : "");
+  c.textContent = done + "/" + sp.items.length + (f ? " · " + f + " needs work" : "");
   d.classList.toggle("no-reviewed", done===0);
 }
 function pickBaseline(seed){
@@ -967,7 +982,7 @@ function renderWk(){
   const sig = rows.map(o=>o.key+o.it.s).join("|");
   if(el.dataset.sig === sig){ wkTotal(); return; }   /* same lines — leave the inputs alone */
   el.dataset.sig = sig;
-  if(!rows.length){ el.innerHTML = `<p style="font-size:13px;color:var(--slate);padding:6px 0">Nothing flagged yet.</p>`;
+  if(!rows.length){ el.innerHTML = `<p style="font-size:13px;color:var(--slate);padding:6px 0">Nothing needs attention yet.</p>`;
     document.getElementById("wkTotal").textContent = money(0); return; }
   el.innerHTML = rows.map(o=>{
     const w = cur.wk[o.key] || {};
@@ -991,7 +1006,7 @@ function renderBar(){
     return;
   }
   const s = stats(cur);
-  bar.innerHTML = `<div class="st"><b>${esc(title(cur))}</b> — ${s.done}/${s.total}${s.flags? " · "+s.flags+" flagged":""}</div>
+  bar.innerHTML = `<div class="st"><b>${esc(title(cur))}</b> — ${s.done}/${s.total}${s.flags? " · "+s.flags+" needs work":""}</div>
     <button class="act ghost" id="homeBtn">All</button>
     <button class="act" id="copyBtn">Copy report</button>
     <button class="act solid" id="printBtn">Print / PDF</button>`;
@@ -1133,18 +1148,18 @@ function reportHTML(rec){
 
   return "<!doctype html><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
     + "<title>" + esc(modeTitle(rec) + " — " + title(rec)) + "</title><style>"
-    + "body{font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#16181A;background:#F1F0EC;margin:0;padding:24px}"
-    + ".w{max-width:900px;margin:0 auto;background:#fff;border:1px solid #D8D6CF;padding:26px}"
-    + "h1{font-size:21px;text-transform:uppercase;letter-spacing:.02em;margin:0 0 2px}"
-    + ".sub{font:12px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#4A5157;margin-bottom:14px}"
-    + "h2{font-size:15px;text-transform:uppercase;letter-spacing:.02em;margin:22px 0 6px;border-bottom:2px solid #16181A;padding-bottom:4px}"
+    + "body{font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#27424A;background:#F4F0E8;margin:0;padding:24px}"
+    + ".w{max-width:900px;margin:0 auto;background:#FFFDF9;border:1px solid #D9D1C3;padding:26px}"
+    + "h1{font-size:21px;text-transform:uppercase;letter-spacing:.02em;margin:0 0 2px;color:#27424A}"
+    + ".sub{font:12px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#5D6B69;margin-bottom:14px}"
+    + "h2{font-size:15px;text-transform:uppercase;letter-spacing:.02em;margin:22px 0 6px;border-bottom:2px solid #27424A;padding-bottom:4px}"
     + "table{width:100%;border-collapse:collapse;font-size:13.5px}"
     + "td{border-bottom:1px solid #EDEBE5;padding:6px 8px;vertical-align:top}"
-    + "td.c{width:120px;font:12px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:#4A5157}"
-    + "tr.bad td{background:#FDF3F0}tr.bad td.c{color:#BE3319;font-weight:600}tr.tot td{font-weight:700;background:#F1F0EC}"
+    + "td.c{width:120px;font:12px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:#5D6B69}"
+    + "tr.bad td{background:#FFF5F0}tr.bad td.c{color:#B5553D;font-weight:600}tr.tot td{font-weight:700;background:#F4F0E8}"
     + ".meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin:14px 0}"
-    + ".meta div{border-left:3px solid #F4C21B;padding-left:9px}.meta b{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#4A5157}"
-    + ".coverage{background:#F1F0EC;border-left:3px solid #F4C21B;padding:9px 11px;font-weight:600}"
+    + ".meta div{border-left:3px solid #D5A25E;padding-left:9px}.meta b{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5D6B69}"
+    + ".coverage{background:#F4F0E8;border-left:3px solid #D5A25E;padding:9px 11px;font-weight:600}"
     + ".fig{font:11px ui-monospace,Menlo,monospace;color:#4A5157;white-space:nowrap}"
     + ".gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:12px}"
     + ".gal figure{margin:0}.gal img{width:100%;border:1px solid #D8D6CF;display:block}.gal figcaption{font-size:12.5px;color:#4A5157;margin-top:5px}"
@@ -1152,7 +1167,7 @@ function reportHTML(rec){
     + ".sigs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.sigs span{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#4A5157;margin-bottom:4px}.sigs img{width:100%;max-width:280px;border-bottom:1px solid #16181A}"
     + "@media print{body{background:#fff;padding:0}.w{border:0;padding:0}.gal{grid-template-columns:1fr 1fr}figure{break-inside:avoid}}"
     + "</style><div class=\"w\"><div class=\"sub\">" + esc(ORG) + " · " + esc(modeTitle(rec)) + " inspection</div>"
-    + "<h1>" + esc(title(rec)) + "</h1><p class=\"coverage\">" + s.done + " of " + s.total + " lines reviewed · " + s.flags + " flagged</p>"
+    + "<h1>" + esc(title(rec)) + "</h1><p class=\"coverage\">" + s.done + " of " + s.total + " lines reviewed · " + s.flags + " need work</p>"
     + "<div class=\"meta\">" + head.map(r=>"<div><b>" + esc(r[0]) + "</b>" + esc(r[1]) + "</div>").join("") + "</div>"
     + lines + wk + (m.misc ? "<h2>Notes</h2><p>" + esc(m.misc) + "</p>" : "")
     + sigs + gallery + "</div>";
@@ -1194,7 +1209,7 @@ function reportText(rec){
     if(m.meterE || m.meterW) L.push("Meters — electric: " + (m.meterE||"—") + ", water: " + (m.meterW||"—"));
     if(rec.mode==="out" && m.fwd) L.push("Forwarding address: " + m.fwd);
   }
-  L.push(s.done + " of " + s.total + " lines reviewed · " + s.flags + " flagged");
+  L.push(s.done + " of " + s.total + " lines reviewed · " + s.flags + " need work");
   L.push("");
 
   activeSpaces(rec).forEach(sp=>{
@@ -1208,7 +1223,7 @@ function reportText(rec){
     });
     L.push("");
   });
-  if(!s.flags) L.push("No flagged lines. Everything walked was in good order.");
+  if(!s.flags) L.push("No lines need work. Everything walked was in good order.");
 
   if(rec.mode==="out"){
     const rows = flagged(rec).filter(o=>{ const w = rec.wk[o.key]; return w && w.k==="dmg"; });
@@ -1242,15 +1257,22 @@ function slug(rec){
    Pasted transcript, or live speech where the browser supports it. */
 
 const SAY = [
-  ["u",  ["not tested","couldn't test","could not test","couldnt test","unable to test","can't test","cannot test","no power on site","power is off","not able to test"]],
-  ["c",  ["not working","not work","doesn't work","does not work","dont work","won't turn on","wont turn on","doesn't turn on","not functioning","inoperable","dead","won't open","wont open","won't close","wont close","not draining","no hot water","leaking","leaks","running"]],
-  ["r",  ["needs replacing","needs to be replaced","need replacing","needs replaced","replace","replacement","shot","beyond repair"]],
-  ["b",  ["broken","cracked","crack","damaged","busted","bust","torn","ripped","hole","holes","chipped","chip","shattered","bent","loose","missing","split","rotted","rotten"]],
-  ["d",  ["dirty","filthy","needs cleaning","need cleaning","needs a clean","grimy","stained","stain","soiled","dusty","dust","mold","mildew","greasy","scuffed","scuffs","scuff","marks","marked up","hair","debris","trash"]],
-  ["na", ["not applicable","n/a","n a","doesn't have","does not have","no such","not present","not there","none here","skip"]],
-  ["ok", ["good","fine","okay","ok","clean","great","perfect","new","excellent","no issues","no issue","all good","looks good","nothing wrong","spotless","works","working","solid"]]
+  ["u",  ["not tested","not testable","not checked","not verified","not inspected","couldn't test","could not test","couldnt test","didn't test","did not test","unable to test","unable to verify","can't test","cannot test","can't verify","cannot verify","not able to test","no power on site","power is off at the property","utilities are off","electricity is off","water is off","gas is off"]],
+  ["r",  ["needs to be replaced","needs replacing","needs replacement","needs a replacement","has to be replaced","need replacing","needs replaced","replacement needed","replace it","remove and replace","beyond repair","cannot be repaired","can't be repaired","not repairable","unrepairable","end of life","worn beyond repair","needs new"]],
+  ["c",  ["not working","not work","doesn't work","does not work","doesnt work","won't turn on","wont turn on","doesn't turn on","does not turn on","not functioning","does not function","is not functioning","inoperable","out of service","not operating","not running","won't run","wont run","won't start","wont start","not responding","not cooling","not heating","no airflow","no hot water","not draining","won't open","wont open","can't open","cannot open","won't close","wont close","won't lock","wont lock","won't latch","wont latch","stuck","jammed","leaking","leaks","dripping","running","no power"]],
+  ["b",  ["needs repair","need repair","needs a repair","needs work","need work","needs some work","requires repair","requires attention","needs attention","needs fixed","needs fixing","needs to be fixed","fix it","needs touch up","need touch up","needs a touch up","need a touch up","touch up","touchup","needs paint","needs painting","repaint","repainting","needs adjustment","adjustment needed","broken","cracked","crack","damaged","busted","bust","torn","ripped","hole","holes","chipped","chip","shattered","bent","loose","missing","split","rotted","rotten","worn out","worn","wobbly","crooked","out of alignment","not aligned","peeling","flaking","dented","gouged","scraped","scratches"]],
+  ["d",  ["needs to be cleaned","needs cleaning","need cleaning","needs a clean","needs cleaned","needs wiped","needs wiping","needs scrubbed","needs a scrub","needs washed","needs washing","needs vacuumed","needs mopped","needs dusted","needs sanitizing","needs to be sanitized","needs deep cleaning","deep clean","dirty","filthy","messy","unclean","grimy","stained","stain","soiled","dusty","dust","mold","mildew","greasy","grease","scuffed","scuffs","scuff","marks","marked up","hair","debris","trash","cobweb","cobwebs","smudges","fingerprints","residue","water spots","smells bad","bad smell","bad odor","foul odor"]],
+  ["na", ["not applicable","doesn't apply","does not apply","n/a","n a","doesn't have","does not have","dont have","not installed","no such","not present","not there","isn't there","is not there","none here","skip"]],
+  ["ok", ["all good","all clear","all set","no issues","no issue","no problems","no problem","no concerns","nothing wrong","checks out","check out","passed","pass","looks good","looks fine","looks great","looks okay","seems fine","appears good","in good shape","in great shape","in good condition","in decent condition","in order","good to go","ready to go","rent ready","move in ready","cleaned up","well maintained","serviceable","operates as it should","functions normally","working properly","good","fine","okay","ok","clean","great","perfect","new","excellent","spotless","tidy","solid","works","working"]]
 ];
-const NEG = ["not good","no good","not clean","not fine","not okay","not ok","not great","not new"];
+/* These must win over short positive words such as "clean" or "working". */
+const NEG = [
+  ["u", ["not tested","not testable","could not test","couldn't test","unable to test","unable to verify"]],
+  ["c", ["not working","not functioning","not operating","not running","not cooling","not heating","not draining","not responding"]],
+  ["d", ["not clean","not tidy","not sanitary"]],
+  ["ok", ["not broken","not damaged","not dirty","not leaking","no leak","no leaks","no damage","no cracks","not cracked","not stained"]],
+  ["b", ["not good","no good","not right","not okay","not ok","not fine","not great","not new"]]
+];
 
 /* extra words that should match a line on the sheet */
 const ALIAS = {
@@ -1319,6 +1341,7 @@ function norm(s){
     .replace(/[""'']/g,"'").replace(/[^a-z0-9'/\s]/g," ")
     .replace(/\s+/g," ").trim() + " ";
 }
+function hasPhrase(txt, phrase){ return txt.indexOf(" " + norm(phrase).trim() + " ") >= 0; }
 function aliasesFor(name){
   const out = [name.toLowerCase()];
   (ALIAS[name] || []).forEach(a=>out.push(a));
@@ -1329,22 +1352,36 @@ function aliasesFor(name){
   return out;
 }
 
+function spaceAliases(sp){
+  const cands = [sp.name.toLowerCase()];
+  const t = sp.type;
+  if(t==="living") cands.push("living room","living","front room","family room","dining","dining room","great room");
+  if(t==="kitchen") cands.push("kitchen","kitchenette");
+  if(t==="laundry") cands.push("laundry","laundry room","utility","appliances");
+  if(t==="bedroom") cands.push("bedroom","bed room","master bedroom","primary bedroom");
+  if(t==="bathroom") cands.push("bathroom","bath","master bath","guest bath","half bath","powder room","restroom");
+  if(t==="systems") cands.push("safety","systems","mechanicals","utilities");
+  if(t==="outside") cands.push("outside","exterior","outdoors","yard","out back","front");
+  if(t==="rr-safety") cands.push("safety","access","life safety");
+  if(t==="rr-hvac") cands.push("hvac","air conditioning","air conditioner","utilities");
+  if(t==="rr-plumbing") cands.push("plumbing","water");
+  if(t==="rr-appliances") cands.push("appliances","kitchen appliances");
+  if(t==="rr-interior") cands.push("interior","inside","cleaning");
+  if(t==="rr-exterior") cands.push("exterior","outside","grounds","yard");
+  if(t==="rr-pest-file") cands.push("pest","turnover file");
+  if(t==="rr-pool") cands.push("pool");
+  if(t==="rr-well") cands.push("well","septic","water quality");
+  if(t==="rr-rural") cands.push("rural","acreage");
+  if(t==="rr-handover") cands.push("handover","prior broker","previous broker");
+  return cands;
+}
+
 /* which room is this chunk talking about? */
 function matchSpace(txt){
   let best = null, bestLen = 0;
   activeSpaces(cur).forEach(sp=>{
-    const cands = [sp.name.toLowerCase()];
-    const t = sp.type;
-    if(t==="living") cands.push("living room","living","front room","family room","dining","dining room","great room");
-    if(t==="kitchen") cands.push("kitchen","kitchenette");
-    if(t==="laundry") cands.push("laundry","laundry room","utility","appliances");
-    if(t==="bedroom") cands.push("bedroom","bed room","master bedroom","primary bedroom");
-    if(t==="bathroom") cands.push("bathroom","bath","master bath","guest bath","half bath","powder room","restroom");
-    if(t==="systems") cands.push("safety","systems","mechanicals","utilities");
-    if(t==="outside") cands.push("outside","exterior","outdoors","yard","out back","front");
-    cands.forEach(c=>{
-      const n = norm(c);
-      if(txt.indexOf(n.trim().length ? " " + n.trim() + " " : n) >= 0 && c.length > bestLen){
+    spaceAliases(sp).forEach(c=>{
+      if(hasPhrase(txt, c) && c.length > bestLen){
         best = sp; bestLen = c.length;
       }
     });
@@ -1383,13 +1420,45 @@ function noteWorthKeeping(part, itemName, codeHit){
 }
 
 function matchCode(txt){
-  for(const neg of NEG){ if(txt.indexOf(" " + neg + " ") >= 0) return {code:"b", hit:neg}; }
-  for(const [code, words] of SAY){
+  for(const [intent, words] of NEG){
+    for(const word of words){ if(hasPhrase(txt, word)) return {code:normalizeStatus(intent), intent, hit:word}; }
+  }
+  for(const [intent, words] of SAY){
     for(const w of words){
-      if(txt.indexOf(" " + w + " ") >= 0) return {code, hit:w};
+      if(hasPhrase(txt, w)) return {code:normalizeStatus(intent), intent, hit:w};
     }
   }
   return null;
+}
+
+const SPACE_WIDE_HINTS = ["everything","everything else","the rest","rest of it","all good","all clear","whole room","entire room","this room","the room","overall"];
+function isSpaceWideStatement(sp, txt, explicitlyNamed){
+  if(explicitlyNamed && !matchItem(sp, txt, false)) return true;
+  return SPACE_WIDE_HINTS.some(h=>hasPhrase(txt,h));
+}
+function notTestedReason(txt){
+  const t = norm(txt);
+  if(hasPhrase(t,"no power on site")) return "No power on site";
+  if(hasPhrase(t,"power is off at the property")) return "Power is off at the property";
+  if(hasPhrase(t,"utilities are off")) return "Utilities are off";
+  if(hasPhrase(t,"electricity is off")) return "Electricity is off";
+  if(hasPhrase(t,"water is off")) return "Water is off";
+  if(hasPhrase(t,"gas is off")) return "Gas is off";
+  return "";
+}
+function dictationNote(part, subject, codeHit, intent){
+  const spoken = part.trim().replace(/\s+/g," ").replace(/^(and|but|then|also|okay|ok|so)\s+/i,"").trim();
+  if(intent === "u"){
+    const reason = notTestedReason(spoken);
+    return "Not tested" + (reason ? " — " + reason : spoken ? " — " + spoken.charAt(0).toUpperCase() + spoken.slice(1) : "");
+  }
+  /* With one Needs work status, keep the inspector's own condition words in
+     the note (for example, "Fridge not cooling") instead of losing the cause. */
+  if(intent && normalizeStatus(intent)==="work" && spoken){
+    return spoken.charAt(0).toUpperCase() + spoken.slice(1);
+  }
+  if(!noteWorthKeeping(part, subject, codeHit)) return "";
+  return spoken ? spoken.charAt(0).toUpperCase() + spoken.slice(1) : "";
 }
 
 /* transcript -> list of proposed changes */
@@ -1413,20 +1482,31 @@ function parseDictation(text){
 
       const here = matchSpace(txt);
       if(here) space = here;
-      if(!space) return;
+      const target = here || space;
+      if(!target) return;
 
-      const im = matchItem(space, txt, true);
+      const im = matchItem(target, txt, true);
       const cm = matchCode(txt);
 
       if(im && cm){
         /* keep the note only when it says more than the code already does */
-        let note = "";
-        if(FLAGS.indexOf(cm.code) >= 0 && noteWorthKeeping(part, im.it.t, cm.hit)){
-          note = part.trim().replace(/\s+/g," ").replace(/^(and|but|then|also|okay|ok|so)\s+/i,"").trim();
-          note = note.charAt(0).toUpperCase() + note.slice(1);
-        }
-        last = {sp: space, idx: im.i, item: im.it.t, code: cm.code, note, raw: part.trim()};
+        const note = FLAGS.indexOf(cm.code) >= 0 ? dictationNote(part, im.it.t, cm.hit, cm.intent) : "";
+        last = {sp: target, idx: im.i, item: im.it.t, code: cm.code, note, raw: part.trim(), key: target.id+":"+im.i};
         out.push(last);
+      } else if(!im && cm && isSpaceWideStatement(target, txt, !!here)){
+        /* "Kitchen is clean" means pass untouched kitchen lines. A broad
+           problem is kept as an honest room-level exception instead of being
+           guessed onto a faucet, floor, or appliance. */
+        if(cm.code==="ok"){
+          const remaining = target.items.filter(it=>!it.s && !it.dictRoom).length;
+          out.push({sp: target, scope:"pass-rest", item:"Pass remaining lines", code:"ok",
+            detail: "Marks " + remaining + " untouched line" + (remaining===1?"":"s") + " Good", raw:part.trim(), key:target.id+":pass-rest"});
+        }else{
+          const note = FLAGS.indexOf(cm.code) >= 0 ? dictationNote(part, target.name, cm.hit, cm.intent) : "";
+          out.push({sp: target, scope:"room-condition", item:"Overall condition", code:cm.code, note,
+            raw:part.trim(), key:target.id+":overall-condition"});
+        }
+        last = null;
       } else if(im && !cm){
         last = null;
       } else if(!im && !cm && last && FLAGS.indexOf(last.code) >= 0 && part.trim().length > 3){
@@ -1440,17 +1520,36 @@ function parseDictation(text){
 
   /* last write wins per line */
   const seen = {};
-  out.forEach(o=>{ seen[o.sp.id + ":" + o.idx] = o; });
+  out.forEach(o=>{ seen[o.key || (o.sp.id + ":" + o.idx)] = o; });
   return Object.keys(seen).map(k=>seen[k]);
 }
 
 function applyDictation(rows){
+  let changed = 0;
   rows.forEach(r=>{
+    if(r.scope==="pass-rest"){
+      r.sp.items.forEach(it=>{
+        if(!it.s && !it.dictRoom){ it.s = "ok"; changed++; }
+      });
+      return;
+    }
+    if(r.scope==="room-condition"){
+      let it = r.sp.items.find(x=>x.dictRoom);
+      if(!it){
+        it = {t:"Overall condition", s:"", n:"", base:"", dictRoom:true};
+        r.sp.items.push(it);
+      }
+      it.s = r.code; it.n = r.note || ""; changed++;
+      return;
+    }
     const it = r.sp.items[r.idx];
+    if(!it) return;
     it.s = r.code;
     if(r.note && FLAGS.indexOf(r.code) >= 0) it.n = it.n ? (it.n + "; " + r.note) : r.note;
+    changed++;
   });
   save(); renderSpaces(); renderHead();
+  return changed;
 }
 
 /* ---------------- dictation UI ---------------- */
@@ -1459,11 +1558,13 @@ function renderDict(){
   const el = document.getElementById("dictOut");
   if(!DICT.length){ el.innerHTML = ""; return; }
   const flags = DICT.filter(r=>FLAGS.indexOf(r.code)>=0).length;
-  el.innerHTML = '<p class="dnote">' + DICT.length + " line" + (DICT.length===1?"":"s") +
-    " picked up" + (flags ? ", " + flags + " flagged" : "") +
+  const passes = DICT.filter(r=>r.scope==="pass-rest").length;
+  el.innerHTML = '<p class="dnote">' + DICT.length + " instruction" + (DICT.length===1?"":"s") +
+    " picked up" + (flags ? ", " + flags + " needing work" : "") +
+    (passes ? ", " + passes + " section pass" + (passes===1?"":"es") : "") +
     ". Drop anything it misheard, then apply.</p>" +
     DICT.map((r,i)=>'<div class="drow"><span class="dt"><b>' + esc(r.sp.name) + " / " + esc(r.item) + "</b>" +
-      (r.note ? "<i>" + esc(r.note) + "</i>" : "") + '</span>' +
+      (r.detail || r.note ? "<i>" + esc(r.detail || r.note) + "</i>" : "") + '</span>' +
       '<span class="dtag k-' + r.code + '">' + esc(CODE_LABEL[r.code]) + "</span>" +
       '<button class="drop" data-drop="' + i + '" aria-label="Discard">✕</button></div>').join("") +
     '<div class="row" style="margin-top:11px"><button class="act solid" id="dictApply" style="font-size:12.5px;padding:10px 13px">Apply to the sheet</button></div>';
@@ -1474,6 +1575,54 @@ let REC = null;
 let REC_ACTIVE = false;
 let REC_FINAL_TEXT = "";
 let REC_RESTART = null;
+let REC_RECENT_FINALS = [];
+
+function speechWords(s){
+  return String(s||"").toLowerCase().replace(/[^a-z0-9\s]/g," ").replace(/\s+/g," ").trim();
+}
+function sentenceText(s){ return String(s||"").trim().replace(/[.?!]+\s*$/," ").trim(); }
+/* Web Speech sometimes first finalizes a short room fragment ("kitchen"),
+   then immediately finalizes the completed phrase ("kitchen is clean").
+   Replace that fragment rather than showing or parsing it twice. */
+function mergeSpeechFinal(existing, incoming){
+  const next = sentenceText(incoming);
+  if(!next) return (existing||"").trim();
+  const base = (existing||"").trim();
+  if(!base) return next + ".";
+
+  const baseNoEnd = base.replace(/[.?!]+\s*$/," ").trim();
+  const cut = Math.max(baseNoEnd.lastIndexOf("."), baseNoEnd.lastIndexOf("?"), baseNoEnd.lastIndexOf("!"));
+  const prefix = cut >= 0 ? baseNoEnd.slice(0,cut+1).trim() : "";
+  const last = (cut >= 0 ? baseNoEnd.slice(cut+1) : baseNoEnd).trim();
+  const lastWords = speechWords(last), nextWords = speechWords(next);
+  if(!lastWords) return (base + " " + next + ".").trim();
+  if(lastWords===nextWords || lastWords.endsWith(" " + nextWords)) return base;
+  if(nextWords.startsWith(lastWords + " ") && lastWords.split(" ").length<=5){
+    return (prefix ? prefix + " " : "") + next + ".";
+  }
+
+  const a = lastWords.split(" "), b = nextWords.split(" ");
+  let overlap = 0;
+  for(let n=Math.min(a.length,b.length,5); n>0; n--){
+    if(a.slice(-n).join(" ")===b.slice(0,n).join(" ")){ overlap=n; break; }
+  }
+  if(overlap){
+    if(overlap===b.length) return base;
+    const rest = next.trim().split(/\s+/).slice(overlap).join(" ");
+    /* Keep the sentence boundary when a new final begins by repeating the
+       tail of the previous final ("clean. Living room..."). */
+    return (/[.?!]\s*$/.test(base) ? base : baseNoEnd + ".") + " " + rest + ".";
+  }
+  return base + " " + next + ".";
+}
+function acceptSpeechFinal(text){
+  const clean = sentenceText(text), key = speechWords(clean), now = Date.now();
+  if(!key) return;
+  REC_RECENT_FINALS = REC_RECENT_FINALS.filter(r=>now-r.at<3500);
+  if(REC_RECENT_FINALS.some(r=>r.key===key)) return;
+  REC_RECENT_FINALS.push({key,at:now});
+  REC_FINAL_TEXT = mergeSpeechFinal(REC_FINAL_TEXT, clean);
+}
 function toggleMic(){
   const btn = document.getElementById("micBtn");
   if(REC_ACTIVE){
@@ -1490,19 +1639,19 @@ function toggleMic(){
   const box = document.getElementById("dictText");
   REC_ACTIVE = true;
   REC_FINAL_TEXT = box.value.trim();
+  REC_RECENT_FINALS = [];
 
   function startRecognition(){
     if(!REC_ACTIVE) return;
     REC = new SR();
     REC.continuous = true; REC.interimResults = true; REC.lang = "en-US";
     REC.onresult = ev=>{
-      let interim = "", finals = "";
+      let interim = "";
       for(let i = ev.resultIndex; i < ev.results.length; i++){
         const txt = ev.results[i][0].transcript.trim();
-        if(ev.results[i].isFinal) finals += (finals ? " " : "") + txt;
+        if(ev.results[i].isFinal) acceptSpeechFinal(txt);
         else interim += (interim ? " " : "") + txt;
       }
-      if(finals) REC_FINAL_TEXT = (REC_FINAL_TEXT + (REC_FINAL_TEXT ? " " : "") + finals + ".").trim();
       box.value = (REC_FINAL_TEXT + (interim ? " " + interim : "")).trim();
       box.scrollTop = box.scrollHeight;
     };
@@ -1560,21 +1709,23 @@ document.addEventListener("click", async e=>{
   }
   if(t.id==="dictApply"){
     if(!DICT.length) return;
-    const n = DICT.length;
-    applyDictation(DICT);
+    const n = applyDictation(DICT);
     DICT = []; renderDict();
-    toast(n + " line" + (n===1?"":"s") + " marked — check them over");
+    toast(n ? n + " line" + (n===1?"":"s") + " updated — check them over" : "Nothing new to mark");
     return;
   }
   const drop = t.closest("[data-drop]");
   if(drop){ DICT.splice(+drop.dataset.drop, 1); renderDict(); return; }
   if(t.id==="dictHelp"){
     alert("Say the room, then each line and how it looks.\n\n" +
-      "\"Living room. Floor good, walls dirty, scuffs by the slider. Closet door broken.\"\n\n" +
-      "\"Moving to the kitchen. Cabinets fine, fridge not working, ice maker doesn't fill.\"\n\n" +
-      "Words it knows: good, clean, fine — dirty, stained, scuffed — broken, cracked, torn — " +
-      "not working, leaking — not tested, could not test, no power on site — replace — not applicable.\n\n" +
-      "Anything you say after a problem becomes the note on that line.");
+      "\"Kitchen is clean.\" passes the untouched kitchen lines.\n\n" +
+      "\"Living room. Floor looks good, walls need touch-up, closet door is broken.\"\n\n" +
+      "\"Moving to the kitchen. Cabinets are in good shape, fridge is not cooling, ice maker doesn't fill.\"\n\n" +
+      "It understands: good / checks out / no issues — dirty / needs cleaning / smells bad — " +
+      "broken / needs work / needs repair — not working / stuck / leaking — needs replacing — " +
+      "not tested / utilities are off — not applicable.\n\n" +
+      "Those phrases become Good, Needs work, or N/A. The exact issue is kept in the note, including why something could not be tested. " +
+      "For a room-wide issue, say the room and the condition.");
     return;
   }
   if(t.id==="micBtn"){ toggleMic(); return; }
@@ -1828,6 +1979,7 @@ document.getElementById("impFile").addEventListener("change", e=>{
         if(!r || !r.spaces) return;
         const pics = r.photos || []; delete r.photos;
         if(LIST.some(x=>x.id===r.id)) r.id = uid();
+        normalizeRecord(r);
         LIST.unshift(r); added++;
         pics.forEach(o=>{ photoPut({id: uid(), insp: r.id, key: o.key, data: o.data, ts: o.ts||Date.now()}).catch(()=>{}); });
       });

@@ -42,8 +42,9 @@ the fonts and files cache.
    separate fields. Access / lockbox details stay internal and are not placed in shared reports.
    Its core walkthrough has 31 distinct checks; pool, well/septic, rural, and prior-broker handover
    checks appear only when the inspector turns that property-specific option on.
-3. **Walk the property.** Each line gets a code: Good, Dirty, Broken, Not working, Replace,
-   Not tested, or N/A. “Not tested” is for no-power or other conditions where a function could not be verified.
+3. **Walk the property.** Each line gets one of three outcomes: **Good**, **Needs work**, or **N/A**.
+   Cleaning, repairs, replacement, malfunctions, and things that could not be tested all use **Needs work**;
+   the note holds the detail, such as “Not tested — no power on site.”
 4. **Pass the rest** fills untouched lines in a section in one tap. Only reviewed lines appear in reports.
 5. **Add or rename rooms** as the unit needs — bedrooms, baths, anything else.
 6. **Sign** move-in/move-out sheets when appropriate. Rent-ready reports are owner/vendor notations and have no tenant sign-off.
@@ -63,16 +64,23 @@ Say the room, then each line and how it looks:
 >
 > "Moving to the kitchen. Cabinets fine, fridge not working, ice maker doesn't fill."
 
+You can also pass a whole room quickly: **"Kitchen is clean"**, **"the bathroom looks good"**,
+or **"everything else in here is fine"**. The app marks only the untouched lines in that room as
+Good, so a specific issue already recorded is preserved. A broad issue such as **"Kitchen is filthy"**
+becomes one “Overall condition” exception instead of being guessed onto the wrong fixture.
+
 Hit **Read it** and the app shows what it heard — room, line, and code — before changing anything.
 Drop any line it misheard with the ✕, then **Apply to the sheet**.
 
 Words it recognises: good, clean, fine, works — dirty, stained, scuffed, mold — broken, cracked,
 torn, loose, missing — not working, no power, leaking, running — not tested / could not test — needs replacing — not applicable.
-Whatever you say after a problem becomes the note on that line.
+Everything except a good or N/A statement becomes **Needs work**, while the spoken condition is kept as the note on that line.
 
-**Always read the sheet before signing.** Dictation is a first pass, not the record. It leaves the
-note blank when you only stated the condition, which shows up as "note needed" in the flagged list
-— that is deliberate, so real detail gets added where a deposit might be argued.
+The live recorder removes repeated final fragments such as `Kitchen. Kitchen is clean.` before they
+reach the transcript. Always review the proposed changes before applying them.
+
+**Always read the sheet before signing.** Dictation is a first pass, not the record. It keeps the
+spoken condition with a Needs work result, so review and tighten that note wherever a deposit might be argued.
 
 ## Saving the report
 
@@ -108,7 +116,7 @@ Everything is in one `<script>` block near the bottom of each HTML page.
 - **Company name:** the `ORG` constant.
 - **Room checklists:** the `T` object — each room type lists its lines.
 - **Which rooms a new inspection starts with:** `DEFAULT_SPACES`.
-- **The codes themselves:** `CODES` and `CODE_LABEL`.
+- **The three outcomes:** `CODES` and `CODE_LABEL`.
 
 The three pages share the same storage key but are separate static copies. Keep `index.html` as the
 source for the unified field workflow; regenerate the locked pages after changing the app logic.
