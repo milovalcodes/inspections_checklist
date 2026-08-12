@@ -208,6 +208,15 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .drop:hover{color:var(--work)}
 .dnote{font-size:12.5px;color:var(--slate);margin:10px 0 0;padding-left:10px;border-left:3px solid var(--hivis)}
 #micBtn.live{background:var(--work);border-color:var(--work);color:#fff}
+.localvoice{margin-top:11px;padding:11px;border:1px solid #D8CCB7;border-radius:6px;background:linear-gradient(110deg,#FFF9EE,#FFFDF9)}
+.localvoice b{font-size:12.5px}
+.localvoice p{margin:4px 0 0;font-size:12px;line-height:1.45;color:var(--slate)}
+.voice-status{display:flex;gap:8px;align-items:center;margin-top:9px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.04em;color:var(--slate)}
+.voice-status i{display:block;flex:1;height:5px;overflow:hidden;border-radius:99px;background:#E6DDCF}
+.voice-status i em{display:block;width:0;height:100%;border-radius:inherit;background:var(--hivis);transition:width .25s ease}
+.voice-status.busy i em{animation:voice-sweep 1.15s ease-in-out infinite}
+.voice-status.done i em{width:100%!important;background:var(--ok)}
+@keyframes voice-sweep{0%{width:8%}50%{width:72%}100%{width:8%}}
 
 /* home */
 .new{display:grid;grid-template-columns:1fr;gap:9px;margin-top:12px}
@@ -231,8 +240,11 @@ body[data-mode="ready"] .signCard{display:none}
 .inoutonly{display:block}
 body[data-mode="ready"] .inoutonly{display:none!important}
 .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
-.rec{display:flex;align-items:center;gap:11px;padding:12px 14px;border:0;border-top:1px solid var(--hair);background:var(--card);width:100%;text-align:left}
-.rec:first-of-type{border-top:none}
+.recrow{display:flex;align-items:stretch;border-top:1px solid var(--hair);background:var(--card)}
+.recrow:first-of-type{border-top:none}
+.rec{display:flex;align-items:center;gap:11px;padding:12px 14px;border:0;background:var(--card);flex:1;min-width:0;text-align:left}
+.recdelete{flex:0 0 auto;align-self:center;margin-right:10px;padding:7px 8px;border:1px solid #D9B7AF;border-radius:5px;background:#FFF8F6;color:#A43D2B;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.recdelete:hover,.recdelete:focus-visible{background:#A43D2B;color:#fff;border-color:#A43D2B}
 .rec .badge{flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border-radius:6px;background:var(--ink);color:var(--hivis);
   font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;font-weight:600;letter-spacing:.04em}
 .rec .badge.out{background:#0E3B4C;color:#4FC3E8}
@@ -262,7 +274,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
 .lb.on{display:flex}
 .lb img{max-width:100%;max-height:74vh;object-fit:contain}
 .mcard{background:var(--card);border-top:3px solid var(--ink);width:100%;max-width:430px;padding:16px;max-height:82vh;overflow:auto}
-.mcard .rec{border-top:1px solid var(--hair)}
+.mcard .recrow{border-top:1px solid var(--hair)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));background:var(--ink);color:#fff;
   padding:10px 16px;border-radius:2px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.06em;z-index:70;opacity:0;
   pointer-events:none;transition:opacity .25s}
@@ -485,6 +497,16 @@ body[data-mode="ready"] .inoutonly{display:none!important}
       <div class="row" style="margin-top:11px">
         <button class="mini" id="micBtn">🎤 Start recording</button>
         <button class="mini" id="dictHelp">What to say</button>
+      </div>
+      <div class="localvoice" id="localVoice">
+        <b>Offline video transcription</b>
+        <p>Choose a walkthrough video or audio file. The app prepares the audio on this device, then transcribes it here. Nothing is uploaded. Keep this page open; use recordings up to 12 minutes.</p>
+        <div class="row" style="margin-top:9px">
+          <button class="mini go" id="voicePackBtn">Download offline voice pack</button>
+          <button class="mini" id="mediaPickBtn">Import video / audio</button>
+          <input type="file" id="mediaIn" accept="video/*,audio/*,.m4a,.mp3,.wav,.webm" class="hide">
+        </div>
+        <div class="voice-status" id="voiceStatus" role="status" aria-live="polite"><span id="voiceStatusText">Voice pack downloads once on Wi-Fi, then works without signal.</span><i><em id="voiceStatusFill"></em></i></div>
       </div>
       <textarea class="in" id="dictText" placeholder="Paste the transcript here, or hit record and talk." style="margin-top:10px;min-height:92px"></textarea>
       <div class="row" style="margin-top:9px">
@@ -848,8 +870,11 @@ async function allPhotos(){
 async function photoDeleteInsp(inspId){
   try{
     const d = await db();
-    const t = d.transaction("p","readwrite"), st = t.objectStore("p"), rq = st.getAll();
-    rq.onsuccess = ()=> (rq.result||[]).filter(o=>o.insp===inspId).forEach(o=>st.delete(o.id));
+    await new Promise((res,rej)=>{
+      const t = d.transaction("p","readwrite"), st = t.objectStore("p"), rq = st.getAll();
+      rq.onsuccess = ()=> (rq.result||[]).filter(o=>o.insp===inspId).forEach(o=>st.delete(o.id));
+      t.oncomplete = ()=>res(); t.onerror = ()=>rej(t.error);
+    });
   }catch(e){}
 }
 function shrink(file){
@@ -1020,13 +1045,13 @@ function renderHome(){
     .sort((a,b)=>b.updated-a.updated);
 
   document.getElementById("list").innerHTML = rows.length ? rows.map(r=>{
-    const s = stats(r);
-    return `<button class="rec" data-open="${r.id}">
+    const s = stats(r), name = title(r);
+    return `<div class="recrow"><button class="rec" data-open="${r.id}" aria-label="Open ${esc(name)}">
       <span class="badge ${r.mode==="out"?"out":r.mode==="ready"?"ready":""}">${r.mode==="out"?"OUT":r.mode==="ready"?"READY":"IN"}</span>
-      <span class="rt"><b>${esc(title(r))}</b>
+      <span class="rt"><b>${esc(name)}</b>
         <span>${MODE_LABEL[r.mode]||r.mode} · ${fmtDate(r.meta.date)}${r.meta.tenant? " · "+esc(r.meta.tenant):""}</span></span>
       <span class="pc">${s.done}/${s.total}${s.flags? " · "+s.flags+" needs work":""}</span>
-    </button>`;
+    </button><button class="recdelete" data-delhome="${r.id}" aria-label="Delete ${esc(name)}">Delete</button></div>`;
   }).join("") : `<div class="empty">Nothing saved yet. Start an inspection above and it will be waiting here.</div>`;
 }
 
@@ -1929,10 +1954,231 @@ function toggleMic(){
   toast("Listening — say the room, then each line");
 }
 
+/* ---------------- offline video / audio transcription ----------------
+   The walkthrough media stays in memory on this phone. Video is routed through
+   Web Audio and recorded as a temporary audio-only blob before the local model
+   sees it. The original video is never uploaded or saved by this app. */
+const VOICE_MAX_SECONDS = 12 * 60;
+let VOICE_WORKER = null;
+let VOICE_READY = false;
+let VOICE_PACK_WAIT = null;
+let VOICE_TRANSCRIBE_WAIT = null;
+let VOICE_BUSY = false;
+
+function voiceStatus(text, pct, state){
+  const box = document.getElementById("voiceStatus");
+  const label = document.getElementById("voiceStatusText");
+  const fill = document.getElementById("voiceStatusFill");
+  if(!box || !label || !fill) return;
+  box.classList.remove("busy","done");
+  if(state) box.classList.add(state);
+  label.textContent = text;
+  fill.style.width = typeof pct === "number" ? Math.max(0,Math.min(100,pct)) + "%" : "0%";
+}
+function setVoiceBusy(busy){
+  VOICE_BUSY = busy;
+  ["voicePackBtn","mediaPickBtn"].forEach(id=>{
+    const button = document.getElementById(id);
+    if(button) button.disabled = busy;
+  });
+}
+function voiceFailure(text){
+  voiceStatus("Offline transcription could not finish: " + text, 0, "");
+  toast("Offline transcription could not finish");
+}
+function getVoiceWorker(){
+  if(VOICE_WORKER) return VOICE_WORKER;
+  const worker = new Worker("./voice-worker.js");
+  worker.onmessage = event=>{
+    const data = event.data || {};
+    if(data.type==="pack-progress"){
+      voiceStatus(data.text || "Downloading offline voice pack...", data.progress, "busy");
+      return;
+    }
+    if(data.type==="ready"){
+      VOICE_READY = true;
+      voiceStatus(data.text || "Offline voice pack is ready on this device.", 100, "done");
+      if(VOICE_PACK_WAIT){ const wait=VOICE_PACK_WAIT; VOICE_PACK_WAIT=null; wait.resolve(); }
+      return;
+    }
+    if(data.type==="transcribe-progress"){
+      voiceStatus(data.text || "Transcribing on this device...", null, "busy");
+      return;
+    }
+    if(data.type==="transcript"){
+      if(VOICE_TRANSCRIBE_WAIT){ const wait=VOICE_TRANSCRIBE_WAIT; VOICE_TRANSCRIBE_WAIT=null; wait.resolve(data.text || ""); }
+      return;
+    }
+    if(data.type==="error"){
+      const err = new Error(data.text || "The local voice engine stopped.");
+      if(VOICE_PACK_WAIT){ const wait=VOICE_PACK_WAIT; VOICE_PACK_WAIT=null; wait.reject(err); }
+      if(VOICE_TRANSCRIBE_WAIT){ const wait=VOICE_TRANSCRIBE_WAIT; VOICE_TRANSCRIBE_WAIT=null; wait.reject(err); }
+    }
+  };
+  worker.onerror = ()=>{
+    const err = new Error("The local voice engine is not available in this browser.");
+    if(VOICE_PACK_WAIT){ const wait=VOICE_PACK_WAIT; VOICE_PACK_WAIT=null; wait.reject(err); }
+    if(VOICE_TRANSCRIBE_WAIT){ const wait=VOICE_TRANSCRIBE_WAIT; VOICE_TRANSCRIBE_WAIT=null; wait.reject(err); }
+    VOICE_WORKER = null;
+  };
+  VOICE_WORKER = worker;
+  return worker;
+}
+function loadVoicePack(){
+  if(VOICE_READY) return Promise.resolve();
+  if(VOICE_PACK_WAIT) return VOICE_PACK_WAIT.promise;
+  voiceStatus("Downloading offline voice pack. Keep this page open...", null, "busy");
+  const worker = getVoiceWorker();
+  let resolve, reject;
+  const promise = new Promise((res,rej)=>{ resolve=res; reject=rej; });
+  VOICE_PACK_WAIT = {promise,resolve,reject};
+  worker.postMessage({type:"load"});
+  return promise;
+}
+function transcribeSamples(samples){
+  const worker = getVoiceWorker();
+  return new Promise((resolve,reject)=>{
+    VOICE_TRANSCRIBE_WAIT = {resolve,reject};
+    worker.postMessage({type:"transcribe", samples:samples.buffer}, [samples.buffer]);
+  });
+}
+function fileIsVideo(file){
+  return /^video\//i.test(file.type || "") || /\.(mov|mp4|m4v|webm|avi)$/i.test(file.name || "");
+}
+function mediaReady(el){
+  return new Promise((resolve,reject)=>{
+    const clean = ()=>{ el.removeEventListener("loadedmetadata",ok); el.removeEventListener("error",bad); };
+    const ok = ()=>{ clean(); resolve(); };
+    const bad = ()=>{ clean(); reject(new Error("That media file could not be opened on this phone.")); };
+    el.addEventListener("loadedmetadata",ok,{once:true}); el.addEventListener("error",bad,{once:true});
+  });
+}
+function recorderOptions(){
+  const types = ["audio/mp4","audio/webm;codecs=opus","audio/webm"];
+  const mime = types.find(type=>MediaRecorder.isTypeSupported(type));
+  return mime ? {mimeType:mime,audioBitsPerSecond:32000} : {audioBitsPerSecond:32000};
+}
+function checkVoiceDuration(seconds){
+  if(!Number.isFinite(seconds) || seconds<=0) throw new Error("This file does not contain readable audio.");
+  if(seconds>VOICE_MAX_SECONDS) throw new Error("For reliable phone transcription, choose a walkthrough that is 12 minutes or shorter.");
+}
+async function extractAudioFromVideo(file){
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC || !window.MediaRecorder) throw new Error("This phone cannot prepare video audio. Import an audio file instead.");
+  const video = document.createElement("video");
+  const url = URL.createObjectURL(file);
+  video.preload="auto"; video.playsInline=true; video.src=url;
+  video.style.cssText="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none";
+  document.body.appendChild(video);
+  let audioContext, recorder, source, gain, destination;
+  try{
+    await mediaReady(video);
+    checkVoiceDuration(video.duration);
+    audioContext = new AC();
+    source = audioContext.createMediaElementSource(video);
+    destination = audioContext.createMediaStreamDestination();
+    gain = audioContext.createGain(); gain.gain.value = 0;
+    source.connect(destination); source.connect(gain); gain.connect(audioContext.destination);
+    recorder = new MediaRecorder(destination.stream, recorderOptions());
+    const chunks = [];
+    const recorded = new Promise((resolve,reject)=>{
+      recorder.ondataavailable = event=>{ if(event.data && event.data.size) chunks.push(event.data); };
+      recorder.onstop = ()=>resolve(new Blob(chunks,{type:recorder.mimeType || "audio/webm"}));
+      recorder.onerror = ()=>reject(new Error("This phone could not create an audio-only copy."));
+    });
+    const finished = new Promise((resolve,reject)=>{
+      video.addEventListener("ended",resolve,{once:true});
+      video.addEventListener("error",()=>reject(new Error("Video playback stopped before its audio was prepared.")),{once:true});
+    });
+    video.addEventListener("timeupdate",()=>{
+      voiceStatus("Preparing audio locally. Keep this page open...", Math.round(video.currentTime/video.duration*100), "busy");
+    });
+    voiceStatus("Preparing audio locally. Keep this page open...", 0, "busy");
+    await audioContext.resume();
+    recorder.start(1000);
+    await video.play();
+    await finished;
+    recorder.stop();
+    const audio = await recorded;
+    if(!audio.size) throw new Error("No readable audio was found in that video.");
+    return audio;
+  }finally{
+    if(recorder && recorder.state!=="inactive"){ try{recorder.stop();}catch(e){} }
+    if(video){ try{video.pause();}catch(e){} }
+    if(source){ try{source.disconnect();}catch(e){} }
+    if(gain){ try{gain.disconnect();}catch(e){} }
+    if(destination) destination.stream.getTracks().forEach(track=>track.stop());
+    if(audioContext){ try{await audioContext.close();}catch(e){} }
+    URL.revokeObjectURL(url); video.remove();
+  }
+}
+function resampleMono(buffer, rate){
+  const source = new Float32Array(buffer.length);
+  for(let channel=0; channel<buffer.numberOfChannels; channel++){
+    const data = buffer.getChannelData(channel);
+    for(let i=0;i<data.length;i++) source[i] += data[i] / buffer.numberOfChannels;
+  }
+  if(buffer.sampleRate===rate) return source;
+  const length = Math.round(source.length * rate / buffer.sampleRate), out = new Float32Array(length);
+  const step = buffer.sampleRate / rate;
+  for(let i=0;i<length;i++){
+    const pos=i*step, left=Math.floor(pos), right=Math.min(left+1,source.length-1), part=pos-left;
+    out[i] = source[left]*(1-part) + source[right]*part;
+  }
+  return out;
+}
+async function audioSamplesForVoice(blob){
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC) throw new Error("This phone cannot decode audio for offline transcription.");
+  const context = new AC();
+  let decoded;
+  try{ decoded = await context.decodeAudioData((await blob.arrayBuffer()).slice(0)); }
+  finally{ try{await context.close();}catch(e){} }
+  checkVoiceDuration(decoded.duration);
+  const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  if(!Offline) return resampleMono(decoded,16000);
+  const offline = new Offline(1,Math.ceil(decoded.duration*16000),16000);
+  const source = offline.createBufferSource(); source.buffer=decoded; source.connect(offline.destination); source.start();
+  const rendered = await offline.startRendering();
+  return new Float32Array(rendered.getChannelData(0));
+}
+async function transcribeLocalMedia(file){
+  if(!file || VOICE_BUSY) return;
+  setVoiceBusy(true);
+  try{
+    const audio = fileIsVideo(file) ? await extractAudioFromVideo(file) : file;
+    voiceStatus("Reading audio on this device...", 0, "busy");
+    const samples = await audioSamplesForVoice(audio);
+    await loadVoicePack();
+    voiceStatus("Transcribing on this device...", null, "busy");
+    const text = (await transcribeSamples(samples)).trim();
+    if(!text) throw new Error("No speech was found in that recording.");
+    const box = document.getElementById("dictText");
+    box.value = (box.value.trim() ? box.value.trim() + "\n" : "") + text;
+    DICT=[]; renderDict();
+    voiceStatus("Transcript ready. Review it, then tap Read it.", 100, "done");
+    toast("Offline transcript is ready to review");
+  }catch(err){
+    voiceFailure(err && err.message ? err.message : "Try a shorter recording or an audio file.");
+  }finally{ setVoiceBusy(false); }
+}
+
 /* ---------------- events ---------------- */
 document.addEventListener("click", async e=>{
   const t = e.target;
 
+  if(t.id==="voicePackBtn"){
+    if(VOICE_BUSY) return;
+    setVoiceBusy(true);
+    try{ await loadVoicePack(); toast("Offline voice pack is ready"); }
+    catch(err){ voiceFailure(err && err.message ? err.message : "Connect once on Wi-Fi to download the voice pack."); }
+    finally{ setVoiceBusy(false); }
+    return;
+  }
+  if(t.id==="mediaPickBtn"){
+    if(!VOICE_BUSY) document.getElementById("mediaIn").click();
+    return;
+  }
   if(t.id==="dictRun"){
     const txt = document.getElementById("dictText").value;
     if(!txt.trim()){ toast("Nothing to read yet"); return; }
@@ -1983,6 +2229,16 @@ document.addEventListener("click", async e=>{
     return openRec(newInspection("out", from, seed));
   }
   if(t.id==="modalClose" || t.id==="modal"){ document.getElementById("modal").classList.remove("on"); return; }
+
+  const homeDelete = t.closest("[data-delhome]");
+  if(homeDelete){
+    const r = LIST.find(x=>x.id===homeDelete.dataset.delhome);
+    if(!r) return;
+    if(!confirm("Delete " + title(r) + " and its photos? This cannot be undone.")) return;
+    LIST = LIST.filter(x=>x.id!==r.id); save(); await photoDeleteInsp(r.id); renderHome();
+    toast("Inspection deleted");
+    return;
+  }
 
   const rec = t.closest("[data-open]");
   if(rec){ const r = LIST.find(x=>x.id===rec.dataset.open); if(r) openRec(r); return; }
@@ -2168,7 +2424,7 @@ document.addEventListener("click", async e=>{
   if(t.id==="delBtn"){
     if(!confirm("Delete this inspection and its photos? This cannot be undone.")) return;
     const id = cur.id;
-    LIST = LIST.filter(r=>r.id!==id); save(); photoDeleteInsp(id); go("home"); toast("Deleted"); return;
+    LIST = LIST.filter(r=>r.id!==id); save(); await photoDeleteInsp(id); go("home"); toast("Deleted"); return;
   }
 });
 
@@ -2201,6 +2457,12 @@ document.addEventListener("change", e=>{
   if(e.target.tagName === "SELECT" && e.target.classList.contains("m") && cur){
     cur.meta[e.target.dataset.m] = e.target.value; save();
   }
+});
+
+document.getElementById("mediaIn").addEventListener("change", async e=>{
+  const file = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if(file) await transcribeLocalMedia(file);
 });
 
 document.getElementById("camIn").addEventListener("change", async e=>{

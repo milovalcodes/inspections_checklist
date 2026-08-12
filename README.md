@@ -93,6 +93,16 @@ reach the transcript. Always review the proposed changes before applying them.
 **Always read the sheet before signing.** Dictation is a first pass, not the record. It keeps the
 spoken condition with a Needs work result, so review and tighten that note wherever a deposit might be argued.
 
+## Offline video transcription
+
+The **Offline video transcription** area is part of Dictate the walkthrough. It keeps walkthrough media on the inspector's phone:
+
+1. While on Wi-Fi, tap **Download offline voice pack** once for each phone.
+2. Choose a video or audio walkthrough. For a video, the app makes a temporary audio-only copy on the phone; it never uploads the original video.
+3. The on-device voice pack writes the transcript into the existing dictation box. Read and review it before applying the proposed checks.
+
+For phone reliability, keep the app open while it prepares the recording and use walkthroughs of 12 minutes or less. The audio-only copy is temporary and is discarded when transcription finishes. The local voice pack is an English quick-transcription model: always review the proposed inspection results before applying them.
+
 ## Saving the report
 
 Three ways out, under Header & details:
