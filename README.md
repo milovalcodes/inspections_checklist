@@ -97,11 +97,15 @@ spoken condition with a Needs work result, so review and tighten that note where
 
 The **Offline video transcription** area is part of Dictate the walkthrough. It keeps walkthrough media on the inspector's phone:
 
-1. While on Wi-Fi, tap **Download offline voice pack** once for each phone. The compact pack is about 46 MB and is designed for reliable browser use. The app shows the live percentage and downloaded amount; keep the page open until it says the pack is ready. If a phone cannot use the compact pack, the app automatically tries a full-compatibility pack instead.
+1. While on Wi-Fi, tap **Download offline voice pack** once for each phone. The higher-accuracy pack is about 82 MB and improves recognition of accented English. The app shows the live percentage and downloaded amount; keep the page open until it says the pack is ready. If a phone cannot use the higher-accuracy pack, the app automatically tries a lower-accuracy compatibility pack instead.
 2. Choose a video or audio walkthrough. For a video, the app makes a temporary audio-only copy on the phone; it never uploads the original video.
 3. The on-device voice pack writes the transcript into the existing dictation box. Read and review it before applying the proposed checks.
 
 The English-only voice pack selects its own transcription language automatically, which prevents a downloaded pack from failing when the video starts.
+
+If the transcript hears **“no box,”** it offers a one-tap **mailbox** suggestion for review. The app does not make that ambiguous replacement automatically.
+
+The checklist reader recognizes damage language such as **damaged**, **hit**, **knocked over**, and **backed into**. A direct statement such as “Mailbox damaged. Somebody hit the mailbox” proposes **Outside → Mailbox → Needs work** and keeps the spoken explanation in the note, even if “Outside” was not said first.
 
 For phone reliability, keep the app open while it prepares the recording and use walkthroughs of 12 minutes or less. The audio-only copy is temporary and is discarded when transcription finishes. The local voice pack is an English quick-transcription model: always review the proposed inspection results before applying them.
 
@@ -116,7 +120,7 @@ Three ways out, under Header & details:
 | | What you get | Best for |
 |---|---|---|
 | **Save report (web page)** | One `.html` file — full-size photos, signatures, everything. Opens in any browser, emails fine. | Sending to the office or an owner |
-| **Print / PDF** | Browser print dialog, then Save as PDF. Photos print in a numbered photo log at the back, referenced from each line ("Fig 3"). | The file copy |
+| **Print / PDF** | Browser print dialog, then Save as PDF. A clean record layout shows the inspection header, review total, exceptions, signed names, and a numbered photo log at the back. | The file copy |
 | **Export data file** | `.json` another phone can import, photos included. | Moving work between devices |
 
 Photos are the reason the web report exists: a thumbnail in a table proves nothing, so both the web
@@ -135,6 +139,8 @@ That means:
   on the home screen. Exported files include the photos.
 
 Treat the printed PDF as the record of file.
+
+The PDF intentionally leaves out app controls, walkthrough prompts, dictation, and blank status lines. It is designed to read as a compact property record rather than a screenshot of the app.
 
 ## Changing it
 

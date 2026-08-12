@@ -8,12 +8,15 @@
 // only used as a last full-precision fallback.
 const TRANSFORMERS_URL = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
 const FALLBACK_TRANSFORMERS_URL = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0";
-const MODEL_ID = "onnx-community/whisper-tiny.en";
-const COMPACT_PACK_BYTES = 46 * 1024 * 1024;
-const FULL_PACK_BYTES = 156 * 1024 * 1024;
+// Base is materially better with accented English than Whisper tiny, while
+// still remaining practical for a phone after quantization.
+const ACCURACY_MODEL_ID = "onnx-community/whisper-base.en";
+const COMPATIBILITY_MODEL_ID = "onnx-community/whisper-tiny.en";
+const ACCURACY_PACK_BYTES = 82 * 1024 * 1024;
+const COMPATIBILITY_PACK_BYTES = 156 * 1024 * 1024;
 let transcriber = null;
 let loading = null;
-let activePackBytes = COMPACT_PACK_BYTES;
+let activePackBytes = ACCURACY_PACK_BYTES;
 const downloadedFiles = new Map();
 
 function post(type, extra){ self.postMessage(Object.assign({type}, extra || {})); }
@@ -42,7 +45,7 @@ function downloadProgress(info){
     : "Starting the download...";
   post("pack-progress", {text:"Downloading offline voice pack...", progress, detail});
 }
-async function createTranscriber(url, dtype){
+async function createTranscriber(url, modelId, dtype){
   const mod = await import(url);
   const env = mod.env;
   env.useBrowserCache = true;
@@ -50,7 +53,7 @@ async function createTranscriber(url, dtype){
   if(env.backends && env.backends.onnx && env.backends.onnx.wasm){
     env.backends.onnx.wasm.numThreads = 1;
   }
-  return mod.pipeline("automatic-speech-recognition", MODEL_ID, {
+  return mod.pipeline("automatic-speech-recognition", modelId, {
     device:"wasm",
     dtype,
     progress_callback:downloadProgress
@@ -62,20 +65,20 @@ async function loadVoicePack(){
   if(loading) return loading;
   loading = (async()=>{
     downloadedFiles.clear();
-    activePackBytes = COMPACT_PACK_BYTES;
+    activePackBytes = ACCURACY_PACK_BYTES;
     post("pack-progress", {text:"Preparing offline voice pack...", progress:null, detail:"Checking the local voice engine"});
     try{
-      transcriber = await createTranscriber(TRANSFORMERS_URL, "q8");
-    }catch(compactError){
-      activePackBytes = FULL_PACK_BYTES;
+      transcriber = await createTranscriber(TRANSFORMERS_URL, ACCURACY_MODEL_ID, "q8");
+    }catch(accuracyError){
+      activePackBytes = COMPATIBILITY_PACK_BYTES;
       downloadedFiles.clear();
-      post("pack-progress", {text:"Trying the full compatibility voice pack...", progress:null, detail:"The compact pack could not start on this browser."});
+      post("pack-progress", {text:"Trying the compatibility voice pack...", progress:null, detail:"The higher-accuracy pack could not start on this browser."});
       try{
-        transcriber = await createTranscriber(TRANSFORMERS_URL, "fp32");
+        transcriber = await createTranscriber(TRANSFORMERS_URL, COMPATIBILITY_MODEL_ID, "fp32");
       }catch(fullError){
         downloadedFiles.clear();
         post("pack-progress", {text:"Trying one last compatible voice engine...", progress:null, detail:"Your downloaded voice files will be reused."});
-        transcriber = await createTranscriber(FALLBACK_TRANSFORMERS_URL, "fp32");
+        transcriber = await createTranscriber(FALLBACK_TRANSFORMERS_URL, COMPATIBILITY_MODEL_ID, "fp32");
       }
     }
     post("ready", {text:"Offline voice pack is ready on this device.", detail:"Download complete · about " + bytes(activePackBytes) + " saved for offline use"});
