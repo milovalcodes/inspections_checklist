@@ -101,6 +101,8 @@ The **Offline video transcription** area is part of Dictate the walkthrough. It 
 2. Choose a video or audio walkthrough. For a video, the app makes a temporary audio-only copy on the phone; it never uploads the original video.
 3. The on-device voice pack writes the transcript into the existing dictation box. Read and review it before applying the proposed checks.
 
+The English-only voice pack selects its own transcription language automatically, which prevents a downloaded pack from failing when the video starts.
+
 For phone reliability, keep the app open while it prepares the recording and use walkthroughs of 12 minutes or less. The audio-only copy is temporary and is discarded when transcription finishes. The local voice pack is an English quick-transcription model: always review the proposed inspection results before applying them.
 
 ## Reporting a problem

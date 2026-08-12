@@ -96,8 +96,6 @@ self.onmessage = async event=>{
       const samples = new Float32Array(data.samples);
       post("transcribe-progress", {text:"Listening to the local audio..."});
       const result = await asr(samples, {
-        language:"en",
-        task:"transcribe",
         chunk_length_s:29,
         stride_length_s:4,
         return_timestamps:false

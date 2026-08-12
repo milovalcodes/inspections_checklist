@@ -584,7 +584,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
 "use strict";
 const MODE_LOCK = "in";      /* locked move-in shortcut */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "offline-v13";
+const APP_VERSION = "offline-v14";
 const KEY = "cimco.inspections.v1";
 
 /* ---------------- templates from the paper sheet ---------------- */
@@ -2066,6 +2066,20 @@ function voiceFailure(text){
   if(download) download.textContent = "Try download again";
   toast("Offline transcription could not finish");
 }
+function friendlyMediaError(text){
+  const detail = String(text || "");
+  if(/No speech was found/i.test(detail)) return "No clear speech was found. Try a shorter clip with the inspector closer to the phone.";
+  if(/12 minutes|shorter/i.test(detail)) return "Use a walkthrough that is 12 minutes or shorter.";
+  if(/could not be opened|cannot decode|readable audio/i.test(detail)) return "This video format could not be read. Export it as an MP4, M4A, or WAV file and try again.";
+  if(/prepare video audio|MediaRecorder/i.test(detail)) return "This browser cannot read audio from that video. Import the audio-only file instead.";
+  if(/memory|allocation|out of memory/i.test(detail)) return "Close other apps, use a shorter clip, and try again.";
+  return "Try a shorter recording or an audio-only file, then try again.";
+}
+function transcriptionFailure(text){
+  VOICE_LAST_ERROR = String(text || "Unknown video/audio transcription error");
+  voiceStatus("Video or audio could not be transcribed.", 0, "", friendlyMediaError(text));
+  toast("Video or audio transcription could not finish");
+}
 function getVoiceWorker(){
   if(VOICE_WORKER) return VOICE_WORKER;
   const worker = new Worker("./voice-worker.js");
@@ -2243,7 +2257,7 @@ async function transcribeLocalMedia(file){
     voiceStatus("Transcript ready. Review it, then tap Read it.", 100, "done");
     toast("Offline transcript is ready to review");
   }catch(err){
-    voiceFailure(err && err.message ? err.message : "Try a shorter recording or an audio file.");
+    transcriptionFailure(err && err.message ? err.message : "Try a shorter recording or an audio file.");
   }finally{ setVoiceBusy(false); }
 }
 
