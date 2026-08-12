@@ -1,20 +1,21 @@
-# Move In / Move Out Inspection
+# CIMCO Property Inspection
 
-A phone-first replacement for the paper CIMCO move in/out sheet. Static files — no server,
+A phone-first replacement for the paper CIMCO inspection sheets. Static files — no server,
 no build step, no accounts. Works offline once loaded.
 
 ## What's in here
 
 | File | What it is |
 |---|---|
-| `index.html` | **One app, both jobs.** Choose move-in or move-out when starting an inspection. |
+| `index.html` | **One app, three jobs.** Choose move-in, move-out, or rent-ready when starting an inspection. |
 | `move-in.html` | The same app, locked to move-in. Installs as its own icon. |
 | `move-out.html` | The same app, locked to move-out. Installs as its own icon. |
 | `manifest.json` / `manifest-in.json` / `manifest-out.json` | Install settings for each of the three. |
 | `service-worker.js` | Makes it work with no signal. |
 | `icon-192.png` / `icon-512.png` | Home-screen icons. |
 
-Pick whichever suits the team — you can publish all three and let people use what they like.
+The unified `index.html` is the recommended field app. The locked pages remain available for teams
+that want separate home-screen icons.
 All three share the same saved inspections on a given phone, so a move-out started in
 `move-out.html` can still pull its baseline from a move-in recorded in `index.html`.
 
@@ -36,14 +37,16 @@ the fonts and files cache.
 
 ## How an inspection runs
 
-1. **Start** a move-in or a move-out. For a move-out, pick the matching move-in sheet and every
-   line will show how the unit was handed over.
-2. **Header & details** — date, address, tenant, owner, keys, meters, clean yes/no.
-3. **Walk the unit.** Each line gets a code: ✓ Good, D dirty, B broken, C not working,
-   R replace, or N/A. Anything not Good opens a note box and should get a photo.
-4. **Mark rest good** fills the untouched lines in a room in one tap.
+1. **Start** a move-in, move-out, or rent-ready. Type the address and unit before opening the sheet.
+2. **Rent-ready header** — market status, work category, responsible party, and estimated cost are
+   separate fields. Access / lockbox details stay internal and are not placed in shared reports.
+   Its core walkthrough has 31 distinct checks; pool, well/septic, rural, and prior-broker handover
+   checks appear only when the inspector turns that property-specific option on.
+3. **Walk the property.** Each line gets a code: Good, Dirty, Broken, Not working, Replace,
+   Not tested, or N/A. “Not tested” is for no-power or other conditions where a function could not be verified.
+4. **Pass the rest** fills untouched lines in a section in one tap. Only reviewed lines appear in reports.
 5. **Add or rename rooms** as the unit needs — bedrooms, baths, anything else.
-6. **Sign** — tenant and inspector, on the screen.
+6. **Sign** move-in/move-out sheets when appropriate. Rent-ready reports are owner/vendor notations and have no tenant sign-off.
 7. **Send it in** — *Copy report* for text, *Print / PDF* for the file copy,
    or *Export this one* for a file that carries the photos with it.
 
@@ -64,7 +67,7 @@ Hit **Read it** and the app shows what it heard — room, line, and code — bef
 Drop any line it misheard with the ✕, then **Apply to the sheet**.
 
 Words it recognises: good, clean, fine, works — dirty, stained, scuffed, mold — broken, cracked,
-torn, loose, missing — not working, no power, leaking, running — needs replacing — not applicable.
+torn, loose, missing — not working, no power, leaking, running — not tested / could not test — needs replacing — not applicable.
 Whatever you say after a problem becomes the note on that line.
 
 **Always read the sheet before signing.** Dictation is a first pass, not the record. It leaves the
@@ -107,8 +110,8 @@ Everything is in one `<script>` block near the bottom of each HTML page.
 - **Which rooms a new inspection starts with:** `DEFAULT_SPACES`.
 - **The codes themselves:** `CODES` and `CODE_LABEL`.
 
-The three pages are generated from one source, so if you edit by hand, make the same edit
-in each — or keep editing `index.html` only and let the team use that one.
+The three pages share the same storage key but are separate static copies. Keep `index.html` as the
+source for the unified field workflow; regenerate the locked pages after changing the app logic.
 
 ## One note on the deposit letter
 

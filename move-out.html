@@ -5,9 +5,9 @@
 <meta name="theme-color" content="#16181A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Move-Out">
+<meta name="apple-mobile-web-app-title" content="Inspection">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="description" content="Move-in and move-out condition inspection, built for phones and usable offline.">
+<meta name="description" content="Fast property inspections for move-in, move-out, and rent-ready turnovers.">
 <link rel="manifest" href="manifest-out.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%2316181A'/><path d='M14 34l12 12 24-28' stroke='%23F4C21B' stroke-width='8' fill='none' stroke-linecap='square'/></svg>">
 
@@ -24,6 +24,7 @@
   --flag:#BE3319;
 }
 body[data-mode="out"]{ --hivis:#4FC3E8; }
+body[data-mode="ready"]{ --hivis:#F0A43C; }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%; overscroll-behavior-x:none}
 body{
@@ -92,7 +93,7 @@ textarea.in{resize:vertical;min-height:60px;line-height:1.45}
 .tag{width:26px;height:26px;flex:0 0 auto;display:grid;place-items:center;border-radius:2px;color:#fff;
   font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600;font-size:13px}
 .t-ok{background:var(--ok)} .t-d{background:var(--d)} .t-b{background:var(--b)}
-.t-c{background:var(--c)} .t-r{background:var(--r);color:var(--hivis)} .t-na{background:var(--na)}
+.t-c{background:var(--c)} .t-r{background:var(--r);color:var(--hivis)} .t-u{background:#6B5A8E} .t-na{background:var(--na)}
 
 /* ---------- spaces ---------- */
 .sec{background:var(--card);border:1px solid var(--rule);margin-bottom:10px}
@@ -127,7 +128,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .k.on{color:#fff;border-color:transparent}
 .k.on small{color:rgba(255,255,255,.75)}
 .k.on.k-ok{background:var(--ok)} .k.on.k-d{background:var(--d)} .k.on.k-b{background:var(--b)}
-.k.on.k-c{background:var(--c)} .k.on.k-r{background:var(--r);color:var(--hivis)} .k.on.k-na{background:var(--na)}
+.k.on.k-c{background:var(--c)} .k.on.k-r{background:var(--r);color:var(--hivis)} .k.on.k-u{background:#6B5A8E} .k.on.k-na{background:var(--na)}
 .k.on.k-r small{color:rgba(244,194,27,.7)}
 .note{width:100%;margin-top:8px;border:1px solid var(--rule);border-left:3px solid var(--b);padding:8px 9px;
   background:#fff;resize:vertical;min-height:40px;font-size:16px;line-height:1.45;display:none}
@@ -172,7 +173,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .drow .dt i{display:block;font-style:normal;font-size:12px;color:var(--slate);margin-top:1px}
 .dtag{flex:0 0 auto;padding:3px 8px;border-radius:2px;color:#fff;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.05em}
 .dtag.k-ok{background:var(--ok)} .dtag.k-d{background:var(--d)} .dtag.k-b{background:var(--b)}
-.dtag.k-c{background:var(--c)} .dtag.k-r{background:var(--r);color:var(--hivis)} .dtag.k-na{background:var(--na)}
+.dtag.k-c{background:var(--c)} .dtag.k-r{background:var(--r);color:var(--hivis)} .dtag.k-u{background:#6B5A8E} .dtag.k-na{background:var(--na)}
 .drop{border:0;background:none;color:var(--mute);font-size:17px;line-height:1;padding:4px 6px}
 .drop:hover{color:var(--b)}
 .dnote{font-size:12.5px;color:var(--slate);margin:10px 0 0;padding-left:10px;border-left:3px solid var(--hivis)}
@@ -185,12 +186,27 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .newbtn span{display:block;font-size:12.5px;color:#A9AFB4;margin-top:3px}
 .newbtn.alt{background:var(--card);color:var(--ink)}
 .newbtn.alt b{color:var(--ink)} .newbtn.alt span{color:var(--slate)}
+.newbtn.ready{background:#FFF8ED;border-color:#D88B20;color:var(--ink)}
+.newbtn.ready b{color:#8B5208}.newbtn.ready span{color:#765B36}
+.quickstart{display:grid;grid-template-columns:1fr 120px;gap:9px;margin-top:12px}
+.quickstart .f{margin:0}
+.quickstart .f.full{grid-column:1/-1}
+.checkrow{display:flex;gap:7px;flex-wrap:wrap}
+.checkrow label{display:flex;align-items:center;gap:6px;border:1px solid var(--rule);background:#FBFAF7;border-radius:2px;padding:8px 10px;font-size:13px}
+.checkrow input{accent-color:var(--ink);width:16px;height:16px;margin:0}
+.readyonly{display:none}
+body[data-mode="ready"] .readyonly{display:block}
+body[data-mode="ready"] .readyonly.f{display:block}
+body[data-mode="ready"] .signCard{display:none}
+.inoutonly{display:block}
+body[data-mode="ready"] .inoutonly{display:none!important}
 .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
 .rec{display:flex;align-items:center;gap:11px;padding:12px 14px;border:0;border-top:1px solid var(--hair);background:var(--card);width:100%;text-align:left}
 .rec:first-of-type{border-top:none}
 .rec .badge{flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border-radius:2px;background:var(--ink);color:var(--hivis);
   font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;font-weight:600;letter-spacing:.04em}
 .rec .badge.out{background:#0E3B4C;color:#4FC3E8}
+.rec .badge.ready{background:#FFF0D5;color:#8B5208}
 .rec .rt{flex:1;min-width:0}
 .rec .rt b{display:block;font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rec .rt span{display:block;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--slate);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -231,6 +247,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
   .legend{grid-template-columns:repeat(2,1fr)}
   .bar .st{display:none}
   .act{flex:1;text-align:center;padding:11px 6px}
+  .quickstart{grid-template-columns:1fr}
 }
 
 @media (min-width:620px){
@@ -249,6 +266,8 @@ details[open]>summary .caret{transform:rotate(90deg)}
   .sec{border-color:#999;margin:8px 0;break-inside:auto}
   .sec>summary{break-after:avoid}
   .item{break-inside:avoid}
+  .item.unreviewed{display:none!important}
+  .sec.no-reviewed{display:none!important}
   .caret{display:none}
   .sec>summary{border-bottom:1px solid #999}
   details{display:block}
@@ -288,8 +307,8 @@ details[open]>summary .caret{transform:rotate(90deg)}
 <header class="mast">
   <div class="wrap">
     <div class="sub" id="mastSub">CIMCO Property Management</div>
-    <h1 id="mastTitle">Move-out inspection</h1>
-    <p class="lede" id="mastLede">Every line gets a code. Anything not “Good” needs a note and a photo — that is what protects the deposit.</p>
+    <h1 id="mastTitle">Move in / move out</h1>
+    <p class="lede" id="mastLede">Fast, phone-first inspections for move-in, move-out, and rent-ready turnovers. Mark what you reviewed and keep exceptions clear.</p>
   </div>
   <div class="rail hide" id="rail"></div>
   <div class="pad" id="mastPad"></div>
@@ -302,6 +321,10 @@ details[open]>summary .caret{transform:rotate(90deg)}
     <div class="card">
       <div class="eyebrow">Start</div>
       <h2>New inspection</h2>
+      <div class="quickstart">
+        <label class="f"><span>Property address</span><input class="in" id="newAddress" placeholder="Start typing an address"></label>
+        <label class="f"><span>Unit</span><input class="in" id="newUnit" placeholder="#2"></label>
+      </div>
       <div class="new" id="newBtns"></div>
     </div>
 
@@ -348,13 +371,29 @@ details[open]>summary .caret{transform:rotate(90deg)}
           <label class="f full"><span>Address</span><input class="in m" data-m="address" placeholder="Street address"></label>
           <label class="f"><span>Unit</span><input class="in m" data-m="unit" placeholder="#2"></label>
           <label class="f"><span>Phone</span><input class="in m" data-m="phone" type="tel" placeholder="Contact number"></label>
-          <label class="f full"><span>Tenant(s)</span><input class="in m" data-m="tenant" placeholder="Names on the lease"></label>
+          <label class="f full inoutonly"><span>Tenant(s)</span><input class="in m" data-m="tenant" placeholder="Names on the lease"></label>
           <label class="f full"><span>Owner</span><input class="in m" data-m="owner" placeholder="Owner or LLC"></label>
+          <label class="f full readyonly"><span>Access / lockbox <em>(internal only — never in shared reports)</em></span><input class="in m" data-m="access" placeholder="Lockbox, key location, gate code"></label>
+          <label class="f readyonly"><span>Market status</span><select class="in m" data-m="marketStatus"><option value="hold">Hold — not ready</option><option value="work">Work in progress</option><option value="ready">Ready to market</option></select></label>
+          <label class="f readyonly"><span>Responsible party</span><input class="in m" data-m="responsible" placeholder="Owner, vendor, CIMCO"></label>
+          <label class="f readyonly"><span>Estimated cost</span><input class="in m" data-m="estimatedCost" inputmode="decimal" placeholder="$ 0.00"></label>
+          <div class="f full readyonly"><span>Work category</span><div class="checkrow" id="workCats">
+            <label><input type="checkbox" data-work="clean"> Clean</label>
+            <label><input type="checkbox" data-work="repair"> Repair</label>
+            <label><input type="checkbox" data-work="replace"> Replace</label>
+            <label><input type="checkbox" data-work="maintenance"> Maintenance</label>
+          </div></div>
+          <div class="f full readyonly"><span>Property-specific checks</span><div class="checkrow" id="readyTags">
+            <label><input type="checkbox" data-ready-tag="pool"> Pool</label>
+            <label><input type="checkbox" data-ready-tag="well"> Private well / septic</label>
+            <label><input type="checkbox" data-ready-tag="rural"> Rural acreage</label>
+            <label><input type="checkbox" data-ready-tag="handover"> Prior-broker handover</label>
+          </div></div>
           <label class="f"><span>Electric meter</span><input class="in m" data-m="meterE" placeholder="Reading"></label>
           <label class="f"><span>Water meter</span><input class="in m" data-m="meterW" placeholder="Reading"></label>
-          <label class="f full" id="keysWrap"><span id="keysLabel">Keys issued</span><input class="in m" data-m="keys" placeholder="2 keys to front door, 1 mail key"></label>
+          <label class="f full inoutonly" id="keysWrap"><span id="keysLabel">Keys issued</span><input class="in m" data-m="keys" placeholder="2 keys to front door, 1 mail key"></label>
           <label class="f full outonly"><span>Tenant forwarding address</span><input class="in m" data-m="fwd" placeholder="Where the deposit letter goes"></label>
-          <div class="f full">
+          <div class="f full inoutonly">
             <span style="display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);margin-bottom:3px">House / apartment clean</span>
             <div class="seg" id="cleanSeg">
               <button data-clean="yes">Yes</button>
@@ -383,6 +422,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
         <div class="lg"><i class="tag t-b">B</i> Broken</div>
         <div class="lg"><i class="tag t-c">C</i> Not working</div>
         <div class="lg"><i class="tag t-r">R</i> Replace</div>
+        <div class="lg"><i class="tag t-u">?</i> Not tested</div>
         <div class="lg"><i class="tag t-na">–</i> N/A</div>
       </div>
     </div>
@@ -409,7 +449,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
     <div class="block" id="block"></div>
     <div id="spaces"></div>
 
-    <div class="row" style="margin:0 0 16px">
+    <div class="row" id="addSpaces" style="margin:0 0 16px">
       <button class="mini" data-add="bedroom">+ Bedroom</button>
       <button class="mini" data-add="bathroom">+ Bathroom</button>
       <button class="mini" data-add="living">+ Living / dining</button>
@@ -428,7 +468,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
       <p class="ack">Florida gives a landlord 30 days after the tenant leaves to mail written notice of a claim on the deposit, and 15 days to return it when no claim is made (Fla. Stat. 83.49). Confirm the dates and wording with your broker or attorney before the letter goes out.</p>
     </div>
 
-    <div class="card">
+    <div class="card signCard">
       <div class="eyebrow">Sign-off</div>
       <h2>Signatures</h2>
       <p class="ack" id="ackText"></p>
@@ -467,7 +507,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
 
 <script>
 "use strict";
-const MODE_LOCK = "out";      /* null = both modes in one app */
+const MODE_LOCK = "out";      /* locked move-out shortcut */
 const ORG = "CIMCO Property Management";
 const KEY = "cimco.inspections.v1";
 
@@ -486,9 +526,77 @@ const DEFAULT_SPACES = [
   ["living","Living room"],["kitchen","Kitchen"],["laundry","Laundry & appliances"],
   ["bedroom","Bedroom #1"],["bathroom","Master bath"],["systems","Safety & systems"],["outside","Outside"]
 ];
-const CODES = [["ok","✓","Good"],["d","D","Dirty"],["b","B","Broken"],["c","C","N.work"],["r","R","Replace"],["na","–","N/A"]];
-const CODE_LABEL = {ok:"Good", d:"Dirty", b:"Broken", c:"Not working", r:"Replace", na:"N/A"};
-const FLAGS = ["d","b","c","r"];
+/* The rent-ready beta's real field checks, consolidated so each core line is
+   a distinct decision. Property-specific checks stay off until selected. */
+const READY_SPACES = [
+  ["rr-safety","Safety & access",[
+    "Smoke / CO alarms and extinguisher (present, tested, in date)",
+    "Exterior doors / locks (deadbolts work and locks re-keyed)",
+    "Windows / bedroom egress (open, latch, and are not blocked)",
+    "GFCI outlets / electrical panel (test, reset, labeled, no exposed wiring)",
+    "Moisture / mold / rails (no leak, odor, staining, or loose safety rail)"
+  ]],
+  ["rr-hvac","HVAC & utilities",[
+    "A/C cooling / thermostat (reaches set point and holds)",
+    "A/C filter / condensate (fresh filter; drain, pan, and float switch clear)",
+    "Outdoor A/C unit (level, coils clear, vegetation cut back)",
+    "Water heater (safe setting; no rust, leaks, or missing discharge pipe)",
+    "Utilities on (power, water, and gas in the correct account)"
+  ]],
+  ["rr-plumbing","Plumbing & appliances",[
+    "Faucets / drains (hot and cold pressure; no drips; drains clear)",
+    "Toilets / shutoffs (flush, refill, stable; valves and hookups sound)",
+    "Under-sink areas / main shutoff (dry, no swelling; shutoff located)",
+    "Range / oven / hood and dishwasher / disposal (operate; no leak)",
+    "Refrigerator (holds temperature; seals intact; ice maker works if present)",
+    "Washer / dryer (run; vent clears to exterior)"
+  ]],
+  ["rr-interior","Interior & clean",[
+    "Walls / ceilings (finished; no marks, stains, or mismatched repairs)",
+    "Flooring (clean and sound; no burns, tears, buckling, or loose tile)",
+    "Interior doors / coverings (doors latch and blinds complete)",
+    "Lights / closets / cabinets (fixtures, bulbs, shelves, drawers, hinges work)",
+    "Counters / fixtures (free of staining or damage)",
+    "Whole-house professional clean (including cabinets, appliances, baseboards, tracks)"
+  ]],
+  ["rr-exterior","Exterior & grounds",[
+    "Roof / gutters / drainage (visually sound; water directed away)",
+    "Irrigation / landscaping / grass (runs; trimmed; no roof overgrowth)",
+    "Screens / exterior lighting / house numbers (intact, working, visible)",
+    "Driveway / walkways (safe and free of trip hazards)",
+    "Garage door / remotes (works, auto-reverses; codes reset)",
+    "Lot / side yards (free of construction debris and abandoned items)"
+  ]],
+  ["rr-pest-file","Pest & turnover file",[
+    "Pest / termite signs and entry points (none found; gaps sealed)",
+    "Keys / fobs / remotes (counted and logged)",
+    "Turnover file (filter size, paint, appliance models, HOA info, final photos ready)"
+  ]],
+  ["rr-pool","Pool",[
+    "Pool barrier / gate / alarms (intact, self-latching, working)",
+    "Pool equipment / water (pump, filter, timer run; water clear)",
+    "Pool deck / coping (safe; no loose or trip hazards)"
+  ],"pool"],
+  ["rr-well","Private well / septic",[
+    "Septic / drainfield (service record, access, firm ground, no odor or standing water)",
+    "Pressure tank / well pump (holds pressure; no short cycling or corrosion)",
+    "Water quality / filtration (no sulfur odor or iron staining; system serviced)"
+  ],"well"],
+  ["rr-rural","Rural acreage",[
+    "Propane / driveway / fencing (serviceable; gates latch; service truck access)",
+    "Emergency access (road address and nearest water source clearly noted)",
+    "Culvert / long drive (clear and passable)"
+  ],"rural"],
+  ["rr-handover","Prior-broker handover",[
+    "Before-work photos (date-stamped; rooms and defects documented)",
+    "Cleaning / debris / staining (documented before work or removal)",
+    "Exception estimates (attached and kept separate from regular punch list)"
+  ],"handover"]
+];
+const CODES = [["ok","✓","Good"],["d","D","Dirty"],["b","B","Broken"],["c","C","N.work"],["r","R","Replace"],["u","?","Not tested"],["na","–","N/A"]];
+const CODE_LABEL = {ok:"Good", d:"Dirty", b:"Broken", c:"Not working", r:"Replace", u:"Not tested", na:"N/A"};
+const FLAGS = ["d","b","c","r","u"];
+const MODE_LABEL = {in:"Move-in", out:"Move-out", ready:"Rent-ready"};
 
 /* ---------------- state ---------------- */
 let LIST = [];
@@ -496,6 +604,13 @@ let cur = null;
 let photos = {};            /* itemKey -> [{id,data}] */
 let camTarget = null;
 let lbCurrent = null;
+let PENDING_SEED = null;
+
+function quickSeed(){
+  const address = (document.getElementById("newAddress")?.value || "").trim();
+  const unit = (document.getElementById("newUnit")?.value || "").trim();
+  return {address, unit};
+}
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
@@ -582,15 +697,27 @@ function makeSpaces(){
     items: T[type].items.map(t=>({t, s:"", n:"", base:""}))
   }));
 }
-function newInspection(mode, from){
+function makeReadySpaces(){
+  return READY_SPACES.map(([type,name,items,tag])=>({
+    id: uid(), type, name, tag:tag||"",
+    items: items.map(t=>({t, s:"", n:"", base:""}))
+  }));
+}
+function newInspection(mode, from, seed){
   const rec = {
     id: uid(), mode, created: Date.now(), updated: Date.now(),
     meta: {date: today(), address:"", unit:"", tenant:"", owner:"", inspector:"", phone:"",
-           meterE:"", meterW:"", keys:"", fwd:"", misc:"", clean:"", photoSize:"md", tenantSigName:"", inspSigName:""},
-    spaces: makeSpaces(), wk:{}, sig:{t:"", i:""}, from: null
+           meterE:"", meterW:"", keys:"", fwd:"", misc:"", clean:"", photoSize:"md", tenantSigName:"", inspSigName:"",
+           access:"", marketStatus:"hold", responsible:"", estimatedCost:"", workCategories:[], readyTags:[]},
+    spaces: mode==="ready" ? makeReadySpaces() : makeSpaces(), wk:{}, sig:{t:"", i:""}, from: null
   };
+  if(seed){
+    rec.meta.address = seed.address || "";
+    rec.meta.unit = seed.unit || "";
+  }
   if(from){
-    rec.meta.address = from.meta.address; rec.meta.unit = from.meta.unit;
+    if(!rec.meta.address) rec.meta.address = from.meta.address;
+    if(!rec.meta.unit) rec.meta.unit = from.meta.unit;
     rec.meta.tenant = from.meta.tenant; rec.meta.owner = from.meta.owner;
     rec.from = from.id;
     rec.spaces = from.spaces.map(sp=>({
@@ -601,6 +728,11 @@ function newInspection(mode, from){
   LIST.unshift(rec); save();
   return rec;
 }
+function activeSpaces(rec){
+  if(rec.mode!=="ready") return rec.spaces;
+  const tags = Array.isArray(rec.meta.readyTags) ? rec.meta.readyTags : [];
+  return rec.spaces.filter(sp=>!sp.tag || tags.indexOf(sp.tag)>=0);
+}
 function title(rec){
   const a = (rec.meta.address||"").trim();
   const u = (rec.meta.unit||"").trim();
@@ -609,14 +741,14 @@ function title(rec){
 }
 function stats(rec){
   let total=0, done=0, flags=0;
-  rec.spaces.forEach(sp=>sp.items.forEach(it=>{
+  activeSpaces(rec).forEach(sp=>sp.items.forEach(it=>{
     total++; if(it.s) done++; if(FLAGS.indexOf(it.s)>=0) flags++;
   }));
-  return {total, done, flags, pct: total? Math.round(done/total*100) : 0};
+  return {total, done, flags, pct: total? Math.round(done/total*100) : 0, reviewed: done};
 }
 function flagged(rec){
   const out=[];
-  rec.spaces.forEach(sp=>sp.items.forEach((it,i)=>{
+  activeSpaces(rec).forEach(sp=>sp.items.forEach((it,i)=>{
     if(FLAGS.indexOf(it.s)>=0) out.push({sp, it, key: sp.id+":"+i});
   }));
   return out;
@@ -624,6 +756,7 @@ function flagged(rec){
 
 /* ---------------- routing ---------------- */
 function go(view){
+  REC_ACTIVE = false;
   if(REC){ try{ REC.stop(); }catch(e){} }
   DICT = [];
   const home = view==="home";
@@ -649,13 +782,14 @@ async function openRec(rec){
 /* ---------------- home ---------------- */
 function renderHome(){
   document.getElementById("mastTitle").textContent = MODE_LOCK==="in" ? "Move-in inspection"
-    : MODE_LOCK==="out" ? "Move-out inspection" : "Move in / move out";
+    : MODE_LOCK==="out" ? "Move-out inspection" : "Property inspections";
 
   const nb = document.getElementById("newBtns");
-  const btn = (mode,t,s)=>`<button class="newbtn ${mode==="out"?"alt":""}" data-new="${mode}"><b>${t}</b><span>${s}</span></button>`;
+  const btn = (mode,t,s)=>`<button class="newbtn ${mode==="out"?"alt":mode==="ready"?"ready":""}" data-new="${mode}"><b>${t}</b><span>${s}</span></button>`;
   let html = "";
   if(MODE_LOCK !== "out") html += btn("in","Start a move-in","Record condition before the keys change hands");
   if(MODE_LOCK !== "in")  html += btn("out","Start a move-out","Compare against the move-in and price the damage");
+  if(!MODE_LOCK) html += btn("ready","Start a rent-ready","Fast turnover walk before the property is marketed");
   nb.innerHTML = html;
 
   const q = (document.getElementById("search").value||"").toLowerCase();
@@ -666,9 +800,9 @@ function renderHome(){
   document.getElementById("list").innerHTML = rows.length ? rows.map(r=>{
     const s = stats(r);
     return `<button class="rec" data-open="${r.id}">
-      <span class="badge ${r.mode==="out"?"out":""}">${r.mode==="out"?"OUT":"IN"}</span>
+      <span class="badge ${r.mode==="out"?"out":r.mode==="ready"?"ready":""}">${r.mode==="out"?"OUT":r.mode==="ready"?"READY":"IN"}</span>
       <span class="rt"><b>${esc(title(r))}</b>
-        <span>${fmtDate(r.meta.date)}${r.meta.tenant? " · "+esc(r.meta.tenant):""}</span></span>
+        <span>${MODE_LABEL[r.mode]||r.mode} · ${fmtDate(r.meta.date)}${r.meta.tenant? " · "+esc(r.meta.tenant):""}</span></span>
       <span class="pc">${s.done}/${s.total}${s.flags? " · "+s.flags+" flagged":""}</span>
     </button>`;
   }).join("") : `<div class="empty">Nothing saved yet. Start an inspection above and it will be waiting here.</div>`;
@@ -676,21 +810,26 @@ function renderHome(){
 
 /* ---------------- editor ---------------- */
 function renderEditor(){
-  const m = cur.meta, isOut = cur.mode==="out";
-  document.getElementById("mastTitle").textContent = isOut ? "Move-out inspection" : "Move-in inspection";
-  document.getElementById("edEyebrow").textContent = isOut ? "Move-out" : "Move-in";
+  const m = cur.meta, isOut = cur.mode==="out", isReady = cur.mode==="ready";
+  document.getElementById("mastTitle").textContent = MODE_LABEL[cur.mode] + " inspection";
+  document.getElementById("edEyebrow").textContent = MODE_LABEL[cur.mode];
   document.querySelectorAll(".outonly").forEach(el=>el.classList.toggle("hide", !isOut));
+  document.querySelectorAll(".readyonly").forEach(el=>el.classList.toggle("hide", !isReady));
+  document.querySelectorAll(".signCard").forEach(el=>el.classList.toggle("hide", isReady));
+  document.getElementById("addSpaces").classList.toggle("hide", isReady);
   document.getElementById("keysLabel").textContent = isOut ? "Keys returned" : "Keys issued";
   document.getElementById("ackText").textContent = isOut
     ? "By signing, both parties confirm this sheet records the condition of the unit at move-out. Codes and photos taken today support any claim against the deposit."
     : "By signing, the tenant confirms they have walked the unit and that this sheet records its condition at move-in. Anything not listed here is presumed to have been in good order at handover.";
 
-  document.querySelectorAll(".m").forEach(el=>{ el.value = m[el.dataset.m] || (el.dataset.m==="photoSize" ? "md" : ""); });
+  document.querySelectorAll(".m").forEach(el=>{ el.value = m[el.dataset.m] || (el.dataset.m==="photoSize" ? "md" : el.dataset.m==="marketStatus" ? "hold" : ""); });
   document.querySelectorAll("#cleanSeg button").forEach(b=> b.classList.toggle("on", m.clean===b.dataset.clean));
+  document.querySelectorAll("[data-work]").forEach(b=> b.checked = Array.isArray(m.workCategories) && m.workCategories.indexOf(b.dataset.work)>=0);
+  document.querySelectorAll("[data-ready-tag]").forEach(b=> b.checked = Array.isArray(m.readyTags) && m.readyTags.indexOf(b.dataset.readyTag)>=0);
 
   document.getElementById("edFoot").textContent = cur.from
     ? "Baseline loaded from the move-in inspection for this address — every line shows how it was handed over."
-    : "Saves as you go, on this phone. Export the file or print to PDF to send it in.";
+    : isReady ? "Walk the property, mark only what you reviewed, then share the turnover notation. Access details stay internal." : "Saves as you go, on this phone. Export the file or print to PDF to send it in.";
 
   renderDict();
   drawSig("T", cur.sig.t); drawSig("I", cur.sig.i);
@@ -709,7 +848,7 @@ function renderHead(){
 }
 
 function renderRail(){
-  document.getElementById("rail").innerHTML = cur.spaces.map(sp=>{
+  document.getElementById("rail").innerHTML = activeSpaces(cur).map(sp=>{
     let d=0,f=0;
     sp.items.forEach(it=>{ if(it.s) d++; if(FLAGS.indexOf(it.s)>=0) f++; });
     const badge = f ? '<span class="dot"></span>' : (d===sp.items.length && d ? '<span class="tick">✓</span>' : "");
@@ -720,16 +859,16 @@ function renderRail(){
 function renderBlock(){
   const rows = flagged(cur);
   document.getElementById("block").innerHTML =
-    `<h3>Flagged lines · ${rows.length}</h3>` + (rows.length
+    `<h3>${cur.mode==="ready" ? "Work to address" : "Flagged lines"} · ${rows.length}</h3>` + (rows.length
       ? `<ul>${rows.map(o=>`<li><b>${esc(o.sp.name)}</b> — ${esc(o.it.t)} <span class="code">[${CODE_LABEL[o.it.s].toUpperCase()}]</span>${o.it.n? " <i>— "+esc(o.it.n)+"</i>" : ' <i style="color:var(--hivis)">— note needed</i>'}</li>`).join("")}</ul>`
-      : `<p class="none">Nothing flagged yet. Anything marked dirty, broken, not working, or replace collects here.</p>`);
+      : `<p class="none">Nothing flagged yet. Dirty, broken, not working, replace, and not tested lines collect here.</p>`);
 }
 
 function renderSpaces(){
   const openIds = {};
   document.querySelectorAll("#spaces details.sec").forEach(d=>{ openIds[d.dataset.sp] = d.open; });
 
-  document.getElementById("spaces").innerHTML = cur.spaces.map((sp, si)=>{
+  document.getElementById("spaces").innerHTML = activeSpaces(cur).map((sp, si)=>{
     let d=0,f=0;
     sp.items.forEach(it=>{ if(it.s) d++; if(FLAGS.indexOf(it.s)>=0) f++; });
     const cls = f ? "flag" : (d===sp.items.length && d ? "ok" : "");
@@ -742,7 +881,7 @@ function renderSpaces(){
       const baseHtml = it.base
         ? `<span class="base ${it.base!==it.s && it.s ? "chg" : ""}">Move-in: ${esc(CODE_LABEL[it.base]||it.base)}${it.base!==it.s && it.s ? " → " + esc(CODE_LABEL[it.s]) : ""}</span>`
         : "";
-      return `<div class="item ${flag?"flagged":""} ${it.s==="na"?"is-na":""}" data-key="${k}">
+      return `<div class="item ${flag?"flagged":""} ${it.s==="na"?"is-na":""} ${!it.s?"unreviewed":""}" data-key="${k}">
         <div class="itop">
           <div class="iname">${esc(it.t)}${baseHtml}
             <span class="pcode">${it.s ? esc(CODE_LABEL[it.s]) : "—"}</span><span class="pfigs"></span></div>
@@ -750,16 +889,16 @@ function renderSpaces(){
         </div>
         <div class="pad6">${CODES.map(([v,g,lab])=>
           `<button class="k k-${v} ${it.s===v?"on":""}" data-k="${k}" data-v="${v}" aria-label="${lab}">${g}<small>${lab.toUpperCase()}</small></button>`).join("")}</div>
-        <textarea class="note" data-note="${k}" placeholder="What is wrong, and what it needs">${esc(it.n)}</textarea>
+        <textarea class="note" data-note="${k}" placeholder="${it.s==="u" ? "Why wasn't it tested?" : "What is wrong, and what it needs"}">${esc(it.n)}</textarea>
         <div class="pnote"></div>
         <div class="thumbs">${pics.map(p=>`<img src="${p.data}" data-ph="${p.id}" alt="Photo of ${esc(it.t)}">`).join("")}</div>
       </div>`;
     }).join("");
 
-    return `<details class="sec" data-sp="${sp.id}" ${isOpen?"open":""}>
+    return `<details class="sec ${d?"":"no-reviewed"}" data-sp="${sp.id}" ${isOpen?"open":""}>
       <summary><span class="caret">▶</span>${esc(sp.name)}<span class="count ${cls}">${d}/${sp.items.length}${f?" · "+f+" flagged":""}</span></summary>
       <div class="sectools">
-        <button class="mini go" data-allok="${sp.id}">Mark rest good</button>
+        <button class="mini go" data-allok="${sp.id}">Pass the rest</button>
         <button class="mini" data-additem="${sp.id}">+ Line</button>
         <button class="mini" data-rename="${sp.id}">Rename</button>
         <button class="mini warn" data-delsp="${sp.id}">Remove space</button>
@@ -775,6 +914,7 @@ function paintItem(sp, idx){
   if(!el) return;
   const flag = FLAGS.indexOf(it.s) >= 0;
   el.classList.toggle("flagged", flag);
+  el.classList.toggle("unreviewed", !it.s);
   el.classList.toggle("is-na", it.s === "na");
   el.querySelectorAll(".k").forEach(b => b.classList.toggle("on", b.dataset.v === it.s));
   const pc = el.querySelector(".pcode");
@@ -786,7 +926,10 @@ function paintItem(sp, idx){
     base.textContent = "Move-in: " + (CODE_LABEL[it.base] || it.base) + (chg ? " → " + CODE_LABEL[it.s] : "");
   }
   const note = el.querySelector(".note");
-  if(note && !flag) note.value = "";
+  if(note){
+    note.placeholder = it.s==="u" ? "Why wasn't it tested?" : "What is wrong, and what it needs";
+    if(!flag) note.value = "";
+  }
 }
 function paintSection(sp){
   const d = document.querySelector('details[data-sp="' + sp.id + '"]');
@@ -796,8 +939,10 @@ function paintSection(sp){
   const c = d.querySelector("summary .count");
   c.className = "count " + (f ? "flag" : (done === sp.items.length && done ? "ok" : ""));
   c.textContent = done + "/" + sp.items.length + (f ? " · " + f + " flagged" : "");
+  d.classList.toggle("no-reviewed", done===0);
 }
-function pickBaseline(){
+function pickBaseline(seed){
+  PENDING_SEED = seed || null;
   const ins = LIST.filter(r => r.mode === "in").sort((a,b) => b.updated - a.updated).slice(0,12);
   document.getElementById("modalBody").innerHTML =
     '<div class="eyebrow">New move-out</div><h2>Start from a move-in?</h2>' +
@@ -842,7 +987,7 @@ function renderBar(){
   const bar = document.getElementById("bar");
   if(document.body.dataset.view === "home"){
     bar.innerHTML = `<div class="st">${LIST.length} saved · ${ORG}</div>
-      <button class="act solid" data-new="${MODE_LOCK||"in"}">New inspection</button>`;
+      <button class="act solid" data-new="${MODE_LOCK||"ready"}">New inspection</button>`;
     return;
   }
   const s = stats(cur);
@@ -880,7 +1025,7 @@ function initSig(which){
 /* every photo in walking order, numbered — used by print and by the web report */
 function photoLog(){
   const out = []; let n = 0;
-  cur.spaces.forEach(sp=>sp.items.forEach((it,i)=>{
+  activeSpaces(cur).forEach(sp=>sp.items.forEach((it,i)=>{
     (photos[sp.id+":"+i] || []).forEach(p=>out.push({n: ++n, key: sp.id+":"+i, p, sp, it}));
   }));
   return out;
@@ -922,9 +1067,22 @@ function printNow(){
 }
 
 /* a self-contained web page: full-size photos, opens anywhere, no app needed */
+function modeTitle(rec){ return MODE_LABEL[rec.mode] || "Inspection"; }
+function workLabel(rec){
+  const labels = {clean:"Clean", repair:"Repair", replace:"Replace", maintenance:"Maintenance"};
+  return (Array.isArray(rec.meta.workCategories) ? rec.meta.workCategories : [])
+    .map(x=>labels[x]||x).join(", ");
+}
+function marketLabel(value){ return ({hold:"Hold — not ready", work:"Work in progress", ready:"Ready to market"})[value] || value || ""; }
+function reviewedItems(sp){ return sp.items.map((it,i)=>({it,i})).filter(o=>!!o.it.s); }
+
 function reportHTML(rec){
-  const m = rec.meta, s = stats(rec), log = photoLog(), refs = figRefs(log);
-  const head = [
+  const m = rec.meta, s = stats(rec), isReady = rec.mode==="ready", log = photoLog(), refs = figRefs(log);
+  const head = isReady ? [
+    ["Date", fmtDate(m.date)], ["Inspector", m.inspector], ["Owner", m.owner],
+    ["Market status", marketLabel(m.marketStatus)], ["Work category", workLabel(rec)],
+    ["Responsible party", m.responsible], ["Estimated cost", m.estimatedCost ? money(parseFloat(m.estimatedCost)||0) : ""]
+  ] : [
     ["Date", fmtDate(m.date)], ["Inspector", m.inspector], ["Tenant", m.tenant], ["Owner", m.owner],
     ["Phone", m.phone], ["Unit clean", m.clean ? m.clean.toUpperCase() : ""],
     [rec.mode==="out" ? "Keys returned" : "Keys issued", m.keys],
@@ -932,11 +1090,13 @@ function reportHTML(rec){
     ["Forwarding address", rec.mode==="out" ? m.fwd : ""]
   ].filter(r=>r[1]);
 
-  const lines = rec.spaces.map(sp=>{
-    const rows = sp.items.map((it,i)=>{
+  const lines = activeSpaces(rec).map(sp=>{
+    const reviewed = reviewedItems(sp);
+    if(!reviewed.length) return "";
+    const rows = reviewed.map(({it,i})=>{
       const r = refs[sp.id+":"+i];
       return "<tr class=\"" + (FLAGS.indexOf(it.s)>=0 ? "bad" : "") + "\"><td>" + esc(it.t) + "</td>"
-        + "<td class=\"c\">" + (it.s ? esc(CODE_LABEL[it.s]) : "—") + "</td>"
+        + "<td class=\"c\">" + esc(CODE_LABEL[it.s]) + "</td>"
         + "<td>" + esc(it.n||"") + (r ? " <span class=\"fig\">Fig " + r.join(", ") + "</span>" : "") + "</td></tr>";
     }).join("");
     return "<h2>" + esc(sp.name) + "</h2><table>" + rows + "</table>";
@@ -959,7 +1119,7 @@ function reportHTML(rec){
     }
   }
 
-  const sigs = "<div class=\"sigs\">"
+  const sigs = isReady ? "" : "<h2>Sign-off</h2><div class=\"sigs\">"
     + "<div><span>Tenant" + (m.tenantSigName ? " — " + esc(m.tenantSigName) : "") + "</span>"
     + (rec.sig.t ? '<img src="' + rec.sig.t + '">' : "<i>not signed</i>") + "</div>"
     + "<div><span>Inspector" + (m.inspSigName ? " — " + esc(m.inspSigName) : "") + "</span>"
@@ -972,7 +1132,7 @@ function reportHTML(rec){
     : "";
 
   return "<!doctype html><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
-    + "<title>" + esc((rec.mode==="out"?"Move-out":"Move-in") + " — " + title(rec)) + "</title><style>"
+    + "<title>" + esc(modeTitle(rec) + " — " + title(rec)) + "</title><style>"
     + "body{font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#16181A;background:#F1F0EC;margin:0;padding:24px}"
     + ".w{max-width:900px;margin:0 auto;background:#fff;border:1px solid #D8D6CF;padding:26px}"
     + "h1{font-size:21px;text-transform:uppercase;letter-spacing:.02em;margin:0 0 2px}"
@@ -983,23 +1143,19 @@ function reportHTML(rec){
     + "td.c{width:120px;font:12px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:#4A5157}"
     + "tr.bad td{background:#FDF3F0}tr.bad td.c{color:#BE3319;font-weight:600}tr.tot td{font-weight:700;background:#F1F0EC}"
     + ".meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin:14px 0}"
-    + ".meta div{border-left:3px solid #F4C21B;padding-left:9px}"
-    + ".meta b{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#4A5157}"
+    + ".meta div{border-left:3px solid #F4C21B;padding-left:9px}.meta b{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#4A5157}"
+    + ".coverage{background:#F1F0EC;border-left:3px solid #F4C21B;padding:9px 11px;font-weight:600}"
     + ".fig{font:11px ui-monospace,Menlo,monospace;color:#4A5157;white-space:nowrap}"
     + ".gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:12px}"
-    + ".gal figure{margin:0}.gal img{width:100%;border:1px solid #D8D6CF;display:block}"
-    + ".gal figcaption{font-size:12.5px;color:#4A5157;margin-top:5px}"
+    + ".gal figure{margin:0}.gal img{width:100%;border:1px solid #D8D6CF;display:block}.gal figcaption{font-size:12.5px;color:#4A5157;margin-top:5px}"
     + "@media print{.gal{display:block}.gal figure{display:inline-block;width:48%;vertical-align:top;margin:0 1% 14px 0}}"
-    + ".sigs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}"
-    + ".sigs span{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#4A5157;margin-bottom:4px}"
-    + ".sigs img{width:100%;max-width:280px;border-bottom:1px solid #16181A}"
+    + ".sigs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.sigs span{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#4A5157;margin-bottom:4px}.sigs img{width:100%;max-width:280px;border-bottom:1px solid #16181A}"
     + "@media print{body{background:#fff;padding:0}.w{border:0;padding:0}.gal{grid-template-columns:1fr 1fr}figure{break-inside:avoid}}"
-    + "</style><div class=\"w\"><div class=\"sub\">" + esc(ORG) + " · " + (rec.mode==="out" ? "Move-out" : "Move-in") + " inspection</div>"
-    + "<h1>" + esc(title(rec)) + "</h1>"
-    + "<div class=\"meta\">" + head.map(r=>"<div><b>" + esc(r[0]) + "</b>" + esc(r[1]) + "</div>").join("")
-    + "<div><b>Lines</b>" + s.done + " of " + s.total + " marked, " + s.flags + " flagged</div></div>"
-    + lines + wk + (m.misc ? "<h2>Misc. notes</h2><p>" + esc(m.misc) + "</p>" : "")
-    + "<h2>Sign-off</h2>" + sigs + gallery + "</div>";
+    + "</style><div class=\"w\"><div class=\"sub\">" + esc(ORG) + " · " + esc(modeTitle(rec)) + " inspection</div>"
+    + "<h1>" + esc(title(rec)) + "</h1><p class=\"coverage\">" + s.done + " of " + s.total + " lines reviewed · " + s.flags + " flagged</p>"
+    + "<div class=\"meta\">" + head.map(r=>"<div><b>" + esc(r[0]) + "</b>" + esc(r[1]) + "</div>").join("") + "</div>"
+    + lines + wk + (m.misc ? "<h2>Notes</h2><p>" + esc(m.misc) + "</p>" : "")
+    + sigs + gallery + "</div>";
 }
 
 async function sendFile(name, text, mime){
@@ -1020,19 +1176,28 @@ async function sendFile(name, text, mime){
 /* ---------------- report text ---------------- */
 function reportText(rec){
   const m = rec.meta, s = stats(rec), L = [];
-  L.push((rec.mode==="out" ? "MOVE-OUT" : "MOVE-IN") + " INSPECTION — " + ORG.toUpperCase());
+  const isReady = rec.mode==="ready";
+  L.push(modeTitle(rec).toUpperCase() + " INSPECTION — " + ORG.toUpperCase());
   L.push(title(rec));
   L.push("Date: " + (fmtDate(m.date)||"—") + "   Inspector: " + (m.inspector||"—"));
-  if(m.tenant) L.push("Tenant: " + m.tenant);
-  if(m.owner) L.push("Owner: " + m.owner);
-  if(m.clean) L.push("Unit clean: " + m.clean.toUpperCase());
-  if(m.keys) L.push((rec.mode==="out" ? "Keys returned: " : "Keys issued: ") + m.keys);
-  if(m.meterE || m.meterW) L.push("Meters — electric: " + (m.meterE||"—") + ", water: " + (m.meterW||"—"));
-  if(rec.mode==="out" && m.fwd) L.push("Forwarding address: " + m.fwd);
-  L.push(s.done + " of " + s.total + " lines marked · " + s.flags + " flagged");
+  if(isReady){
+    if(m.owner) L.push("Owner: " + m.owner);
+    if(m.marketStatus) L.push("Market status: " + marketLabel(m.marketStatus));
+    if(workLabel(rec)) L.push("Work category: " + workLabel(rec));
+    if(m.responsible) L.push("Responsible party: " + m.responsible);
+    if(m.estimatedCost) L.push("Estimated cost: " + money(parseFloat(m.estimatedCost)||0));
+  }else{
+    if(m.tenant) L.push("Tenant: " + m.tenant);
+    if(m.owner) L.push("Owner: " + m.owner);
+    if(m.clean) L.push("Unit clean: " + m.clean.toUpperCase());
+    if(m.keys) L.push((rec.mode==="out" ? "Keys returned: " : "Keys issued: ") + m.keys);
+    if(m.meterE || m.meterW) L.push("Meters — electric: " + (m.meterE||"—") + ", water: " + (m.meterW||"—"));
+    if(rec.mode==="out" && m.fwd) L.push("Forwarding address: " + m.fwd);
+  }
+  L.push(s.done + " of " + s.total + " lines reviewed · " + s.flags + " flagged");
   L.push("");
 
-  rec.spaces.forEach(sp=>{
+  activeSpaces(rec).forEach(sp=>{
     const bad = sp.items.filter(it=>FLAGS.indexOf(it.s)>=0);
     if(!bad.length) return;
     L.push(sp.name.toUpperCase());
@@ -1068,7 +1233,7 @@ function download(name, text){
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
 function slug(rec){
-  return ((rec.mode==="out"?"moveout":"movein") + "-" + title(rec) + "-" + (rec.meta.date||today()))
+  return ((rec.mode==="out"?"moveout":rec.mode==="ready"?"rentready":"movein") + "-" + title(rec) + "-" + (rec.meta.date||today()))
     .toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") + ".json";
 }
 
@@ -1077,7 +1242,8 @@ function slug(rec){
    Pasted transcript, or live speech where the browser supports it. */
 
 const SAY = [
-  ["c",  ["not working","not work","doesn't work","does not work","dont work","won't turn on","wont turn on","no power","doesn't turn on","not functioning","inoperable","dead","won't open","wont open","won't close","wont close","not draining","no hot water","leaking","leaks","running"]],
+  ["u",  ["not tested","couldn't test","could not test","couldnt test","unable to test","can't test","cannot test","no power on site","power is off","not able to test"]],
+  ["c",  ["not working","not work","doesn't work","does not work","dont work","won't turn on","wont turn on","doesn't turn on","not functioning","inoperable","dead","won't open","wont open","won't close","wont close","not draining","no hot water","leaking","leaks","running"]],
   ["r",  ["needs replacing","needs to be replaced","need replacing","needs replaced","replace","replacement","shot","beyond repair"]],
   ["b",  ["broken","cracked","crack","damaged","busted","bust","torn","ripped","hole","holes","chipped","chip","shattered","bent","loose","missing","split","rotted","rotten"]],
   ["d",  ["dirty","filthy","needs cleaning","need cleaning","needs a clean","grimy","stained","stain","soiled","dusty","dust","mold","mildew","greasy","scuffed","scuffs","scuff","marks","marked up","hair","debris","trash"]],
@@ -1156,7 +1322,7 @@ function norm(s){
 function aliasesFor(name){
   const out = [name.toLowerCase()];
   (ALIAS[name] || []).forEach(a=>out.push(a));
-  name.toLowerCase().split(/[/()]/).forEach(part=>{
+  name.toLowerCase().split(/[/()—–:;,]/).forEach(part=>{
     part = part.replace(/size noted/,"").trim();
     if(part.length > 2) out.push(part);
   });
@@ -1166,7 +1332,7 @@ function aliasesFor(name){
 /* which room is this chunk talking about? */
 function matchSpace(txt){
   let best = null, bestLen = 0;
-  cur.spaces.forEach(sp=>{
+  activeSpaces(cur).forEach(sp=>{
     const cands = [sp.name.toLowerCase()];
     const t = sp.type;
     if(t==="living") cands.push("living room","living","front room","family room","dining","dining room","great room");
@@ -1305,39 +1471,76 @@ function renderDict(){
 
 /* live speech, where the browser offers it */
 let REC = null;
+let REC_ACTIVE = false;
+let REC_FINAL_TEXT = "";
+let REC_RESTART = null;
 function toggleMic(){
   const btn = document.getElementById("micBtn");
-  if(REC){ REC.stop(); return; }
+  if(REC_ACTIVE){
+    REC_ACTIVE = false;
+    clearTimeout(REC_RESTART);
+    if(REC){ try{ REC.stop(); }catch(e){} }
+    return;
+  }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){
     toast("This browser can't record speech — paste a transcript instead");
     return;
   }
   const box = document.getElementById("dictText");
-  REC = new SR();
-  REC.continuous = true; REC.interimResults = true; REC.lang = "en-US";
-  let settled = box.value ? box.value.trim() + " " : "";
-  REC.onresult = ev=>{
-    let interim = "";
-    for(let i = ev.resultIndex; i < ev.results.length; i++){
-      const txt = ev.results[i][0].transcript;
-      if(ev.results[i].isFinal) settled += txt.trim() + ". "; else interim += txt;
+  REC_ACTIVE = true;
+  REC_FINAL_TEXT = box.value.trim();
+
+  function startRecognition(){
+    if(!REC_ACTIVE) return;
+    REC = new SR();
+    REC.continuous = true; REC.interimResults = true; REC.lang = "en-US";
+    REC.onresult = ev=>{
+      let interim = "", finals = "";
+      for(let i = ev.resultIndex; i < ev.results.length; i++){
+        const txt = ev.results[i][0].transcript.trim();
+        if(ev.results[i].isFinal) finals += (finals ? " " : "") + txt;
+        else interim += (interim ? " " : "") + txt;
+      }
+      if(finals) REC_FINAL_TEXT = (REC_FINAL_TEXT + (REC_FINAL_TEXT ? " " : "") + finals + ".").trim();
+      box.value = (REC_FINAL_TEXT + (interim ? " " + interim : "")).trim();
+      box.scrollTop = box.scrollHeight;
+    };
+    REC.onerror = ev=>{
+      if(ev.error === "not-allowed" || ev.error === "service-not-allowed"){
+        REC_ACTIVE = false;
+        toast("Microphone blocked — allow it in your browser settings");
+      }else if(ev.error === "network"){
+        REC_ACTIVE = false;
+        toast("Speech needs a signal — dictate later or paste a transcript");
+      }else if(ev.error !== "aborted"){
+        toast("Listening paused — restarting");
+      }
+    };
+    REC.onend = ()=>{
+      REC = null;
+      box.value = REC_FINAL_TEXT;
+      if(REC_ACTIVE){
+        /* Mobile browsers end recognition after a short silence. Restarting
+           the session keeps a walkthrough going without duplicating text. */
+        REC_RESTART = setTimeout(startRecognition, 180);
+      }else{
+        btn.classList.remove("live"); btn.textContent = "🎤 Start recording";
+        if(box.value.trim()) toast("Recording stopped — hit Read it");
+      }
+    };
+    try{
+      REC.start();
+      btn.classList.add("live"); btn.textContent = "■ Stop recording";
+    }catch(e){
+      REC = null;
+      if(REC_ACTIVE){ REC_RESTART = setTimeout(startRecognition, 350); }
+      else { btn.classList.remove("live"); btn.textContent = "🎤 Start recording"; }
     }
-    box.value = settled + interim;
-    box.scrollTop = box.scrollHeight;
-  };
-  REC.onerror = ev=>{
-    toast(ev.error === "not-allowed" ? "Microphone blocked — allow it in your browser settings"
-      : ev.error === "network" ? "Speech needs a signal — dictate later or paste a transcript"
-      : "Recording stopped");
-  };
-  REC.onend = ()=>{ REC = null; btn.classList.remove("live"); btn.textContent = "🎤 Start recording";
-    if(document.getElementById("dictText").value.trim()) toast("Recording stopped — hit Read it"); };
-  try{
-    REC.start();
-    btn.classList.add("live"); btn.textContent = "■ Stop recording";
-    toast("Listening — say the room, then each line");
-  }catch(e){ REC = null; toast("Could not start the microphone"); }
+  }
+
+  startRecognition();
+  toast("Listening — say the room, then each line");
 }
 
 /* ---------------- events ---------------- */
@@ -1370,7 +1573,7 @@ document.addEventListener("click", async e=>{
       "\"Living room. Floor good, walls dirty, scuffs by the slider. Closet door broken.\"\n\n" +
       "\"Moving to the kitchen. Cabinets fine, fridge not working, ice maker doesn't fill.\"\n\n" +
       "Words it knows: good, clean, fine — dirty, stained, scuffed — broken, cracked, torn — " +
-      "not working, no power, leaking — replace — not applicable.\n\n" +
+      "not working, leaking — not tested, could not test, no power on site — replace — not applicable.\n\n" +
       "Anything you say after a problem becomes the note on that line.");
     return;
   }
@@ -1379,15 +1582,17 @@ document.addEventListener("click", async e=>{
   const nw = t.closest("[data-new]");
   if(nw){
     const mode = nw.dataset.new;
-    if(mode==="out" && LIST.some(r=>r.mode==="in")) return pickBaseline();
-    return openRec(newInspection(mode, null));
+    const seed = quickSeed();
+    if(mode==="out" && LIST.some(r=>r.mode==="in")) return pickBaseline(seed);
+    return openRec(newInspection(mode, null, seed));
   }
 
   const bs = t.closest("[data-base]");
   if(bs){
     document.getElementById("modal").classList.remove("on");
     const from = bs.dataset.base==="none" ? null : LIST.find(r=>r.id===bs.dataset.base);
-    return openRec(newInspection("out", from));
+    const seed = PENDING_SEED || quickSeed(); PENDING_SEED = null;
+    return openRec(newInspection("out", from, seed));
   }
   if(t.id==="modalClose" || t.id==="modal"){ document.getElementById("modal").classList.remove("on"); return; }
 
@@ -1417,7 +1622,7 @@ document.addEventListener("click", async e=>{
   if(allok){
     const sp = cur.spaces.find(x=>x.id===allok.dataset.allok);
     sp.items.forEach(it=>{ if(!it.s) it.s = "ok"; });
-    save(); renderSpaces(); renderHead(); toast("Unmarked lines set to good");
+    save(); renderSpaces(); renderHead(); toast("Unmarked lines passed");
     return;
   }
 
@@ -1465,6 +1670,27 @@ document.addEventListener("click", async e=>{
     cur.meta.clean = cur.meta.clean===clean.dataset.clean ? "" : clean.dataset.clean;
     document.querySelectorAll("#cleanSeg button").forEach(b=>b.classList.toggle("on", cur.meta.clean===b.dataset.clean));
     save(); return;
+  }
+
+  const work = t.closest("[data-work]") || t.closest("#workCats label")?.querySelector("[data-work]");
+  if(work && cur.mode==="ready"){
+    const cats = Array.isArray(cur.meta.workCategories) ? cur.meta.workCategories : [];
+    const i = cats.indexOf(work.dataset.work);
+    if(i>=0) cats.splice(i,1); else cats.push(work.dataset.work);
+    cur.meta.workCategories = cats;
+    work.checked = i<0;
+    save(); return;
+  }
+
+  const readyTag = t.closest("[data-ready-tag]") || t.closest("#readyTags label")?.querySelector("[data-ready-tag]");
+  if(readyTag && cur.mode==="ready"){
+    const tags = Array.isArray(cur.meta.readyTags) ? cur.meta.readyTags : [];
+    const i = tags.indexOf(readyTag.dataset.readyTag);
+    if(i>=0) tags.splice(i,1); else tags.push(readyTag.dataset.readyTag);
+    cur.meta.readyTags = tags;
+    readyTag.checked = i<0;
+    save(); renderSpaces(); renderHead();
+    return;
   }
 
   const wear = t.closest("[data-wear]");
@@ -1556,7 +1782,7 @@ document.addEventListener("input", e=>{
   if(t.dataset.note && cur){
     const [spId, idx] = t.dataset.note.split(":");
     const sp = cur.spaces.find(x=>x.id===spId);
-    sp.items[+idx].n = t.value; save(); return;
+    sp.items[+idx].n = t.value; save(); renderBlock(); return;
   }
   if(t.dataset.cost && cur){
     const w = cur.wk[t.dataset.cost] = cur.wk[t.dataset.cost] || {};
