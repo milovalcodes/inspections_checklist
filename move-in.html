@@ -506,7 +506,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
           <button class="mini" id="mediaPickBtn">Import video / audio</button>
           <input type="file" id="mediaIn" accept="video/*,audio/*,.m4a,.mp3,.wav,.webm" class="hide">
         </div>
-        <div class="voice-status" id="voiceStatus" role="status" aria-live="polite"><span id="voiceStatusText">Voice pack downloads once on Wi-Fi, then works without signal.</span><i><em id="voiceStatusFill"></em></i></div>
+        <div class="voice-status" id="voiceStatus" role="status" aria-live="polite"><span id="voiceStatusText">Full voice pack downloads once on Wi-Fi, then works without signal.</span><i><em id="voiceStatusFill"></em></i></div>
       </div>
       <textarea class="in" id="dictText" placeholder="Paste the transcript here, or hit record and talk." style="margin-top:10px;min-height:92px"></textarea>
       <div class="row" style="margin-top:9px">
@@ -1982,8 +1982,18 @@ function setVoiceBusy(busy){
     if(button) button.disabled = busy;
   });
 }
+function friendlyVoiceError(text){
+  const detail = String(text || "");
+  if(/Missing required scale|MatMulNBits|Can't create a session|Can't create session/i.test(detail)){
+    return "This device needs the updated voice pack. Connect to Wi-Fi and tap Download offline voice pack again.";
+  }
+  if(/network|fetch|internet|offline/i.test(detail)){
+    return "Connect to Wi-Fi once to download the voice pack, then it will work without signal.";
+  }
+  return "Try a shorter recording or an audio file, then try again.";
+}
 function voiceFailure(text){
-  voiceStatus("Offline transcription could not finish: " + text, 0, "");
+  voiceStatus("Offline transcription could not finish: " + friendlyVoiceError(text), 0, "");
   toast("Offline transcription could not finish");
 }
 function getVoiceWorker(){

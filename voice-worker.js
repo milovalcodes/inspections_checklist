@@ -25,6 +25,11 @@ async function loadVoicePack(){
     }
     transcriber = await mod.pipeline("automatic-speech-recognition", MODEL_ID, {
       device:"wasm",
+      // Do not accept the browser library's q8 default here. Some mobile
+      // ONNX runtimes cannot open that quantized Whisper decoder. The full
+      // precision pack is downloaded once, cached locally, and works on a
+      // wider range of phones (including iPhones).
+      dtype:"fp32",
       progress_callback: info=>{
         const pct = typeof info.progress === "number" ? Math.max(3, Math.min(96, Math.round(info.progress))) : null;
         post("pack-progress", {text:"Downloading offline voice pack...", progress:pct});

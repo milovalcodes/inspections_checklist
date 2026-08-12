@@ -97,7 +97,7 @@ spoken condition with a Needs work result, so review and tighten that note where
 
 The **Offline video transcription** area is part of Dictate the walkthrough. It keeps walkthrough media on the inspector's phone:
 
-1. While on Wi-Fi, tap **Download offline voice pack** once for each phone.
+1. While on Wi-Fi, tap **Download offline voice pack** once for each phone. The full-quality pack is intentionally used for wider iPhone and mobile-browser compatibility.
 2. Choose a video or audio walkthrough. For a video, the app makes a temporary audio-only copy on the phone; it never uploads the original video.
 3. The on-device voice pack writes the transcript into the existing dictation box. Read and review it before applying the proposed checks.
 
