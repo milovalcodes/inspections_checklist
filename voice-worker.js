@@ -3,39 +3,75 @@
   The model runs in this browser worker. It is downloaded once and cached by
   the browser; audio samples and transcripts never leave the device.
 */
-const TRANSFORMERS_URL = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0";
+// Start with the mature browser runtime. If a browser cannot start it, the
+// current runtime is tried automatically before reporting a real failure.
+const TRANSFORMERS_URL = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
+const FALLBACK_TRANSFORMERS_URL = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0";
 const MODEL_ID = "onnx-community/whisper-tiny.en";
+// Full precision Whisper tiny.en: encoder, merged decoder, and language files.
+// Kept deliberately a little high so the on-screen total does not overshoot.
+const VOICE_PACK_BYTES = 156 * 1024 * 1024;
 let transcriber = null;
 let loading = null;
+const downloadedFiles = new Map();
 
 function post(type, extra){ self.postMessage(Object.assign({type}, extra || {})); }
 function message(err){ return err && err.message ? err.message : String(err || "Unknown error"); }
+function bytes(value){
+  if(!Number.isFinite(value) || value < 0) return "";
+  if(value >= 1024 * 1024) return (value / (1024 * 1024)).toFixed(value >= 100 * 1024 * 1024 ? 0 : 1) + " MB";
+  return Math.round(value / 1024) + " KB";
+}
+function downloadProgress(info){
+  const loaded = Number(info && info.loaded);
+  const total = Number(info && info.total);
+  const file = String((info && (info.file || info.name)) || "voice-pack-file");
+  if(Number.isFinite(loaded) && loaded >= 0){
+    const previous = downloadedFiles.get(file) || {};
+    downloadedFiles.set(file, {loaded:Math.max(previous.loaded || 0, loaded), total:Number.isFinite(total) && total > 0 ? total : previous.total || 0});
+  }
+  let received = 0;
+  downloadedFiles.forEach(item=>{ received += item.loaded || 0; });
+  const fallback = Number(info && info.progress);
+  const progress = received > 0
+    ? Math.max(1, Math.min(99, Math.round((received / VOICE_PACK_BYTES) * 100)))
+    : (Number.isFinite(fallback) ? Math.max(1, Math.min(99, Math.round(fallback))) : null);
+  const detail = received > 0
+    ? bytes(Math.min(received, VOICE_PACK_BYTES)) + " of about " + bytes(VOICE_PACK_BYTES) + " downloaded"
+    : "Starting the download...";
+  post("pack-progress", {text:"Downloading offline voice pack...", progress, detail});
+}
+async function createTranscriber(url){
+  const mod = await import(url);
+  const env = mod.env;
+  env.useBrowserCache = true;
+  env.allowRemoteModels = true;
+  if(env.backends && env.backends.onnx && env.backends.onnx.wasm){
+    env.backends.onnx.wasm.numThreads = 1;
+  }
+  return mod.pipeline("automatic-speech-recognition", MODEL_ID, {
+    device:"wasm",
+    // Do not accept a quantized decoder here. Some mobile ONNX runtimes
+    // cannot open it; the full-precision pack works on a wider range of
+    // phones, including iPhones.
+    dtype:"fp32",
+    progress_callback:downloadProgress
+  });
+}
 
 async function loadVoicePack(){
   if(transcriber) return transcriber;
   if(loading) return loading;
   loading = (async()=>{
-    post("pack-progress", {text:"Opening the offline voice pack...", progress:2});
-    const mod = await import(TRANSFORMERS_URL);
-    const env = mod.env;
-    env.useBrowserCache = true;
-    env.allowRemoteModels = true;
-    if(env.backends && env.backends.onnx && env.backends.onnx.wasm){
-      env.backends.onnx.wasm.numThreads = 1;
+    downloadedFiles.clear();
+    post("pack-progress", {text:"Preparing offline voice pack...", progress:null, detail:"Checking the local voice engine"});
+    try{
+      transcriber = await createTranscriber(TRANSFORMERS_URL);
+    }catch(firstError){
+      post("pack-progress", {text:"Trying a compatible local voice engine...", progress:null, detail:"Your downloaded voice files will be reused."});
+      transcriber = await createTranscriber(FALLBACK_TRANSFORMERS_URL);
     }
-    transcriber = await mod.pipeline("automatic-speech-recognition", MODEL_ID, {
-      device:"wasm",
-      // Do not accept the browser library's q8 default here. Some mobile
-      // ONNX runtimes cannot open that quantized Whisper decoder. The full
-      // precision pack is downloaded once, cached locally, and works on a
-      // wider range of phones (including iPhones).
-      dtype:"fp32",
-      progress_callback: info=>{
-        const pct = typeof info.progress === "number" ? Math.max(3, Math.min(96, Math.round(info.progress))) : null;
-        post("pack-progress", {text:"Downloading offline voice pack...", progress:pct});
-      }
-    });
-    post("ready", {text:"Offline voice pack is ready on this device."});
+    post("ready", {text:"Offline voice pack is ready on this device.", detail:"Download complete · about " + bytes(VOICE_PACK_BYTES) + " saved for offline use"});
     return transcriber;
   })().finally(()=>{ loading=null; });
   return loading;

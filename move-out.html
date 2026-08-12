@@ -211,10 +211,12 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .localvoice{margin-top:11px;padding:11px;border:1px solid #D8CCB7;border-radius:6px;background:linear-gradient(110deg,#FFF9EE,#FFFDF9)}
 .localvoice b{font-size:12.5px}
 .localvoice p{margin:4px 0 0;font-size:12px;line-height:1.45;color:var(--slate)}
-.voice-status{display:flex;gap:8px;align-items:center;margin-top:9px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.04em;color:var(--slate)}
-.voice-status i{display:block;flex:1;height:5px;overflow:hidden;border-radius:99px;background:#E6DDCF}
+.voice-status{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 8px;align-items:center;margin-top:9px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.04em;color:var(--slate)}
+.voice-status b{font-size:10px;color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.voice-status small{grid-column:1/-1;font-size:9.5px;letter-spacing:.02em;color:var(--mute)}
+.voice-status i{grid-column:1/-1;display:block;height:7px;overflow:hidden;border-radius:99px;background:#E6DDCF}
 .voice-status i em{display:block;width:0;height:100%;border-radius:inherit;background:var(--hivis);transition:width .25s ease}
-.voice-status.busy i em{animation:voice-sweep 1.15s ease-in-out infinite}
+.voice-status.preparing i em{animation:voice-sweep 1.15s ease-in-out infinite}
 .voice-status.done i em{width:100%!important;background:var(--ok)}
 @keyframes voice-sweep{0%{width:8%}50%{width:72%}100%{width:8%}}
 
@@ -506,7 +508,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
           <button class="mini" id="mediaPickBtn">Import video / audio</button>
           <input type="file" id="mediaIn" accept="video/*,audio/*,.m4a,.mp3,.wav,.webm" class="hide">
         </div>
-        <div class="voice-status" id="voiceStatus" role="status" aria-live="polite"><span id="voiceStatusText">Full voice pack downloads once on Wi-Fi, then works without signal.</span><i><em id="voiceStatusFill"></em></i></div>
+        <div class="voice-status" id="voiceStatus" role="status" aria-live="polite"><span id="voiceStatusText">Full voice pack downloads once on Wi-Fi, then works without signal.</span><b id="voiceStatusPercent" aria-hidden="true">0%</b><small id="voiceStatusDetail">About 156 MB · saved for offline use after download</small><i id="voiceStatusBar" role="progressbar" aria-label="Offline voice pack download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><em id="voiceStatusFill"></em></i></div>
       </div>
       <textarea class="in" id="dictText" placeholder="Paste the transcript here, or hit record and talk." style="margin-top:10px;min-height:92px"></textarea>
       <div class="row" style="margin-top:9px">
@@ -1969,11 +1971,28 @@ function voiceStatus(text, pct, state){
   const box = document.getElementById("voiceStatus");
   const label = document.getElementById("voiceStatusText");
   const fill = document.getElementById("voiceStatusFill");
-  if(!box || !label || !fill) return;
-  box.classList.remove("busy","done");
+  const detail = document.getElementById("voiceStatusDetail");
+  const percent = document.getElementById("voiceStatusPercent");
+  const bar = document.getElementById("voiceStatusBar");
+  const extra = arguments.length > 3 ? arguments[3] : "";
+  if(!box || !label || !fill || !detail || !percent || !bar) return;
+  box.classList.remove("busy","done","preparing");
   if(state) box.classList.add(state);
   label.textContent = text;
-  fill.style.width = typeof pct === "number" ? Math.max(0,Math.min(100,pct)) + "%" : "0%";
+  detail.textContent = extra || "";
+  if(typeof pct === "number"){
+    const value = Math.round(Math.max(0,Math.min(100,pct)));
+    fill.style.width = value + "%";
+    percent.textContent = value + "%";
+    bar.setAttribute("aria-valuenow", String(value));
+    bar.setAttribute("aria-valuetext", value + "% downloaded");
+  }else{
+    fill.style.width = "8%";
+    percent.textContent = state === "busy" ? "Working" : "Preparing";
+    bar.removeAttribute("aria-valuenow");
+    bar.setAttribute("aria-valuetext", text);
+    if(state !== "done") box.classList.add("preparing");
+  }
 }
 function setVoiceBusy(busy){
   VOICE_BUSY = busy;
@@ -1988,12 +2007,17 @@ function friendlyVoiceError(text){
     return "This device needs the updated voice pack. Connect to Wi-Fi and tap Download offline voice pack again.";
   }
   if(/network|fetch|internet|offline/i.test(detail)){
-    return "Connect to Wi-Fi once to download the voice pack, then it will work without signal.";
+    return "The download was interrupted. Connect to steady Wi-Fi, keep this page open, and try again.";
   }
-  return "Try a shorter recording or an audio file, then try again.";
+  if(/memory|allocation|out of memory|not enough/i.test(detail)){
+    return "This phone does not have enough free memory for the full local voice pack. Close other apps and try again.";
+  }
+  return "This browser could not start the local voice engine. Update Chrome or Safari, then try the download again.";
 }
 function voiceFailure(text){
-  voiceStatus("Offline transcription could not finish: " + friendlyVoiceError(text), 0, "");
+  voiceStatus("Offline voice pack could not finish.", 0, "", friendlyVoiceError(text));
+  const download = document.getElementById("voicePackBtn");
+  if(download) download.textContent = "Try download again";
   toast("Offline transcription could not finish");
 }
 function getVoiceWorker(){
@@ -2002,17 +2026,19 @@ function getVoiceWorker(){
   worker.onmessage = event=>{
     const data = event.data || {};
     if(data.type==="pack-progress"){
-      voiceStatus(data.text || "Downloading offline voice pack...", data.progress, "busy");
+      voiceStatus(data.text || "Downloading offline voice pack...", data.progress, "busy", data.detail || "");
       return;
     }
     if(data.type==="ready"){
       VOICE_READY = true;
-      voiceStatus(data.text || "Offline voice pack is ready on this device.", 100, "done");
+      voiceStatus(data.text || "Offline voice pack is ready on this device.", 100, "done", data.detail || "Download complete");
+      const download = document.getElementById("voicePackBtn");
+      if(download) download.textContent = "Voice pack ready";
       if(VOICE_PACK_WAIT){ const wait=VOICE_PACK_WAIT; VOICE_PACK_WAIT=null; wait.resolve(); }
       return;
     }
     if(data.type==="transcribe-progress"){
-      voiceStatus(data.text || "Transcribing on this device...", null, "busy");
+      voiceStatus(data.text || "Transcribing on this device...", null, "preparing", "The recording stays on this phone.");
       return;
     }
     if(data.type==="transcript"){
@@ -2037,7 +2063,7 @@ function getVoiceWorker(){
 function loadVoicePack(){
   if(VOICE_READY) return Promise.resolve();
   if(VOICE_PACK_WAIT) return VOICE_PACK_WAIT.promise;
-  voiceStatus("Downloading offline voice pack. Keep this page open...", null, "busy");
+  voiceStatus("Preparing offline voice pack...", null, "preparing", "Keep this page open while the download starts.");
   const worker = getVoiceWorker();
   let resolve, reject;
   const promise = new Promise((res,rej)=>{ resolve=res; reject=rej; });
