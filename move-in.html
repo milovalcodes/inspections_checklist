@@ -37,10 +37,13 @@ h1,h2,h3{font-family:"Archivo","Helvetica Neue",Arial,sans-serif;margin:0;letter
 button,input,textarea,select{font-family:inherit;font-size:15px}
 button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
 textarea,input,select{font-size:16px}
+.mini,.act,.newbtn,.chip,.cam{transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background .2s ease}
+.mini:active,.act:active,.newbtn:active,.chip:active,.cam:active{transform:scale(.97)}
+@media (hover:hover){.newbtn:hover{transform:translateY(-2px);box-shadow:0 7px 16px rgba(33,51,50,.16)}.card:hover{box-shadow:0 8px 22px rgba(79,63,42,.08)}}
 .wrap{max-width:880px;margin:0 auto;padding:0 14px}
 .mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace}
 :focus-visible{outline:2.5px solid var(--hivis);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important;scroll-behavior:auto!important}}
 
 /* ---------- masthead ---------- */
 .mast{position:relative;overflow:hidden;background:linear-gradient(120deg,#203A42 0%,#2C4B51 58%,#3B5B5B 100%);color:var(--paper);padding:22px 0 0;border-bottom:4px solid var(--hivis);box-shadow:0 3px 12px rgba(33,51,50,.16)}
@@ -88,6 +91,17 @@ textarea.in{resize:vertical;min-height:60px;line-height:1.45}
 .strip.blocked i{background:var(--work)}
 .tally{display:flex;justify-content:space-between;align-items:baseline;margin-top:7px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.06em;color:var(--slate)}
 .tally b{font-size:15px;color:var(--ink)}
+.strip.bump i{animation:progress-glow .65s ease both}
+.fieldpulse{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:9px;align-items:center;margin-top:12px;padding:9px 10px;border:1px solid #E3D7C4;border-radius:7px;background:linear-gradient(100deg,#FFF8EC,#FFFDF8);box-shadow:inset 0 1px rgba(255,255,255,.8);transition:background .25s,border-color .25s,transform .25s}
+.fieldpulse.complete{background:linear-gradient(100deg,#EDF8F1,#FFFDF8);border-color:#B8DCC7}
+.pace-signal{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:var(--ink);color:var(--hivis);font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-weight:800;font-size:16px;box-shadow:0 3px 8px rgba(39,66,74,.2)}
+.fieldpulse.complete .pace-signal{background:var(--ok);color:#fff}
+.pace-copy{min-width:0;display:grid;gap:1px}
+.pace-copy b{font-size:13px;line-height:1.2}
+.pace-copy small{font-size:11.5px;color:var(--slate);line-height:1.25}
+.pace-badge{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:9px;letter-spacing:.09em;color:#6E5837;border:1px solid #DEC9A9;border-radius:99px;padding:4px 6px;white-space:nowrap}
+.fieldpulse.complete .pace-badge{color:var(--ok);border-color:#A5D1B5}
+@keyframes progress-glow{0%{filter:brightness(1)}45%{filter:brightness(1.35);box-shadow:0 0 0 5px rgba(213,162,94,.2)}100%{filter:brightness(1);box-shadow:none}}
 
 /* legend */
 .legend{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:13px;padding-top:13px;border-top:1px solid var(--rule)}
@@ -123,12 +137,19 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .cam b{position:absolute;top:-6px;right:-6px;background:var(--ink);color:var(--hivis);border-radius:9px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10px;padding:1px 5px}
 .pad6{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
 .k{min-height:48px;border:1px solid var(--rule);background:#FFFEFB;border-radius:5px;
-  font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600;font-size:14px;color:var(--slate);display:grid;place-items:center;line-height:1}
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600;font-size:14px;color:var(--slate);display:grid;place-items:center;line-height:1;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background .2s ease}
 .k small{display:block;white-space:nowrap;font-size:8px;letter-spacing:.06em;font-weight:400;margin-top:1px;color:var(--mute)}
 .k:hover{border-color:var(--slate)}
+.k:active{transform:scale(.94)}
 .k.on{color:#fff;border-color:transparent}
 .k.on small{color:rgba(255,255,255,.75)}
 .k.on.k-ok{background:var(--ok)} .k.on.k-work{background:var(--work)} .k.on.k-na{background:var(--na)}
+.item.just-marked{animation:item-set .48s ease both}
+.item.just-marked .k.on{animation:status-pop .48s cubic-bezier(.18,.89,.32,1.28) both;box-shadow:0 6px 14px rgba(39,66,74,.16)}
+.sec.section-finish>summary{animation:section-win .6s ease both}
+@keyframes status-pop{0%{transform:scale(.86)}55%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes item-set{0%{background:#FFF9E8}100%{background:inherit}}
+@keyframes section-win{0%{background:#FFF3D9}100%{background:var(--card)}}
 .note{width:100%;margin-top:8px;border:1px solid var(--rule);border-left:3px solid var(--work);padding:8px 9px;
   background:#fff;resize:vertical;min-height:40px;font-size:16px;line-height:1.45;display:none}
 .item.flagged .note{display:block}
@@ -235,6 +256,9 @@ body[data-mode="ready"] .inoutonly{display:none!important}
   padding:10px 16px;border-radius:2px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.06em;z-index:70;opacity:0;
   pointer-events:none;transition:opacity .25s}
 .toast.on{opacity:1}
+#celebrate{position:fixed;inset:0;z-index:80;pointer-events:none;overflow:hidden}
+.confetti{position:absolute;left:50%;bottom:13%;width:8px;height:13px;border-radius:2px;background:var(--tone);opacity:0;animation:confetti-burst .95s cubic-bezier(.18,.72,.26,1) both}
+@keyframes confetti-burst{0%{opacity:0;transform:translate(-50%,0) rotate(0deg) scale(.55)}10%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--x)),var(--y)) rotate(var(--spin)) scale(1)}}
 .foot{font-size:12px;color:var(--mute);padding:16px 0 8px;line-height:1.6}
 .hide{display:none!important}
 
@@ -256,7 +280,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
 }
 @media print{
   @page{margin:12mm}
-  .mast .lede,.rail,.bar,.sectools,.pad6,.cam,.mini,.toast,.lb,.noprint{display:none!important}
+  .mast .lede,.rail,.bar,.sectools,.pad6,.cam,.mini,.toast,.lb,#celebrate,#fieldPulse,.noprint{display:none!important}
   body{background:#fff;padding:0;font-size:11pt}
   .mast{background:#fff;color:#000;padding:0;border-bottom:2px solid #000}
   .mast:after{display:none}
@@ -360,6 +384,11 @@ body[data-mode="ready"] .inoutonly{display:none!important}
       <div class="tally">
         <span><b id="pct">0%</b> marked</span>
         <span id="tallyRight"></span>
+      </div>
+      <div class="fieldpulse" id="fieldPulse" role="status" aria-live="polite">
+        <span class="pace-signal" id="paceSignal" aria-hidden="true">→</span>
+        <span class="pace-copy"><b id="paceTitle">Ready to walk</b><small id="paceNote">One quick tap per line. The app saves as you go.</small></span>
+        <span class="pace-badge" id="paceBadge">START</span>
       </div>
 
       <details id="metaBox">
@@ -498,6 +527,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
 </div>
 <div class="lb" id="modal"><div class="mcard" id="modalBody"></div></div>
 <div class="toast" id="toast"></div>
+<div id="celebrate" aria-hidden="true"></div>
 <input type="file" id="camIn" accept="image/*" multiple class="hide">
 
 <script>
@@ -649,6 +679,89 @@ function toast(msg){
   clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove("on"), 2200);
 }
 
+/* Small field-friendly rewards make progress visible without slowing the walk.
+   All motion respects the phone's reduced-motion setting. */
+let ACTIVE_SPACE_ID = "";
+let SPACE_OBSERVER = null;
+let COMPLETE_CELEBRATED = "";
+function pulseProgress(){
+  const strip = document.getElementById("strip");
+  if(!strip) return;
+  strip.classList.remove("bump");
+  void strip.offsetWidth;
+  strip.classList.add("bump");
+  setTimeout(()=>strip.classList.remove("bump"), 700);
+}
+function markFeedback(sp, idx){
+  const el = document.querySelector('.item[data-key="' + sp.id + ":" + idx + '"]');
+  if(!el) return;
+  el.classList.remove("just-marked");
+  void el.offsetWidth;
+  el.classList.add("just-marked");
+  setTimeout(()=>el.classList.remove("just-marked"), 620);
+}
+function sectionFinish(spaceId){
+  const el = document.querySelector('details[data-sp="' + spaceId + '"]');
+  if(!el) return;
+  el.classList.remove("section-finish");
+  void el.offsetWidth;
+  el.classList.add("section-finish");
+  setTimeout(()=>el.classList.remove("section-finish"), 750);
+}
+function renderMomentum(s){
+  const card = document.getElementById("fieldPulse");
+  if(!card) return;
+  const signal = document.getElementById("paceSignal");
+  const title = document.getElementById("paceTitle");
+  const note = document.getElementById("paceNote");
+  const badge = document.getElementById("paceBadge");
+  let icon="→", head="Ready to walk", copy="One quick tap per line. The app saves as you go.", label="START";
+  if(s.done && s.pct < 25){ icon="✓"; head="Nice start"; copy=s.done + " line" + (s.done===1?"":"s") + " captured. Keep moving room by room."; label="ON PACE"; }
+  else if(s.pct >= 25 && s.pct < 75){ icon="↗"; head="Good pace"; copy=s.done + " of " + s.total + " lines reviewed — the report is building itself."; label="IN FLOW"; }
+  else if(s.pct >= 75 && s.pct < 100){ icon="★"; head="Final stretch"; copy=(s.total-s.done) + " line" + (s.total-s.done===1?"":"s") + " left. Finish strong, then send the report."; label="ALMOST"; }
+  else if(s.total && s.pct===100){ icon="✓"; head="Walkthrough complete"; copy="Every line is reviewed. Your report is ready to share."; label="READY"; }
+  card.classList.toggle("complete", !!s.total && s.pct===100);
+  signal.textContent=icon; title.textContent=head; note.textContent=copy; badge.textContent=label;
+}
+function setActiveSpace(id){
+  ACTIVE_SPACE_ID = id || "";
+  document.querySelectorAll("[data-jump]").forEach(btn=>btn.classList.toggle("on", btn.dataset.jump===ACTIVE_SPACE_ID));
+}
+function watchSpaces(){
+  if(SPACE_OBSERVER){ SPACE_OBSERVER.disconnect(); SPACE_OBSERVER=null; }
+  if(!("IntersectionObserver" in window)) return;
+  const cards = [...document.querySelectorAll("#spaces details.sec")];
+  if(!cards.length) return;
+  SPACE_OBSERVER = new IntersectionObserver(entries=>{
+    const visible = entries.filter(e=>e.isIntersecting).sort((a,b)=>Math.abs(a.boundingClientRect.top)-Math.abs(b.boundingClientRect.top));
+    if(visible[0]) setActiveSpace(visible[0].target.dataset.sp);
+  }, {rootMargin:"-18% 0px -63% 0px", threshold:.01});
+  cards.forEach(card=>SPACE_OBSERVER.observe(card));
+}
+function celebrateCompletion(wasComplete){
+  const s = stats(cur);
+  if(wasComplete || !s.total || s.done!==s.total) return;
+  const key = cur.id + ":" + s.total;
+  if(COMPLETE_CELEBRATED===key) return;
+  COMPLETE_CELEBRATED = key;
+  const stage = document.getElementById("celebrate");
+  if(!stage) return;
+  const tones=["#D5A25E","#2F7866","#B5553D","#6B9EAA","#F0C98D"];
+  stage.innerHTML="";
+  for(let i=0;i<20;i++){
+    const bit=document.createElement("i");
+    bit.className="confetti";
+    bit.style.setProperty("--tone",tones[i%tones.length]);
+    bit.style.setProperty("--x",((i%2?1:-1)*(36+(i*19)%235))+"px");
+    bit.style.setProperty("--y",(-130-(i*37)%260)+"px");
+    bit.style.setProperty("--spin",((i%2?1:-1)*(180+(i*47)%440))+"deg");
+    bit.style.animationDelay=(i%5)*.025+"s";
+    stage.appendChild(bit);
+  }
+  setTimeout(()=>stage.innerHTML="",1200);
+  setTimeout(()=>toast("Walkthrough complete — report is ready"), 120);
+}
+
 /* ---------------- photos (IndexedDB, optional) ---------------- */
 let dbP = null;
 function db(){
@@ -773,6 +886,8 @@ function flagged(rec){
 function go(view){
   REC_ACTIVE = false;
   if(REC){ try{ REC.stop(); }catch(e){} }
+  if(view==="home" && SPACE_OBSERVER){ SPACE_OBSERVER.disconnect(); SPACE_OBSERVER=null; }
+  if(view==="home") ACTIVE_SPACE_ID="";
   DICT = [];
   const home = view==="home";
   document.getElementById("home").classList.toggle("hide", !home);
@@ -859,6 +974,7 @@ function renderHead(){
   strip.className = "strip" + (s.flags ? " blocked" : (s.pct===100 ? " done" : ""));
   document.getElementById("pct").textContent = s.pct + "%";
   document.getElementById("tallyRight").textContent = s.done + "/" + s.total + " lines" + (s.flags ? "  ·  " + s.flags + " need work" : "");
+  renderMomentum(s);
   renderRail(); renderBlock(); renderWk(); renderBar();
 }
 
@@ -867,8 +983,11 @@ function renderRail(){
     let d=0,f=0;
     sp.items.forEach(it=>{ if(it.s) d++; if(FLAGS.indexOf(it.s)>=0) f++; });
     const badge = f ? '<span class="dot"></span>' : (d===sp.items.length && d ? '<span class="tick">✓</span>' : "");
-    return `<button class="chip" data-jump="${sp.id}"><b>${esc(sp.name)}${badge}</b><span>${d}/${sp.items.length}</span></button>`;
+    return `<button class="chip ${sp.id===ACTIVE_SPACE_ID?"on":""}" data-jump="${sp.id}"><b>${esc(sp.name)}${badge}</b><span>${d}/${sp.items.length}</span></button>`;
   }).join("");
+  const first = activeSpaces(cur)[0];
+  if(!ACTIVE_SPACE_ID || !document.querySelector('details[data-sp="' + ACTIVE_SPACE_ID + '"]')) setActiveSpace(first ? first.id : "");
+  watchSpaces();
 }
 
 function renderBlock(){
@@ -921,6 +1040,7 @@ function renderSpaces(){
       ${items}
     </details>`;
   }).join("");
+  watchSpaces();
 }
 
 function paintItem(sp, idx){
@@ -1525,6 +1645,7 @@ function parseDictation(text){
 }
 
 function applyDictation(rows){
+  const wasComplete = stats(cur).pct===100;
   let changed = 0;
   rows.forEach(r=>{
     if(r.scope==="pass-rest"){
@@ -1548,7 +1669,7 @@ function applyDictation(rows){
     if(r.note && FLAGS.indexOf(r.code) >= 0) it.n = it.n ? (it.n + "; " + r.note) : r.note;
     changed++;
   });
-  save(); renderSpaces(); renderHead();
+  save(); renderSpaces(); renderHead(); pulseProgress(); celebrateCompletion(wasComplete);
   return changed;
 }
 
@@ -1754,6 +1875,7 @@ document.addEventListener("click", async e=>{
 
   const jump = t.closest("[data-jump]");
   if(jump){
+    setActiveSpace(jump.dataset.jump);
     const d = document.querySelector('details[data-sp="'+jump.dataset.jump+'"]');
     if(d){ d.open = true; d.scrollIntoView({behavior:"smooth", block:"start"}); }
     return;
@@ -1761,19 +1883,23 @@ document.addEventListener("click", async e=>{
 
   const kb = t.closest("[data-k]");
   if(kb){
+    const wasComplete = stats(cur).pct===100;
     const [spId, idx] = kb.dataset.k.split(":");
     const sp = cur.spaces.find(x=>x.id===spId), it = sp.items[+idx];
     it.s = (it.s === kb.dataset.v) ? "" : kb.dataset.v;
     if(FLAGS.indexOf(it.s) < 0) it.n = "";
-    save(); paintItem(sp, +idx); paintSection(sp); renderHead();
+    save(); paintItem(sp, +idx); paintSection(sp); renderHead(); markFeedback(sp, +idx); pulseProgress(); celebrateCompletion(wasComplete);
     return;
   }
 
   const allok = t.closest("[data-allok]");
   if(allok){
+    const wasComplete = stats(cur).pct===100;
     const sp = cur.spaces.find(x=>x.id===allok.dataset.allok);
-    sp.items.forEach(it=>{ if(!it.s) it.s = "ok"; });
-    save(); renderSpaces(); renderHead(); toast("Unmarked lines passed");
+    let filled = 0;
+    sp.items.forEach(it=>{ if(!it.s){ it.s = "ok"; filled++; } });
+    save(); renderSpaces(); renderHead(); sectionFinish(sp.id); pulseProgress(); celebrateCompletion(wasComplete);
+    toast(filled ? filled + " line" + (filled===1?"":"s") + " marked Good — nice pace" : "Every line in this room is already marked");
     return;
   }
 

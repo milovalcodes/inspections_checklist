@@ -51,6 +51,17 @@ the fonts and files cache.
 7. **Send it in** — *Copy report* for text, *Print / PDF* for the file copy,
    or *Export this one* for a file that carries the photos with it.
 
+## Built for the walkthrough
+
+The field sheet now gives small, practical cues while an inspector works:
+
+- A live **pace card** turns the running total into clear guidance: start, on pace, final stretch, or report ready.
+- The room rail highlights the space currently being walked, so it is easier to jump around a larger property.
+- Marking a line gives immediate touch feedback; **Pass the rest** acknowledges the section without extra taps.
+- Completing every line produces a brief, optional celebration and a clear “report ready” message.
+
+These are deliberately subtle and respect the phone's reduced-motion setting. They are there to make the job feel lighter, not to distract from an accurate inspection.
+
 ## Dictating the walkthrough
 
 Open an inspection and use **Dictate the walkthrough**. Two ways in:
