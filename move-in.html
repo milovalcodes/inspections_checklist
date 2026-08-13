@@ -1,13 +1,13 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Move-In Inspection</title>
+<title>CIMCO Property Inspection</title>
 <meta name="theme-color" content="#27424A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Inspection">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="description" content="Fast property inspections for move-in, move-out, and rent-ready turnovers.">
+<meta name="description" content="Fast property inspections for move-in, move-out, rent-ready, and routine property checks.">
 <link rel="manifest" href="manifest-in.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='8' fill='%2327424A'/><path d='M14 34l12 12 24-28' stroke='%23D6A765' stroke-width='8' fill='none' stroke-linecap='square'/></svg>">
 
@@ -25,6 +25,7 @@
 }
 body[data-mode="out"]{ --hivis:#6B9EAA; }
 body[data-mode="ready"]{ --hivis:#C98B4B; }
+body[data-mode="routine"]{ --hivis:#88A86B; }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%; overscroll-behavior-x:none}
 body{
@@ -190,6 +191,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .wkrow .seg button{min-height:36px;font-size:10.5px}
 .wtot{display:flex;justify-content:space-between;align-items:baseline;padding-top:11px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.06em;color:var(--slate)}
 .wtot b{font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-size:20px;color:var(--ink)}
+.manual-pricing{display:none}
 
 /* signatures */
 .sigs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
@@ -232,6 +234,8 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .newbtn.alt b{color:var(--ink)} .newbtn.alt span{color:var(--slate)}
 .newbtn.ready{background:#FFF6E8;border-color:#C98B4B;color:var(--ink)}
 .newbtn.ready b{color:#7C4E20}.newbtn.ready span{color:#765B36}
+.newbtn.routine{background:#F2F7EA;border-color:#7B9A62;color:var(--ink)}
+.newbtn.routine b{color:#426333}.newbtn.routine span{color:#5C7050}
 .quickstart{display:grid;grid-template-columns:1fr 120px;gap:9px;margin-top:12px}
 .quickstart .f{margin:0}
 .quickstart .f.full{grid-column:1/-1}
@@ -239,11 +243,15 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .checkrow label{display:flex;align-items:center;gap:6px;border:1px solid var(--rule);background:#FFFEFB;border-radius:5px;padding:8px 10px;font-size:13px}
 .checkrow input{accent-color:var(--ink);width:16px;height:16px;margin:0}
 .readyonly{display:none}
+.routineonly{display:none}
 body[data-mode="ready"] .readyonly{display:block}
 body[data-mode="ready"] .readyonly.f{display:block}
+body[data-mode="routine"] .routineonly{display:block}
+body[data-mode="routine"] .routineonly.f{display:block}
 body[data-mode="ready"] .signCard{display:none}
 .inoutonly{display:block}
 body[data-mode="ready"] .inoutonly{display:none!important}
+body[data-mode="routine"] .moveonly{display:none!important}
 .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
 .recrow{display:flex;align-items:stretch;border-top:1px solid var(--hair);background:var(--card)}
 .recrow:first-of-type{border-top:none}
@@ -254,6 +262,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
   font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;font-weight:600;letter-spacing:.04em}
 .rec .badge.out{background:#0E3B4C;color:#4FC3E8}
 .rec .badge.ready{background:#FFF0D5;color:#8B5208}
+.rec .badge.routine{background:#EDF5E4;color:#426333}
 .rec .rt{flex:1;min-width:0}
 .rec .rt b{display:block;font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rec .rt span{display:block;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;color:var(--slate);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -331,6 +340,8 @@ body[data-mode="ready"] .inoutonly{display:none!important}
   .item{break-inside:avoid}
   .item.unreviewed{display:none!important}
   .sec.no-reviewed{display:none!important}
+  body[data-mode="routine"] .item.unreviewed{display:grid!important}
+  body[data-mode="routine"] .sec.no-reviewed{display:block!important}
   .caret{display:none}
   .sec>summary{padding:7px 0 5px;border-bottom:1px solid #CBD1D2;background:#fff!important;font-size:11.5pt;color:#173943}
   details{display:block}
@@ -343,6 +354,7 @@ body[data-mode="ready"] .inoutonly{display:none!important}
   .note{display:none!important}
   .pnote{display:block;border-left:2px solid #B95A48;padding:1px 8px;margin:3px 0 3px 2px;color:#343434;font-style:italic}
   .pnote:empty{display:none}
+  body[data-mode="routine"] .pnote:empty{display:block;height:18px;border-left:0;border-bottom:1px solid #A7B0B2;margin:2px 0 4px;padding:0}
   ::placeholder{color:transparent!important}
   input[type=date]::-webkit-calendar-picker-indicator{display:none}
   .block li b,.block li i{color:#000}
@@ -374,6 +386,17 @@ body[data-mode="ready"] .inoutonly{display:none!important}
   .signCard .sigbox .eyebrow{display:block!important;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:7.3pt;letter-spacing:.07em;text-transform:uppercase;color:#59666A;margin:0 0 1px}
   .signCard .sigbox canvas{height:65px!important;background:transparent!important;border:0!important;border-bottom:1px solid #7B8587!important}
   .signCard .sigbox .row{display:none!important}.print-sig-name{display:block;font-size:8.5pt;color:#444;margin-top:3px}
+  #wkCard{border-top:2px solid #1B3C46!important;margin-top:12px!important;padding-top:8px!important}
+  #wkCard>.eyebrow{display:none!important}#wkCard h2{font-size:11.5pt;color:#173943;margin:0 0 4px}
+  #wkCard>p.worksheet-help,#wkCard>.ack{display:none!important}
+  #wkCard .wk{border-top:0;margin-top:0;padding-top:0}
+  #wkCard .wkrow{display:grid;grid-template-columns:minmax(0,1fr) 120px 74px;gap:8px;padding:5px 0;border-bottom:1px solid #E2E5E5;break-inside:avoid}
+  #wkCard .wkrow .wn{grid-column:1;font-size:9pt}#wkCard .wkrow .seg{grid-column:2;min-width:0}
+  #wkCard .wkrow .seg button{display:none!important}#wkCard .wkrow .seg button.on{display:block!important;border:0;padding:0;min-height:0;text-align:left;font-size:8pt}
+  #wkCard .wkrow .money{grid-column:3;width:100%;padding:0;border:0;border-bottom:1px solid #7B8587;border-radius:0;min-height:20px}
+  #wkCard .wtot{padding-top:7px;border-top:1px solid #78858A}#wkCard .wtot b{font-size:13pt}
+  body[data-mode="routine"] .manual-pricing{display:block;margin-top:10px;break-inside:avoid}body[data-mode="routine"] .manual-pricing h3{font-size:9.5pt;text-transform:uppercase;color:#173943;margin:0 0 4px}
+  .manual-price-row{display:grid;grid-template-columns:minmax(0,1fr) 120px 74px;gap:8px;border-bottom:1px solid #A7B0B2;min-height:25px;align-items:end;padding:3px 0;font-size:8pt;color:#59666A}
   .strip{display:none}
 }
 </style>
@@ -458,6 +481,8 @@ body[data-mode="ready"] .inoutonly{display:none!important}
           <label class="f"><span>Phone</span><input class="in m" data-m="phone" type="tel" placeholder="Contact number"></label>
           <label class="f full inoutonly"><span>Tenant(s)</span><input class="in m" data-m="tenant" placeholder="Names on the lease"></label>
           <label class="f full"><span>Owner</span><input class="in m" data-m="owner" placeholder="Owner or LLC"></label>
+          <label class="f routineonly"><span>Routine inspection reason</span><select class="in m" data-m="visitReason"><option value="">Select reason</option><option value="scheduled">Scheduled inspection</option><option value="maintenance">Maintenance follow-up</option><option value="compliance">Lease compliance</option><option value="concern">Complaint / concern</option></select></label>
+          <label class="f routineonly"><span>Entry / attendance</span><select class="in m" data-m="entryStatus"><option value="">Select entry status</option><option value="tenant-present">Tenant present</option><option value="notice">Entered with notice</option><option value="representative">Tenant representative present</option><option value="no-access">Unable to access</option></select></label>
           <label class="f full readyonly"><span>Access / lockbox <em>(internal only — never in shared reports)</em></span><input class="in m" data-m="access" placeholder="Lockbox, key location, gate code"></label>
           <label class="f readyonly"><span>Market status</span><select class="in m" data-m="marketStatus"><option value="hold">Hold — not ready</option><option value="work">Work in progress</option><option value="ready">Ready to market</option></select></label>
           <label class="f readyonly"><span>Responsible party</span><input class="in m" data-m="responsible" placeholder="Owner, vendor, CIMCO"></label>
@@ -476,9 +501,9 @@ body[data-mode="ready"] .inoutonly{display:none!important}
           </div></div>
           <label class="f"><span>Electric meter</span><input class="in m" data-m="meterE" placeholder="Reading"></label>
           <label class="f"><span>Water meter</span><input class="in m" data-m="meterW" placeholder="Reading"></label>
-          <label class="f full inoutonly" id="keysWrap"><span id="keysLabel">Keys issued</span><input class="in m" data-m="keys" placeholder="2 keys to front door, 1 mail key"></label>
+          <label class="f full inoutonly moveonly" id="keysWrap"><span id="keysLabel">Keys issued</span><input class="in m" data-m="keys" placeholder="2 keys to front door, 1 mail key"></label>
           <label class="f full outonly"><span>Tenant forwarding address</span><input class="in m" data-m="fwd" placeholder="Where the deposit letter goes"></label>
-          <div class="f full inoutonly">
+          <div class="f full inoutonly moveonly">
             <span style="display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);margin-bottom:3px">House / apartment clean</span>
             <div class="seg" id="cleanSeg">
               <button data-clean="yes">Yes</button>
@@ -549,16 +574,22 @@ body[data-mode="ready"] .inoutonly{display:none!important}
       <button class="mini" data-add="other">+ Other space</button>
     </div>
 
-    <!-- move-out only: deposit worksheet -->
-    <div class="card outonly" id="wkCard">
-      <div class="eyebrow">Move-out</div>
-      <h2>Damage worksheet</h2>
-      <p style="font-size:13px;color:var(--slate);margin:9px 0 0">
+    <div class="card" id="wkCard">
+      <div class="eyebrow" id="wkEyebrow">Move-out</div>
+      <h2 id="wkTitle">Damage worksheet</h2>
+      <p class="worksheet-help" id="wkHelp" style="font-size:13px;color:var(--slate);margin:9px 0 0">
         Every item needing attention lands here. Mark it normal wear or tenant damage and put a figure on it. Only tenant damage adds to the total.
       </p>
       <div class="wk" id="wk"></div>
-      <div class="wtot"><span>Tenant damage total</span><b id="wkTotal">$0.00</b></div>
-      <p class="ack">Florida gives a landlord 30 days after the tenant leaves to mail written notice of a claim on the deposit, and 15 days to return it when no claim is made (Fla. Stat. 83.49). Confirm the dates and wording with your broker or attorney before the letter goes out.</p>
+      <div class="wtot"><span id="wkTotalLabel">Tenant damage total</span><b id="wkTotal">$0.00</b></div>
+      <div class="manual-pricing">
+        <h3>Additional maintenance pricing</h3>
+        <div class="manual-price-row"><span>Item / location</span><span>Responsibility</span><span>Cost</span></div>
+        <div class="manual-price-row"><span></span><span></span><span>$</span></div>
+        <div class="manual-price-row"><span></span><span></span><span>$</span></div>
+        <div class="manual-price-row"><span></span><span></span><span>$</span></div>
+      </div>
+      <p class="ack" id="wkLegal">Florida gives a landlord 30 days after the tenant leaves to mail written notice of a claim on the deposit, and 15 days to return it when no claim is made (Fla. Stat. 83.49). Confirm the dates and wording with your broker or attorney before the letter goes out.</p>
     </div>
 
     <div class="card signCard">
@@ -603,9 +634,9 @@ body[data-mode="ready"] .inoutonly{display:none!important}
 
 <script>
 "use strict";
-const MODE_LOCK = "in";      /* locked move-in shortcut */
+const MODE_LOCK = "in";      /* locked move-in launcher */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "offline-v18";
+const APP_VERSION = "offline-v19";
 const KEY = "cimco.inspections.v1";
 
 /* ---------------- templates from the paper sheet ---------------- */
@@ -690,13 +721,40 @@ const READY_SPACES = [
     "Exception estimates (attached and kept separate from regular punch list)"
   ],"handover"]
 ];
+/* Routine inspections are a concise occupied-property health check. The lines
+   focus on safety, developing damage, sanitation, and maintenance follow-up. */
+const ROUTINE_SPACES = [
+  ["routine-occupancy","Occupancy & housekeeping",[
+    "General cleanliness / sanitation","Excessive clutter / blocked pathways","Trash / pest activity",
+    "Smoking / unusual odors","Unauthorized occupants / pets"
+  ]],
+  ["routine-safety","Safety & electrical",[
+    "Smoke alarms","CO alarms","GFCI outlets","Outlets / switches / exposed wiring","Doors / locks / emergency exits"
+  ]],
+  ["routine-moisture","Water, leaks & mold",[
+    "Visible mold / mildew","Ceilings / walls / water staining","Kitchen sink / cabinets / supply lines",
+    "Bathroom fixtures / toilet / tub / shower","Water heater / shutoffs / standing water"
+  ]],
+  ["routine-systems","HVAC & appliances",[
+    "A/C cooling / thermostat","A/C filter / vents / condensate","Refrigerator / freezer",
+    "Oven / range / vent hood","Dishwasher / disposal / washer / dryer"
+  ]],
+  ["routine-interior","Interior condition",[
+    "Floors / carpet / tile","Walls / ceilings / paint","Windows / screens / blinds",
+    "Interior doors / closets","Cabinets / counters / fixtures"
+  ]],
+  ["routine-exterior","Exterior & grounds",[
+    "Yard / landscaping / debris","Exterior walls / roof / gutters","Driveway / walkways / fencing",
+    "Exterior lights / house numbers","Garage / carport / pool / patio / lanai"
+  ]]
+];
 /* Each inspected line has one simple outcome. Detailed language stays in
    the note, so reports retain context without making field marking slow. */
 const CODES = [["ok","✓","Good"],["work","!","Needs work"],["na","–","N/A"]];
 const CODE_LABEL = {ok:"Good", work:"Needs work", na:"N/A"};
 const FLAGS = ["work"];
 const LEGACY_STATUS = {d:"work", b:"work", c:"work", r:"work", u:"work"};
-const MODE_LABEL = {in:"Move-in", out:"Move-out", ready:"Rent-ready"};
+const MODE_LABEL = {in:"Move-in", out:"Move-out", ready:"Rent-ready", routine:"Routine"};
 
 /* ---------------- state ---------------- */
 let LIST = [];
@@ -971,13 +1029,20 @@ function makeReadySpaces(){
     items: items.map(t=>({t, s:"", n:"", base:""}))
   }));
 }
+function makeRoutineSpaces(){
+  return ROUTINE_SPACES.map(([type,name,items])=>({
+    id: uid(), type, name,
+    items: items.map(t=>({t, s:"", n:"", base:""}))
+  }));
+}
 function newInspection(mode, from, seed){
   const rec = {
     id: uid(), mode, created: Date.now(), updated: Date.now(),
     meta: {date: today(), address:"", unit:"", tenant:"", owner:"", inspector:"", phone:"",
            meterE:"", meterW:"", keys:"", fwd:"", misc:"", clean:"", photoSize:"md", tenantSigName:"", inspSigName:"",
-           access:"", marketStatus:"hold", responsible:"", estimatedCost:"", workCategories:[], readyTags:[]},
-    spaces: mode==="ready" ? makeReadySpaces() : makeSpaces(), wk:{}, sig:{t:"", i:""}, from: null
+           access:"", marketStatus:"hold", responsible:"", estimatedCost:"", workCategories:[], readyTags:[],
+           visitReason:"", entryStatus:""},
+    spaces: mode==="ready" ? makeReadySpaces() : mode==="routine" ? makeRoutineSpaces() : makeSpaces(), wk:{}, sig:{t:"", i:""}, from: null
   };
   if(seed){
     rec.meta.address = seed.address || "";
@@ -1097,11 +1162,12 @@ function renderHome(){
     : MODE_LOCK==="out" ? "Move-out inspection" : "Property inspections";
 
   const nb = document.getElementById("newBtns");
-  const btn = (mode,t,s)=>`<button class="newbtn ${mode==="out"?"alt":mode==="ready"?"ready":""}" data-new="${mode}"><b>${t}</b><span>${s}</span></button>`;
+  const btn = (mode,t,s)=>`<button class="newbtn ${mode==="out"?"alt":mode==="ready"?"ready":mode==="routine"?"routine":""}" data-new="${mode}"><b>${t}</b><span>${s}</span></button>`;
   let html = "";
   if(MODE_LOCK !== "out") html += btn("in","Start a move-in","Record condition before the keys change hands");
   if(MODE_LOCK !== "in")  html += btn("out","Start a move-out","Compare against the move-in and price the damage");
   if(!MODE_LOCK) html += btn("ready","Start a rent-ready","Fast turnover walk before the property is marketed");
+  if(!MODE_LOCK) html += btn("routine","Start a routine inspection","Check an occupied property and prepare maintenance pricing");
   nb.innerHTML = html;
 
   const q = (document.getElementById("search").value||"").toLowerCase();
@@ -1112,7 +1178,7 @@ function renderHome(){
   document.getElementById("list").innerHTML = rows.length ? rows.map(r=>{
     const s = stats(r), name = title(r);
     return `<div class="recrow"><button class="rec" data-open="${r.id}" aria-label="Open ${esc(name)}">
-      <span class="badge ${r.mode==="out"?"out":r.mode==="ready"?"ready":""}">${r.mode==="out"?"OUT":r.mode==="ready"?"READY":"IN"}</span>
+      <span class="badge ${r.mode==="out"?"out":r.mode==="ready"?"ready":r.mode==="routine"?"routine":""}">${r.mode==="out"?"OUT":r.mode==="ready"?"READY":r.mode==="routine"?"ROUTINE":"IN"}</span>
       <span class="rt"><b>${esc(name)}</b>
         <span>${MODE_LABEL[r.mode]||r.mode} · ${fmtDate(r.meta.date)}${r.meta.tenant? " · "+esc(r.meta.tenant):""}</span></span>
       <span class="pc">${s.done}/${s.total}${s.flags? " · "+s.flags+" needs work":""}</span>
@@ -1122,17 +1188,21 @@ function renderHome(){
 
 /* ---------------- editor ---------------- */
 function renderEditor(){
-  const m = cur.meta, isOut = cur.mode==="out", isReady = cur.mode==="ready";
+  const m = cur.meta, isOut = cur.mode==="out", isReady = cur.mode==="ready", isRoutine = cur.mode==="routine";
   document.getElementById("mastTitle").textContent = MODE_LABEL[cur.mode] + " inspection";
   document.getElementById("edEyebrow").textContent = MODE_LABEL[cur.mode];
   document.querySelectorAll(".outonly").forEach(el=>el.classList.toggle("hide", !isOut));
   document.querySelectorAll(".readyonly").forEach(el=>el.classList.toggle("hide", !isReady));
+  document.querySelectorAll(".routineonly").forEach(el=>el.classList.toggle("hide", !isRoutine));
   document.querySelectorAll(".signCard").forEach(el=>el.classList.toggle("hide", isReady));
-  document.getElementById("addSpaces").classList.toggle("hide", isReady);
+  document.getElementById("addSpaces").classList.toggle("hide", isReady || isRoutine);
+  document.getElementById("wkCard").classList.toggle("hide", !isOut && !isRoutine);
   document.getElementById("keysLabel").textContent = isOut ? "Keys returned" : "Keys issued";
   document.getElementById("ackText").textContent = isOut
     ? "By signing, both parties confirm this sheet records the condition of the unit at move-out. Codes and photos taken today support any claim against the deposit."
-    : "By signing, the tenant confirms they have walked the unit and that this sheet records its condition at move-in. Anything not listed here is presumed to have been in good order at handover.";
+    : isRoutine
+      ? "Signatures acknowledge that this routine inspection record was reviewed on the date shown. They do not waive any lease rights or maintenance responsibilities."
+      : "By signing, the tenant confirms they have walked the unit and that this sheet records its condition at move-in. Anything not listed here is presumed to have been in good order at handover.";
 
   document.querySelectorAll(".m").forEach(el=>{ el.value = m[el.dataset.m] || (el.dataset.m==="photoSize" ? "md" : el.dataset.m==="marketStatus" ? "hold" : ""); });
   document.querySelectorAll("#cleanSeg button").forEach(b=> b.classList.toggle("on", m.clean===b.dataset.clean));
@@ -1142,7 +1212,9 @@ function renderEditor(){
   document.getElementById("edFoot").textContent = cur.from
     ? "Baseline loaded from the move-in inspection for this address — every line shows how it was handed over."
     : cur.sourceReady ? "Created from the rent-ready walkthrough. Condition, notes, and photos were carried over — add only the move-in details."
-    : isReady ? "Walk the property, mark only what you reviewed, then share the turnover notation. Access details stay internal." : "Saves as you go, on this phone. Export the file or print to PDF to send it in.";
+    : isReady ? "Walk the property, mark only what you reviewed, then share the turnover notation. Access details stay internal."
+    : isRoutine ? "Use this occupied-property check to catch developing issues early. Blank print lines stay writable for maintenance follow-up."
+    : "Saves as you go, on this phone. Export the file or print to PDF to send it in.";
 
   renderDict();
   drawSig("T", cur.sig.t); drawSig("I", cur.sig.i);
@@ -1203,7 +1275,7 @@ function renderSpaces(){
       return `<div class="item ${flag?"flagged":""} ${it.s==="na"?"is-na":""} ${!it.s?"unreviewed":""}" data-key="${k}">
         <div class="itop">
           <div class="iname">${esc(it.t)}${baseHtml}
-            <span class="pcode">${it.s ? esc(CODE_LABEL[it.s]) : "—"}</span><span class="pfigs"></span></div>
+            <span class="pcode">${it.s ? esc(CODE_LABEL[it.s]) : cur.mode==="routine" ? "Status: __________" : "—"}</span><span class="pfigs"></span></div>
           <button class="cam" data-cam="${k}" aria-label="Add photo of ${esc(it.t)}">📷${pics.length?`<b>${pics.length}</b>`:""}</button>
         </div>
         <div class="pad6">${CODES.map(([v,g,lab])=>
@@ -1276,15 +1348,24 @@ function pickBaseline(seed){
 }
 function wkTotal(){
   let tot = 0;
-  flagged(cur).forEach(o=>{ const w = cur.wk[o.key]; if(w && w.k==="dmg") tot += parseFloat(w.c||0) || 0; });
+  const routine = cur.mode==="routine";
+  flagged(cur).forEach(o=>{ const w = cur.wk[o.key]; if(w && (routine || w.k==="dmg")) tot += parseFloat(w.c||0) || 0; });
   document.getElementById("wkTotal").textContent = money(tot);
   return tot;
 }
 function renderWk(){
-  if(cur.mode!=="out") return;
+  if(cur.mode!=="out" && cur.mode!=="routine") return;
+  const routine = cur.mode==="routine";
+  document.getElementById("wkEyebrow").textContent = routine ? "Maintenance follow-up" : "Move-out";
+  document.getElementById("wkTitle").textContent = routine ? "Damage & maintenance pricing" : "Damage worksheet";
+  document.getElementById("wkHelp").textContent = routine
+    ? "Items needing work collect here. Assign responsibility and add an estimated repair cost for the maintenance team."
+    : "Every item needing attention lands here. Mark it normal wear or tenant damage and put a figure on it. Only tenant damage adds to the total.";
+  document.getElementById("wkTotalLabel").textContent = routine ? "Estimated work total" : "Tenant damage total";
+  document.getElementById("wkLegal").classList.toggle("hide", routine);
   const rows = flagged(cur);
   const el = document.getElementById("wk");
-  const sig = rows.map(o=>o.key+o.it.s).join("|");
+  const sig = cur.mode + "|" + rows.map(o=>o.key+o.it.s).join("|");
   if(el.dataset.sig === sig){ wkTotal(); return; }   /* same lines — leave the inputs alone */
   el.dataset.sig = sig;
   if(!rows.length){ el.innerHTML = `<p style="font-size:13px;color:var(--slate);padding:6px 0">Nothing needs attention yet.</p>`;
@@ -1293,10 +1374,9 @@ function renderWk(){
     const w = cur.wk[o.key] || {};
     return `<div class="wkrow">
       <div class="wn"><b>${esc(o.sp.name)}</b> — ${esc(o.it.t)} <i>(${esc(CODE_LABEL[o.it.s])}${o.it.base? "; move-in: "+esc(CODE_LABEL[o.it.base]||o.it.base):""})</i></div>
-      <div class="seg">
-        <button data-wear="${o.key}" data-val="wear" class="${w.k==="wear"?"on":""}">Normal wear</button>
-        <button data-wear="${o.key}" data-val="dmg" class="${w.k==="dmg"?"on":""}">Tenant damage</button>
-      </div>
+      <div class="seg">${routine
+        ? `<button data-wear="${o.key}" data-val="maintenance" class="${w.k==="maintenance"?"on":""}">Maintenance</button><button data-wear="${o.key}" data-val="tenant" class="${w.k==="tenant"?"on":""}">Tenant-caused</button>`
+        : `<button data-wear="${o.key}" data-val="wear" class="${w.k==="wear"?"on":""}">Normal wear</button><button data-wear="${o.key}" data-val="dmg" class="${w.k==="dmg"?"on":""}">Tenant damage</button>`}</div>
       <input class="in money" inputmode="decimal" data-cost="${o.key}" placeholder="$ 0.00" value="${esc(w.c||"")}">
     </div>`;
   }).join("");
@@ -1369,13 +1449,18 @@ function renderPrintMeta(){
   const m = cur.meta || {};
   const s = stats(cur);
   const fields = [["Date",fmtDate(m.date)]];
-  if(m.inspector) fields.push(["Inspector",m.inspector]);
-  if(m.owner) fields.push(["Owner",m.owner]);
+  if(cur.mode!=="routine" && m.inspector) fields.push(["Inspector",m.inspector]);
+  if(cur.mode!=="routine" && m.owner) fields.push(["Owner",m.owner]);
   if(cur.mode==="ready"){
     if(m.marketStatus) fields.push(["Market",marketLabel(m.marketStatus)]);
     if(workLabel(cur)) fields.push(["Work",workLabel(cur)]);
     if(m.responsible) fields.push(["Responsible",m.responsible]);
     if(m.estimatedCost) fields.push(["Est. cost",money(parseFloat(m.estimatedCost)||0)]);
+  }else if(cur.mode==="routine"){
+    fields.push(["Inspector",m.inspector||"________________"], ["Tenant",m.tenant||"________________"],
+      ["Owner",m.owner||"________________"], ["Reason",visitLabel(m.visitReason)||"________________"],
+      ["Entry",entryLabel(m.entryStatus)||"________________"], ["Electric",m.meterE||"________________"],
+      ["Water",m.meterW||"________________"]);
   }else{
     if(m.tenant) fields.push(["Tenant",m.tenant]);
     if(m.clean) fields.push(["Unit clean",m.clean.toUpperCase()]);
@@ -1426,14 +1511,22 @@ function workLabel(rec){
     .map(x=>labels[x]||x).join(", ");
 }
 function marketLabel(value){ return ({hold:"Hold — not ready", work:"Work in progress", ready:"Ready to market"})[value] || value || ""; }
+function visitLabel(value){ return ({scheduled:"Scheduled inspection", maintenance:"Maintenance follow-up", compliance:"Lease compliance", concern:"Complaint / concern"})[value] || value || ""; }
+function entryLabel(value){ return ({"tenant-present":"Tenant present", notice:"Entered with notice", representative:"Tenant representative present", "no-access":"Unable to access"})[value] || value || ""; }
 function reviewedItems(sp){ return sp.items.map((it,i)=>({it,i})).filter(o=>!!o.it.s); }
 
 function reportHTML(rec){
-  const m = rec.meta, s = stats(rec), isReady = rec.mode==="ready", log = photoLog(), refs = figRefs(log);
+  const m = rec.meta, s = stats(rec), isReady = rec.mode==="ready", isRoutine = rec.mode==="routine", log = photoLog(), refs = figRefs(log);
   const head = isReady ? [
     ["Date", fmtDate(m.date)], ["Inspector", m.inspector], ["Owner", m.owner],
     ["Market status", marketLabel(m.marketStatus)], ["Work category", workLabel(rec)],
     ["Responsible party", m.responsible], ["Estimated cost", m.estimatedCost ? money(parseFloat(m.estimatedCost)||0) : ""]
+  ] : isRoutine ? [
+    ["Date", fmtDate(m.date)||"________________"], ["Inspector", m.inspector||"________________"],
+    ["Tenant", m.tenant||"________________"], ["Owner", m.owner||"________________"],
+    ["Routine inspection reason", visitLabel(m.visitReason)||"________________"],
+    ["Entry / attendance", entryLabel(m.entryStatus)||"________________"],
+    ["Electric meter", m.meterE||"________________"], ["Water meter", m.meterW||"________________"]
   ] : [
     ["Date", fmtDate(m.date)], ["Inspector", m.inspector], ["Tenant", m.tenant], ["Owner", m.owner],
     ["Phone", m.phone], ["Unit clean", m.clean ? m.clean.toUpperCase() : ""],
@@ -1443,32 +1536,34 @@ function reportHTML(rec){
   ].filter(r=>r[1]);
 
   const lines = activeSpaces(rec).map(sp=>{
-    const reviewed = reviewedItems(sp);
+    const reviewed = isRoutine ? sp.items.map((it,i)=>({it,i})) : reviewedItems(sp);
     if(!reviewed.length) return "";
     const rows = reviewed.map(({it,i})=>{
       const r = refs[sp.id+":"+i];
       return "<tr class=\"" + (FLAGS.indexOf(it.s)>=0 ? "bad" : "") + "\"><td>" + esc(it.t) + "</td>"
-        + "<td class=\"c\">" + esc(CODE_LABEL[it.s]) + "</td>"
-        + "<td>" + esc(it.n||"") + (r ? " <span class=\"fig\">Fig " + r.join(", ") + "</span>" : "") + "</td></tr>";
+        + "<td class=\"c\">" + esc(CODE_LABEL[it.s] || (isRoutine ? "____________" : "")) + "</td>"
+        + "<td>" + esc(it.n||"") + (r ? " <span class=\"fig\">Fig " + r.join(", ") + "</span>" : "")
+        + (isRoutine && !it.n ? "<span class=\"write\"></span>" : "") + "</td></tr>";
     }).join("");
     return "<h2>" + esc(sp.name) + "</h2><table>" + rows + "</table>";
   }).join("");
 
   let wk = "";
-  if(rec.mode==="out"){
+  if(rec.mode==="out" || isRoutine){
     const rows = flagged(rec).filter(o=>{ const w = rec.wk[o.key]; return w && (w.k || w.c); });
     if(rows.length){
       let tot = 0;
       const tr = rows.map(o=>{
-        const w = rec.wk[o.key], amt = w.k==="dmg" ? (parseFloat(w.c||0)||0) : 0;
+        const w = rec.wk[o.key], amt = (isRoutine || w.k==="dmg") ? (parseFloat(w.c||0)||0) : 0;
         tot += amt;
         return "<tr><td>" + esc(o.sp.name + " / " + o.it.t) + "</td><td class=\"c\">"
-          + (w.k==="dmg" ? "Tenant damage" : "Normal wear") + "</td><td class=\"c\">"
-          + (w.k==="dmg" ? money(amt) : "—") + "</td></tr>";
+          + (isRoutine ? (w.k==="tenant" ? "Tenant-caused" : "Maintenance") : w.k==="dmg" ? "Tenant damage" : "Normal wear") + "</td><td class=\"c\">"
+          + (isRoutine || w.k==="dmg" ? money(amt) : "—") + "</td></tr>";
       }).join("");
-      wk = "<h2>Damage worksheet</h2><table>" + tr
-        + "<tr class=\"tot\"><td>Tenant damage total</td><td></td><td class=\"c\">" + money(tot) + "</td></tr></table>";
+      wk = "<h2>" + (isRoutine ? "Damage & maintenance pricing" : "Damage worksheet") + "</h2><table>" + tr
+        + "<tr class=\"tot\"><td>" + (isRoutine ? "Estimated work total" : "Tenant damage total") + "</td><td></td><td class=\"c\">" + money(tot) + "</td></tr></table>";
     }
+    if(isRoutine) wk += "<h2>Additional maintenance pricing</h2><table class=\"manual\"><tr><td>Item / location</td><td>Responsibility</td><td>Cost</td></tr><tr><td></td><td></td><td>$</td></tr><tr><td></td><td></td><td>$</td></tr><tr><td></td><td></td><td>$</td></tr></table>";
   }
 
   const sigs = isReady ? "" : "<h2>Sign-off</h2><div class=\"sigs\">"
@@ -1493,6 +1588,7 @@ function reportHTML(rec){
     + "table{width:100%;border-collapse:collapse;font-size:13.5px}"
     + "td{border-bottom:1px solid #EDEBE5;padding:6px 8px;vertical-align:top}"
     + "td.c{width:120px;font:12px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:#5D6B69}"
+    + ".write{display:block;height:22px;border-bottom:1px solid #A7B0B2}.manual tr:not(:first-child) td{height:34px;border-bottom:1px solid #A7B0B2}"
     + "tr.bad td{background:#FFF5F0}tr.bad td.c{color:#B5553D;font-weight:600}tr.tot td{font-weight:700;background:#F4F0E8}"
     + ".meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin:14px 0}"
     + ".meta div{border-left:3px solid #D5A25E;padding-left:9px}.meta b{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5D6B69}"
@@ -1529,6 +1625,7 @@ async function sendFile(name, text, mime){
 function reportText(rec){
   const m = rec.meta, s = stats(rec), L = [];
   const isReady = rec.mode==="ready";
+  const isRoutine = rec.mode==="routine";
   L.push(modeTitle(rec).toUpperCase() + " INSPECTION — " + ORG.toUpperCase());
   L.push(title(rec));
   L.push("Date: " + (fmtDate(m.date)||"—") + "   Inspector: " + (m.inspector||"—"));
@@ -1538,6 +1635,12 @@ function reportText(rec){
     if(workLabel(rec)) L.push("Work category: " + workLabel(rec));
     if(m.responsible) L.push("Responsible party: " + m.responsible);
     if(m.estimatedCost) L.push("Estimated cost: " + money(parseFloat(m.estimatedCost)||0));
+  }else if(isRoutine){
+    if(m.tenant) L.push("Tenant: " + m.tenant);
+    if(m.owner) L.push("Owner: " + m.owner);
+    if(m.visitReason) L.push("Routine inspection reason: " + visitLabel(m.visitReason));
+    if(m.entryStatus) L.push("Entry / attendance: " + entryLabel(m.entryStatus));
+    if(m.meterE || m.meterW) L.push("Meters — electric: " + (m.meterE||"—") + ", water: " + (m.meterW||"—"));
   }else{
     if(m.tenant) L.push("Tenant: " + m.tenant);
     if(m.owner) L.push("Owner: " + m.owner);
@@ -1562,13 +1665,13 @@ function reportText(rec){
   });
   if(!s.flags) L.push("No lines need work. Everything walked was in good order.");
 
-  if(rec.mode==="out"){
-    const rows = flagged(rec).filter(o=>{ const w = rec.wk[o.key]; return w && w.k==="dmg"; });
+  if(rec.mode==="out" || isRoutine){
+    const rows = flagged(rec).filter(o=>{ const w = rec.wk[o.key]; return w && (isRoutine ? (w.k || w.c) : w.k==="dmg"); });
     if(rows.length){
-      L.push("TENANT DAMAGE WORKSHEET");
+      L.push(isRoutine ? "DAMAGE & MAINTENANCE PRICING" : "TENANT DAMAGE WORKSHEET");
       let tot = 0;
       rows.forEach(o=>{ const w = rec.wk[o.key], amt = parseFloat(w.c||0)||0; tot += amt;
-        L.push("  " + o.sp.name + " — " + o.it.t + ": " + money(amt)); });
+        L.push("  " + o.sp.name + " — " + o.it.t + (isRoutine ? " [" + (w.k==="tenant" ? "Tenant-caused" : "Maintenance") + "]" : "") + ": " + money(amt)); });
       L.push("  TOTAL: " + money(tot));
       L.push("");
     }
@@ -1585,7 +1688,7 @@ function download(name, text){
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
 function slug(rec){
-  return ((rec.mode==="out"?"moveout":rec.mode==="ready"?"rentready":"movein") + "-" + title(rec) + "-" + (rec.meta.date||today()))
+  return ((rec.mode==="out"?"moveout":rec.mode==="ready"?"rentready":rec.mode==="routine"?"routine":"movein") + "-" + title(rec) + "-" + (rec.meta.date||today()))
     .toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") + ".json";
 }
 
@@ -1596,7 +1699,7 @@ function slug(rec){
 const SAY = [
   ["u",  ["not tested","not testable","not checked","not verified","not inspected","couldn't test","could not test","couldnt test","didn't test","did not test","unable to test","unable to verify","can't test","cannot test","can't verify","cannot verify","not able to test","no power on site","power is off at the property","utilities are off","electricity is off","water is off","gas is off"]],
   ["r",  ["needs to be replaced","needs replacing","needs replacement","needs a replacement","has to be replaced","need replacing","needs replaced","replacement needed","replace it","remove and replace","beyond repair","cannot be repaired","can't be repaired","not repairable","unrepairable","end of life","worn beyond repair","needs new"]],
-  ["c",  ["not working","not work","doesn't work","does not work","doesnt work","won't turn on","wont turn on","doesn't turn on","does not turn on","not functioning","does not function","is not functioning","inoperable","out of service","not operating","not running","won't run","wont run","won't start","wont start","not responding","not cooling","not heating","no airflow","no hot water","not draining","won't open","wont open","can't open","cannot open","won't close","wont close","can't close","cannot close","won't lock","wont lock","won't latch","wont latch","stuck","jammed","leaking","leak","leaks","dripping","running","no power"]],
+  ["c",  ["not working","not work","doesn't work","does not work","doesnt work","won't turn on","wont turn on","doesn't turn on","does not turn on","not functioning","does not function","is not functioning","inoperable","out of service","not operating","not running","won't run","wont run","won't start","wont start","not responding","not cooling","not heating","no airflow","no hot water","not draining","won't open","wont open","can't open","cannot open","won't close","wont close","can't close","cannot close","won't lock","wont lock","won't latch","wont latch","won't reset","wont reset","doesn't reset","does not reset","not resetting","keeps tripping","stuck","jammed","leaking","leak","leaks","dripping","running","no power"]],
   ["b",  ["needs repair","need repair","needs a repair","needs work","need work","needs some work","requires repair","requires attention","needs attention","needs fixed","needs fixing","needs to be fixed","fix it","needs touch up","need touch up","needs a touch up","need a touch up","touch up","touchup","needs paint","needs painting","repaint","repainting","needs adjustment","adjustment needed","needs battery","needs batteries","battery low","batteries low","has an issue","has issues","has a problem","has problems","problem with","problems with","acting up","acts up","making noise","makes noise","noisy","loud","rattling","rattle","buzzing","chirping","flickering","flicker","burned out","burnt out","dead","sticky","hard to open","hard to close","hard to lock","hard to use","difficult to open","difficult to close","difficult to lock","difficult to use","takes too long","too slow","slow to","weak","weak pressure","low pressure","not cold","not warm","doesn't cool","does not cool","doesnt cool","doesn't heat","does not heat","doesnt heat","doesn't flush","does not flush","doesnt flush","clogged","blocked","backed up","overflowing","rust","rusty","corroded","sagging","uneven","not level","off track","falls off","falling off","broken","cracked","crack","damaged","hit","was hit","got hit","been hit","somebody hit","someone hit","knocked over","knocked down","backed into","ran into","run into","struck","collision","busted","bust","torn","ripped","hole","holes","chipped","chip","shattered","bent","loose","missing","split","rotted","rotten","worn out","worn","wobbly","crooked","out of alignment","not aligned","peeling","flaking","dented","gouged","scraped","scratches"]],
   ["d",  ["needs to be cleaned","needs cleaning","need cleaning","needs a clean","needs cleaned","needs wiped","needs wiping","needs scrubbed","needs a scrub","needs washed","needs washing","needs vacuumed","needs mopped","needs dusted","needs sanitizing","needs to be sanitized","needs deep cleaning","deep clean","dirty","filthy","messy","unclean","grimy","stained","stain","soiled","dusty","dust","mold","mildew","greasy","grease","scuffed","scuffs","scuff","marks","marked up","hair","debris","trash","cobweb","cobwebs","smudges","fingerprints","residue","water spots","smells bad","bad smell","bad odor","foul odor"]],
   ["na", ["not applicable","doesn't apply","does not apply","n/a","n a","doesn't have","does not have","dont have","not installed","no such","not present","not there","isn't there","is not there","none here","skip"]],
@@ -1670,6 +1773,27 @@ const ALIAS = {
   "Back door":["rear door","slider","sliding door"]
 };
 
+/* Long checklist labels inherit the vocabulary of the equipment they contain.
+   This keeps casual speech working across every form instead of requiring an
+   exact alias entry for every combined paper-sheet line. */
+const CONCEPT_ALIASES = [
+  {needles:["smoke detector","smoke alarm","smoke co alarm"], aliases:["smoke detector","smoke detectors","smoke alarm","smoke alarms","fire alarm","fire alarms"]},
+  {needles:["co detector","co alarm","carbon monoxide"], aliases:["co detector","co detectors","co alarm","co alarms","carbon monoxide detector","carbon monoxide alarm"]},
+  {needles:["gfci","gfi"], aliases:["gfci","gfcis","g f c i","gfi","ground fault outlet","ground fault outlets","reset outlet","reset outlets"]},
+  {needles:["mold","mildew","moisture"], aliases:["mold","mildew","moisture","dampness","water intrusion"]},
+  {needles:["a c","hvac","air conditioning"], aliases:["ac","a c","hvac","air conditioning","air conditioner","cooling system"]},
+  {needles:["water heater"], aliases:["water heater","hot water heater","water tank","hot water tank"]},
+  {needles:["refrigerator","fridge"], aliases:["refrigerator","fridge","freezer","ice maker","icemaker"]},
+  {needles:["range","oven","cooktop"], aliases:["range","oven","stove","cooktop","burner","burners"]},
+  {needles:["washer"], aliases:["washer","washing machine"]},
+  {needles:["dryer"], aliases:["dryer","clothes dryer"]},
+  {needles:["dishwasher"], aliases:["dishwasher","dish washer"]},
+  {needles:["locks","deadbolts"], aliases:["lock","locks","deadbolt","deadbolts","door lock","door locks"]},
+  {needles:["pest","termite"], aliases:["pest","pests","bugs","roach","roaches","rodent","rodents","termite","termites"]},
+  {needles:["roof","gutters"], aliases:["roof","roofing","gutter","gutters","soffit"]},
+  {needles:["smoking","odor"], aliases:["smoking","smoke smell","cigarette smell","odor","odors","unusual smell"]}
+];
+
 /* words that mean "I'm in a different room now" */
 const SPACE_HINT = ["moving to","move to","now in","next up","heading to","going to","over to","in the","this is the","let's do","lets do","now the","onto the","on to the"];
 
@@ -1686,7 +1810,11 @@ function aliasesFor(name){
     part = part.replace(/size noted/,"").trim();
     if(part.length > 2) out.push(part);
   });
-  return out;
+  const plain = name.toLowerCase().replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
+  CONCEPT_ALIASES.forEach(group=>{
+    if(group.needles.some(needle=>plain.indexOf(needle)>=0)) group.aliases.forEach(alias=>out.push(alias));
+  });
+  return [...new Set(out.map(a=>a.trim()).filter(Boolean))];
 }
 
 function spaceAliases(sp){
@@ -1710,6 +1838,12 @@ function spaceAliases(sp){
   if(t==="rr-well") cands.push("well","septic","water quality");
   if(t==="rr-rural") cands.push("rural","acreage");
   if(t==="rr-handover") cands.push("handover","prior broker","previous broker");
+  if(t==="routine-occupancy") cands.push("occupancy","housekeeping","tenant","cleanliness");
+  if(t==="routine-safety") cands.push("safety","electrical","alarms");
+  if(t==="routine-moisture") cands.push("water","leaks","mold","plumbing");
+  if(t==="routine-systems") cands.push("hvac","systems","appliances","air conditioning");
+  if(t==="routine-interior") cands.push("interior","inside","condition");
+  if(t==="routine-exterior") cands.push("exterior","outside","grounds","yard");
   return cands;
 }
 
@@ -1847,22 +1981,22 @@ function noteWorthKeeping(part, itemName, codeHit){
 }
 
 function matchCode(txt){
-  for(const [intent, words] of NEG){
-    for(const word of words){ if(hasPhrase(txt, word)) return {code:normalizeStatus(intent), intent, hit:word}; }
-  }
-  for(const [intent, words] of SAY){
-    for(const w of words){
-      if(hasPhrase(txt, w)) return {code:normalizeStatus(intent), intent, hit:w};
-    }
-  }
-  return null;
+  const hits = statusHits(txt).sort((a,b)=>b.priority-a.priority || (b.end-b.at)-(a.end-a.at) || a.at-b.at);
+  return hits.length ? {code:hits[0].code, intent:hits[0].intent, hit:hits[0].hit} : null;
+}
+function conditionIsNegated(txt, at, end){
+  const before = txt.slice(Math.max(0,at-55), at+1).replace(/\s+/g," ");
+  const after = txt.slice(end, Math.min(txt.length,end+34)).replace(/\s+/g," ");
+  const beforeNegation = /(?:^| )(?:no|not|without|free of|free from|no signs? of|no evidence of|no trace of|did not see|didn't see|did not find|didn't find|does not have|doesn't have|there is no|there are no)(?: (?:any|visible|active|apparent|signs? of|evidence of))* $/.test(before);
+  const afterNegation = /^ (?:is |are |was |were )?(?:not present|not found|absent|gone|clear|free)(?: |$)/.test(after);
+  return beforeNegation || afterNegation;
 }
 function statusHits(txt){
   const hits = [], negativeRanges = [];
   NEG.forEach(([intent,words])=>words.forEach(word=>{
     const phrase = norm(word).trim(); let at = txt.indexOf(" " + phrase + " ");
     while(at >= 0){
-      const hit = {code:normalizeStatus(intent), intent, hit:word, at, end:at+phrase.length+2, priority:2};
+      const hit = {code:normalizeStatus(intent), intent, hit:word, at, end:at+phrase.length+2, priority:4};
       hits.push(hit); negativeRanges.push(hit); at = txt.indexOf(" " + phrase + " ", at+1);
     }
   }));
@@ -1870,7 +2004,11 @@ function statusHits(txt){
     const phrase = norm(word).trim(); let at = txt.indexOf(" " + phrase + " ");
     while(at >= 0){
       const end = at + phrase.length + 2;
-      if(!negativeRanges.some(n=>at < n.end && end > n.at)) hits.push({code:normalizeStatus(intent), intent, hit:word, at, end, priority:1});
+      if(!negativeRanges.some(n=>at < n.end && end > n.at)){
+        const adverse = ["d","b","c","r"].indexOf(intent)>=0;
+        if(adverse && conditionIsNegated(txt,at,end)) hits.push({code:"ok", intent:"ok", hit:"no " + word, at, end, priority:3});
+        else hits.push({code:normalizeStatus(intent), intent, hit:word, at, end, priority:1});
+      }
       at = txt.indexOf(" " + phrase + " ", at+1);
     }
   }));
@@ -2520,6 +2658,7 @@ document.addEventListener("click", async e=>{
       "\"Kitchen is clean.\" passes the untouched kitchen lines.\n\n" +
       "\"Living room. Floor looks good, walls need touch-up, closet door is broken.\"\n\n" +
       "\"Moving to the kitchen. Cabinets are in good shape, fridge is not cooling, ice maker doesn't fill.\"\n\n" +
+      "\"No mold was found. Smoke alarms are chirping and the GFCI outlets won't reset.\"\n\n" +
       "It understands: good / checks out / no issues — dirty / needs cleaning / smells bad — " +
       "broken / needs work / needs repair — not working / stuck / leaking — needs replacing — " +
       "not tested / utilities are off — not applicable.\n\n" +
@@ -2761,7 +2900,7 @@ document.addEventListener("input", e=>{
   if(t.dataset.cost && cur){
     const w = cur.wk[t.dataset.cost] = cur.wk[t.dataset.cost] || {};
     w.c = t.value.replace(/[^0-9.]/g,"");
-    if(!w.k) w.k = "dmg";
+    if(!w.k) w.k = cur.mode==="routine" ? "maintenance" : "dmg";
     save(); wkTotal();
     document.querySelectorAll('[data-wear="'+t.dataset.cost+'"]').forEach(b=>b.classList.toggle("on", b.dataset.val===w.k));
     return;

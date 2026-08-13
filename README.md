@@ -7,7 +7,7 @@ no build step, no accounts. Works offline once loaded.
 
 | File | What it is |
 |---|---|
-| `index.html` | **One app, three jobs.** Choose move-in, move-out, or rent-ready when starting an inspection. |
+| `index.html` | **One app, four jobs.** Choose move-in, move-out, rent-ready, or routine when starting an inspection. |
 | `move-in.html` | The same app, locked to move-in. Installs as its own icon. |
 | `move-out.html` | The same app, locked to move-out. Installs as its own icon. |
 | `manifest.json` / `manifest-in.json` / `manifest-out.json` | Install settings for each of the three. |
@@ -37,18 +37,19 @@ the fonts and files cache.
 
 ## How an inspection runs
 
-1. **Start** a move-in, move-out, or rent-ready. Type the address and unit before opening the sheet.
+1. **Start** a move-in, move-out, rent-ready, or routine inspection. Type the address and unit before opening the sheet.
 2. **Rent-ready header** — market status, work category, responsible party, and estimated cost are
    separate fields. Access / lockbox details stay internal and are not placed in shared reports.
    Its core walkthrough has 31 distinct checks; pool, well/septic, rural, and prior-broker handover
    checks appear only when the inspector turns that property-specific option on.
-3. **Walk the property.** Each line gets one of three outcomes: **Good**, **Needs work**, or **N/A**.
+3. **Routine inspection** — a 30-line occupied-property check covers housekeeping, safety, alarms, GFCIs, leaks/mold, HVAC, appliances, interior condition, and grounds. Needs-work items flow into a maintenance pricing worksheet.
+4. **Walk the property.** Each line gets one of three outcomes: **Good**, **Needs work**, or **N/A**.
    Cleaning, repairs, replacement, malfunctions, and things that could not be tested all use **Needs work**;
    the note holds the detail, such as “Not tested — no power on site.”
-4. **Pass the rest** fills untouched lines in a section in one tap. Only reviewed lines appear in reports.
-5. **Add or rename rooms** as the unit needs — bedrooms, baths, anything else.
-6. **Sign** move-in/move-out sheets when appropriate. Rent-ready reports are owner/vendor notations and have no tenant sign-off.
-7. **Send it in** — *Copy report* for text, *Print / PDF* for the file copy,
+5. **Pass the rest** fills untouched lines in a section in one tap. Only reviewed lines appear in standard reports.
+6. **Add or rename rooms** as the unit needs — bedrooms, baths, anything else.
+7. **Sign** move-in/move-out/routine sheets when appropriate. Rent-ready reports are owner/vendor notations and have no tenant sign-off.
+8. **Send it in** — *Copy report* for text, *Print / PDF* for the file copy,
    or *Export this one* for a file that carries the photos with it.
 
 ## Built for the walkthrough
@@ -140,7 +141,7 @@ That means:
 
 Treat the printed PDF as the record of file.
 
-The PDF intentionally leaves out app controls, walkthrough prompts, dictation, and blank status lines. It is designed to read as a compact property record rather than a screenshot of the app.
+The PDF intentionally leaves out app controls, walkthrough prompts, and dictation. Standard reports omit unreviewed lines. Routine reports keep blank status/note lines and additional pricing rows so maintenance can finish them by hand on paper.
 
 ## Changing it
 
