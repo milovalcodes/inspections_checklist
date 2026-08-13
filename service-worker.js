@@ -1,4 +1,4 @@
-﻿const CACHE = 'inspection-v19';
+﻿const CACHE = 'inspection-v20';
 const ASSETS = [
   './', './index.html', './move-in.html', './move-out.html',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',

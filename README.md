@@ -141,7 +141,7 @@ That means:
 
 Treat the printed PDF as the record of file.
 
-The PDF intentionally leaves out app controls, walkthrough prompts, and dictation. Standard reports omit unreviewed lines. Routine reports keep blank status/note lines and additional pricing rows so maintenance can finish them by hand on paper.
+The PDF intentionally leaves out app controls, walkthrough prompts, and dictation. Standard reports omit unreviewed lines. Routine reports keep blank status/note lines and additional pricing rows so maintenance can finish them by hand on paper. If no repair prices have been entered, the estimated work total also prints as a blank writing line instead of `$0.00`.
 
 ## Changing it
 

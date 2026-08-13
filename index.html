@@ -191,6 +191,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .wkrow .seg button{min-height:36px;font-size:10.5px}
 .wtot{display:flex;justify-content:space-between;align-items:baseline;padding-top:11px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.06em;color:var(--slate)}
 .wtot b{font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-size:20px;color:var(--ink)}
+.wtot b.empty{display:inline-block;min-width:112px;min-height:1.25em;border-bottom:1px solid var(--ink)}
 .manual-pricing{display:none}
 
 /* signatures */
@@ -581,7 +582,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
         Every item needing attention lands here. Mark it normal wear or tenant damage and put a figure on it. Only tenant damage adds to the total.
       </p>
       <div class="wk" id="wk"></div>
-      <div class="wtot"><span id="wkTotalLabel">Tenant damage total</span><b id="wkTotal">$0.00</b></div>
+      <div class="wtot"><span id="wkTotalLabel">Tenant damage total</span><b id="wkTotal"></b></div>
       <div class="manual-pricing">
         <h3>Additional maintenance pricing</h3>
         <div class="manual-price-row"><span>Item / location</span><span>Responsibility</span><span>Cost</span></div>
@@ -636,7 +637,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = null;      /* null = both modes in one app */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "offline-v19";
+const APP_VERSION = "offline-v20";
 const KEY = "cimco.inspections.v1";
 
 /* ---------------- templates from the paper sheet ---------------- */
@@ -1349,8 +1350,15 @@ function pickBaseline(seed){
 function wkTotal(){
   let tot = 0;
   const routine = cur.mode==="routine";
-  flagged(cur).forEach(o=>{ const w = cur.wk[o.key]; if(w && (routine || w.k==="dmg")) tot += parseFloat(w.c||0) || 0; });
-  document.getElementById("wkTotal").textContent = money(tot);
+  let hasPrice = false;
+  flagged(cur).forEach(o=>{
+    const w = cur.wk[o.key];
+    if(w && String(w.c||"").trim()){ hasPrice = true; if(routine || w.k==="dmg") tot += parseFloat(w.c||0) || 0; }
+  });
+  const total = document.getElementById("wkTotal");
+  const leaveBlank = routine && !hasPrice;
+  total.textContent = leaveBlank ? "" : money(tot);
+  total.classList.toggle("empty", leaveBlank);
   return tot;
 }
 function renderWk(){
@@ -1369,7 +1377,7 @@ function renderWk(){
   if(el.dataset.sig === sig){ wkTotal(); return; }   /* same lines — leave the inputs alone */
   el.dataset.sig = sig;
   if(!rows.length){ el.innerHTML = `<p style="font-size:13px;color:var(--slate);padding:6px 0">Nothing needs attention yet.</p>`;
-    document.getElementById("wkTotal").textContent = money(0); return; }
+    wkTotal(); return; }
   el.innerHTML = rows.map(o=>{
     const w = cur.wk[o.key] || {};
     return `<div class="wkrow">
@@ -1553,15 +1561,16 @@ function reportHTML(rec){
     const rows = flagged(rec).filter(o=>{ const w = rec.wk[o.key]; return w && (w.k || w.c); });
     if(rows.length){
       let tot = 0;
+      const hasPrices = rows.some(o=>String((rec.wk[o.key]||{}).c||"").trim());
       const tr = rows.map(o=>{
         const w = rec.wk[o.key], amt = (isRoutine || w.k==="dmg") ? (parseFloat(w.c||0)||0) : 0;
         tot += amt;
         return "<tr><td>" + esc(o.sp.name + " / " + o.it.t) + "</td><td class=\"c\">"
           + (isRoutine ? (w.k==="tenant" ? "Tenant-caused" : "Maintenance") : w.k==="dmg" ? "Tenant damage" : "Normal wear") + "</td><td class=\"c\">"
-          + (isRoutine || w.k==="dmg" ? money(amt) : "—") + "</td></tr>";
+          + (isRoutine ? (String(w.c||"").trim() ? money(amt) : "<span class=\"write\"></span>") : w.k==="dmg" ? money(amt) : "—") + "</td></tr>";
       }).join("");
       wk = "<h2>" + (isRoutine ? "Damage & maintenance pricing" : "Damage worksheet") + "</h2><table>" + tr
-        + "<tr class=\"tot\"><td>" + (isRoutine ? "Estimated work total" : "Tenant damage total") + "</td><td></td><td class=\"c\">" + money(tot) + "</td></tr></table>";
+        + "<tr class=\"tot\"><td>" + (isRoutine ? "Estimated work total" : "Tenant damage total") + "</td><td></td><td class=\"c\">" + (isRoutine && !hasPrices ? "<span class=\"write\"></span>" : money(tot)) + "</td></tr></table>";
     }
     if(isRoutine) wk += "<h2>Additional maintenance pricing</h2><table class=\"manual\"><tr><td>Item / location</td><td>Responsibility</td><td>Cost</td></tr><tr><td></td><td></td><td>$</td></tr><tr><td></td><td></td><td>$</td></tr><tr><td></td><td></td><td>$</td></tr></table>";
   }
@@ -1670,9 +1679,10 @@ function reportText(rec){
     if(rows.length){
       L.push(isRoutine ? "DAMAGE & MAINTENANCE PRICING" : "TENANT DAMAGE WORKSHEET");
       let tot = 0;
+      const hasPrices = rows.some(o=>String((rec.wk[o.key]||{}).c||"").trim());
       rows.forEach(o=>{ const w = rec.wk[o.key], amt = parseFloat(w.c||0)||0; tot += amt;
-        L.push("  " + o.sp.name + " — " + o.it.t + (isRoutine ? " [" + (w.k==="tenant" ? "Tenant-caused" : "Maintenance") + "]" : "") + ": " + money(amt)); });
-      L.push("  TOTAL: " + money(tot));
+        L.push("  " + o.sp.name + " — " + o.it.t + (isRoutine ? " [" + (w.k==="tenant" ? "Tenant-caused" : "Maintenance") + "]" : "") + ": " + (isRoutine && !String(w.c||"").trim() ? "________" : money(amt))); });
+      L.push("  TOTAL: " + (isRoutine && !hasPrices ? "________" : money(tot)));
       L.push("");
     }
   }
