@@ -7,7 +7,7 @@
   "orientation": "portrait",
   "background_color": "#F1F0EC",
   "theme_color": "#0E3B4C",
-  "description": "Fast move-in, move-out, and rent-ready inspections. Works offline on a phone.",
+  "description": "Offline-first move-out inspections with optional private office-computer walkthrough analysis.",
   "icons": [
     {
       "src": "./icon-192.png",

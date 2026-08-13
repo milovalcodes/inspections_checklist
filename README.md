@@ -1,162 +1,46 @@
-# CIMCO Property Inspection
+# CIMCO Property Inspection — Local AI Beta
 
-A phone-first replacement for the paper CIMCO inspection sheets. Static files — no server,
-no build step, no accounts. Works offline once loaded.
+This build keeps the field inspection app offline-first and adds optional automatic walkthrough analysis on the always-on office computer. It does not use an OpenAI API key, a ChatGPT account, or a cloud transcription service.
 
-## What's in here
+## Field workflow
 
-| File | What it is |
-|---|---|
-| `index.html` | **One app, four jobs.** Choose move-in, move-out, rent-ready, or routine when starting an inspection. |
-| `move-in.html` | The same app, locked to move-in. Installs as its own icon. |
-| `move-out.html` | The same app, locked to move-out. Installs as its own icon. |
-| `manifest.json` / `manifest-in.json` / `manifest-out.json` | Install settings for each of the three. |
-| `service-worker.js` | Makes it work with no signal. |
-| `icon-192.png` / `icon-512.png` | Home-screen icons. |
+1. Start or reopen an inspection on the phone.
+2. Use **Office AI walkthrough → Analyze video / audio**.
+3. Choose the inspector's recording and keep the page open. For video, the phone first makes a temporary audio-only copy to reduce the upload; if that is unsupported, it safely sends the original.
+4. The office computer transcribes the recording and matches observations to the exact checklist.
+5. Review the proposed Good, Needs work, and N/A results, then apply them to the sheet.
 
-The unified `index.html` is the recommended field app. The locked pages remain available for teams
-that want separate home-screen icons.
-All three share the same saved inspections on a given phone, so a move-out started in
-`move-out.html` can still pull its baseline from a move-in recorded in `index.html`.
+The normal checklist, photos, signatures, reports, and manual dictation remain available without the office connection. Inspection records still live on the phone unless the inspector exports them.
 
-## Publishing on GitHub Pages
+## Important privacy boundary
 
-1. Put these files in the repo (root, or a folder like `/inspection`).
-2. Settings → Pages → Source: **Deploy from a branch** → `main` → `/ (root)` → Save.
-3. Wait a minute, then open the URL it gives you.
+Only the selected walkthrough recording and a temporary checklist map are sent to the office computer. The bridge deletes the uploaded media when processing finishes. It retains the transcript and proposed results for up to 24 hours so a phone can reconnect after a weak signal.
 
-## Installing on a phone
+The office connection address and pairing password are stored only on the paired phone. Bug reports exclude the address, password, inspection contents, photos, and media.
 
-Open the URL, then:
+## Publishing the field app
 
-- **iPhone (Safari):** Share → Add to Home Screen.
-- **Android (Chrome):** menu → Install app / Add to Home Screen.
+Upload only the contents of the packaged `website-upload` folder to GitHub Pages. Do not upload the `office-computer` folder, its `config.json`, or its `data` folder.
 
-It then opens full-screen like an app and runs without signal. Load it once on wifi first so
-the fonts and files cache.
+After publishing, open the site once on Wi-Fi. On iPhone use Safari → Share → Add to Home Screen. On Android use Chrome → Install app or Add to Home Screen.
 
-## How an inspection runs
+## Office setup
 
-1. **Start** a move-in, move-out, rent-ready, or routine inspection. Type the address and unit before opening the sheet.
-2. **Rent-ready header** — market status, work category, responsible party, and estimated cost are
-   separate fields. Access / lockbox details stay internal and are not placed in shared reports.
-   Its core walkthrough has 31 distinct checks; pool, well/septic, rural, and prior-broker handover
-   checks appear only when the inspector turns that property-specific option on.
-3. **Routine inspection** — a 30-line occupied-property check covers housekeeping, safety, alarms, GFCIs, leaks/mold, HVAC, appliances, interior condition, and grounds. Needs-work items flow into a maintenance pricing worksheet.
-4. **Walk the property.** Each line gets one of three outcomes: **Good**, **Needs work**, or **N/A**.
-   Cleaning, repairs, replacement, malfunctions, and things that could not be tested all use **Needs work**;
-   the note holds the detail, such as “Not tested — no power on site.”
-5. **Pass the rest** fills untouched lines in a section in one tap. Only reviewed lines appear in standard reports.
-6. **Add or rename rooms** as the unit needs — bedrooms, baths, anything else.
-7. **Sign** move-in/move-out/routine sheets when appropriate. Rent-ready reports are owner/vendor notations and have no tenant sign-off.
-8. **Send it in** — *Copy report* for text, *Print / PDF* for the file copy,
-   or *Export this one* for a file that carries the photos with it.
+On the office Windows computer:
 
-## Built for the walkthrough
+1. Open PowerShell as Administrator in the `office-computer` folder.
+2. Run `Set-ExecutionPolicy -Scope Process Bypass`, then `./SETUP-BETA.ps1`.
+3. Start `START-CIMCO-BRIDGE.cmd` and leave that window open for the first test.
+4. Run `./SETUP-FIELD-TUNNEL.ps1` to create the private HTTPS field address.
+5. Copy the displayed office address and pairing password into **Set up office connection** on an inspector's phone.
+6. After testing, run `./INSTALL-AUTO-START.ps1` so the bridge starts when the office user signs in.
 
-The field sheet now gives small, practical cues while an inspector works:
+The one-time setup downloads the local language models. Allow roughly 5–6 GB and use a reliable office connection. Processing speed depends on the office computer; a supported NVIDIA GPU is faster, while CPU-only mode still works.
 
-- A live **pace card** turns the running total into clear guidance: start, on pace, final stretch, or report ready.
-- The room rail highlights the space currently being walked, so it is easier to jump around a larger property.
-- Marking a line gives immediate touch feedback; **Pass the rest** acknowledges the section without extra taps.
-- Completing every line produces a brief, optional celebration and a clear “report ready” message.
+Run `./CHECK-BRIDGE.ps1` whenever the phone cannot connect. See `FIELD-CONNECTION.md` for pairing and troubleshooting.
 
-These are deliberately subtle and respect the phone's reduced-motion setting. They are there to make the job feel lighter, not to distract from an accurate inspection.
+## Record keeping
 
-## Dictating the walkthrough
+The printed/PDF report removes app controls and unreviewed clutter. Routine reports preserve blank lines for maintenance handwriting, and their estimated work total remains blank until at least one price is entered.
 
-Open an inspection and use **Dictate the walkthrough**. Two ways in:
-
-- **Record** — tap the mic and talk while you walk. Needs Chrome or Safari and a signal.
-- **Paste a transcript** — from a video, a voice memo, or any transcription tool. Works offline.
-
-Say the room, then each line and how it looks:
-
-> "Living room. Floor good, walls dirty, scuffs by the slider. Baseboard has a crack on the north side."
->
-> "Moving to the kitchen. Cabinets fine, fridge not working, ice maker doesn't fill."
-
-You can also pass a whole room quickly: **"Kitchen is clean"**, **"the bathroom looks good"**,
-or **"everything else in here is fine"**. The app marks only the untouched lines in that room as
-Good, so a specific issue already recorded is preserved. A broad issue such as **"Kitchen is filthy"**
-becomes one “Overall condition” exception instead of being guessed onto the wrong fixture.
-
-Hit **Read it** and the app shows what it heard — room, line, and code — before changing anything.
-Drop any line it misheard with the ✕, then **Apply to the sheet**.
-
-Words it recognises: good, clean, fine, works — dirty, stained, scuffed, mold — broken, cracked,
-torn, loose, missing — not working, no power, leaking, running — not tested / could not test — needs replacing — not applicable.
-Everything except a good or N/A statement becomes **Needs work**, while the spoken condition is kept as the note on that line.
-
-The live recorder removes repeated final fragments such as `Kitchen. Kitchen is clean.` before they
-reach the transcript. Always review the proposed changes before applying them.
-
-**Always read the sheet before signing.** Dictation is a first pass, not the record. It keeps the
-spoken condition with a Needs work result, so review and tighten that note wherever a deposit might be argued.
-
-## Offline video transcription
-
-The **Offline video transcription** area is part of Dictate the walkthrough. It keeps walkthrough media on the inspector's phone:
-
-1. While on Wi-Fi, tap **Download offline voice pack** once for each phone. The higher-accuracy pack is about 82 MB and improves recognition of accented English. The app shows the live percentage and downloaded amount; keep the page open until it says the pack is ready. If a phone cannot use the higher-accuracy pack, the app automatically tries a lower-accuracy compatibility pack instead.
-2. Choose a video or audio walkthrough. For a video, the app makes a temporary audio-only copy on the phone; it never uploads the original video.
-3. The on-device voice pack writes the transcript into the existing dictation box. Read and review it before applying the proposed checks.
-
-The English-only voice pack selects its own transcription language automatically, which prevents a downloaded pack from failing when the video starts.
-
-If the transcript hears **“no box,”** it offers a one-tap **mailbox** suggestion for review. The app does not make that ambiguous replacement automatically.
-
-The checklist reader recognizes damage language such as **damaged**, **hit**, **knocked over**, and **backed into**. A direct statement such as “Mailbox damaged. Somebody hit the mailbox” proposes **Outside → Mailbox → Needs work** and keeps the spoken explanation in the note, even if “Outside” was not said first.
-
-For phone reliability, keep the app open while it prepares the recording and use walkthroughs of 12 minutes or less. The audio-only copy is temporary and is discarded when transcription finishes. The local voice pack is an English quick-transcription model: always review the proposed inspection results before applying them.
-
-## Reporting a problem
-
-Tap **Report issue** in the bottom bar, describe the problem, then copy or download the bug report to send here. It includes the app version, browser/device details, current voice-engine status, and the exact local error. It deliberately excludes the address, inspection contents, notes, photos, video, audio, and report data.
-
-## Saving the report
-
-Three ways out, under Header & details:
-
-| | What you get | Best for |
-|---|---|---|
-| **Save report (web page)** | One `.html` file — full-size photos, signatures, everything. Opens in any browser, emails fine. | Sending to the office or an owner |
-| **Print / PDF** | Browser print dialog, then Save as PDF. A clean record layout shows the inspection header, review total, exceptions, signed names, and a numbered photo log at the back. | The file copy |
-| **Export data file** | `.json` another phone can import, photos included. | Moving work between devices |
-
-Photos are the reason the web report exists: a thumbnail in a table proves nothing, so both the web
-report and the PDF put every photo in a numbered log at full width, captioned with the room, the
-line, the code, and the note. Under **Photos in the printout** you can choose two across (default),
-three across, or one full page each for close-up damage.
-
-## Where the data lives
-
-On the phone that recorded it, in the browser's own storage. Nothing is uploaded anywhere.
-That means:
-
-- Clearing browser data, or deleting the app, deletes the inspections.
-- Each inspector's phone holds only their own work.
-- To move records between phones or send them to the office, use **Export** and **Import**
-  on the home screen. Exported files include the photos.
-
-Treat the printed PDF as the record of file.
-
-The PDF intentionally leaves out app controls, walkthrough prompts, and dictation. Standard reports omit unreviewed lines. Routine reports keep blank status/note lines and additional pricing rows so maintenance can finish them by hand on paper. If no repair prices have been entered, the estimated work total also prints as a blank writing line instead of `$0.00`.
-
-## Changing it
-
-Everything is in one `<script>` block near the bottom of each HTML page.
-
-- **Company name:** the `ORG` constant.
-- **Room checklists:** the `T` object — each room type lists its lines.
-- **Which rooms a new inspection starts with:** `DEFAULT_SPACES`.
-- **The three outcomes:** `CODES` and `CODE_LABEL`.
-
-The three pages share the same storage key but are separate static copies. Keep `index.html` as the
-source for the unified field workflow; regenerate the locked pages after changing the app logic.
-
-## One note on the deposit letter
-
-The move-out worksheet mentions Florida's deposit-claim timing (Fla. Stat. 83.49) as a
-reminder. Confirm the dates and the wording with your broker or attorney before anything
-goes out to a tenant.
+This is a beta. Review every proposed result before applying it, and review the completed report before it is signed or filed.

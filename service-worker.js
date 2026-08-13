@@ -1,4 +1,4 @@
-﻿const CACHE = 'inspection-v20';
+const CACHE = 'inspection-v21-local-ai-beta';
 const ASSETS = [
   './', './index.html', './move-in.html', './move-out.html',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',
@@ -18,7 +18,8 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  if (event.request.method !== 'GET' || url.origin !== self.location.origin) return;
   event.respondWith(
     caches.match(event.request).then(cached =>
       cached || fetch(event.request).then(res => {

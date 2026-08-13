@@ -165,7 +165,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
 @keyframes section-win{0%{background:#FFF3D9}100%{background:var(--card)}}
 .note{width:100%;margin-top:8px;border:1px solid var(--rule);border-left:3px solid var(--work);padding:8px 9px;
   background:#fff;resize:vertical;min-height:40px;font-size:16px;line-height:1.45;display:none}
-.item.flagged .note{display:block}
+.item.flagged .note,.item.is-na .note{display:block}
 .thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .thumbs img{width:56px;height:56px;object-fit:cover;border:1px solid var(--rule);border-radius:2px;cursor:pointer}
 .pcode,.pnote,.pfigs{display:none}
@@ -225,6 +225,28 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .voice-status.preparing i em{animation:voice-sweep 1.15s ease-in-out infinite}
 .voice-status.done i em{width:100%!important;background:var(--ok)}
 @keyframes voice-sweep{0%{width:8%}50%{width:72%}100%{width:8%}}
+.officeai{position:relative;margin-top:12px;padding:13px;border:1px solid #A9C8C4;border-radius:7px;background:linear-gradient(125deg,#EEF8F5,#FFFDF8);overflow:hidden}
+.officeai:after{content:"AI";position:absolute;right:-4px;top:-20px;font-family:"Archivo",sans-serif;font-size:76px;font-weight:800;color:#2F78660B;pointer-events:none}
+.officeai-head{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.officeai-head b{font-family:"Archivo",sans-serif;font-size:14px;color:var(--ink)}
+.beta-pill{padding:3px 7px;border-radius:99px;background:#DCEFE8;color:#276653;font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.08em;font-weight:600}
+.officeai p{position:relative;z-index:1;margin:5px 0 0;font-size:12px;line-height:1.45;color:var(--slate)}
+.officeai .row{position:relative;z-index:1}
+.office-status{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 8px;align-items:center;margin-top:10px;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--slate)}
+.office-status strong{font-size:10px;color:var(--ink)}
+.office-status small{grid-column:1/-1;line-height:1.35;color:var(--mute)}
+.office-status i{grid-column:1/-1;height:8px;overflow:hidden;border-radius:99px;background:#DCE5DF}
+.office-status em{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--hivis),var(--ok));transition:width .28s ease}
+.office-status.busy em{box-shadow:0 0 10px rgba(47,120,102,.35)}
+.office-status.failed strong{color:var(--work)}
+.office-status.done strong{color:var(--ok)}
+.office-review{position:relative;z-index:1;display:none;margin-top:9px;padding:8px 9px;border-left:3px solid var(--ok);background:#fff;font-size:11.5px;color:var(--slate);line-height:1.45}
+.office-review.on{display:block}
+.backupvoice{padding:0;background:#FFFCF7}
+.backupvoice summary{cursor:pointer;padding:10px 11px;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.06em;color:var(--slate)}
+.backupvoice[open]{padding:0 11px 11px}.backupvoice[open] summary{margin:0 -11px 8px;border-bottom:1px solid var(--hair)}
+.pair-status{padding:8px 10px;margin:9px 0;border-radius:5px;background:#F4F0E8;font-size:12px;color:var(--slate)}
+.pair-status.ok{background:#EAF6EE;color:#276653}.pair-status.bad{background:#FFF0EC;color:#9C422F}
 
 /* home */
 .new{display:grid;grid-template-columns:1fr;gap:9px;margin-top:12px}
@@ -546,16 +568,27 @@ body[data-mode="routine"] .moveonly{display:none!important}
         <button class="mini" id="micBtn">🎤 Start recording</button>
         <button class="mini" id="dictHelp">What to say</button>
       </div>
-      <div class="localvoice" id="localVoice">
-        <b>Offline video transcription</b>
-        <p>Choose a walkthrough video or audio file. The app prepares the audio on this device, then transcribes it here. Nothing is uploaded. Keep this page open; use recordings up to 12 minutes.</p>
+      <div class="officeai" id="officeAI">
+        <div class="officeai-head"><b>Office AI walkthrough</b><span class="beta-pill">PRIVATE BETA</span></div>
+        <p>Choose a walkthrough video or audio file. Your office computer privately transcribes it and matches casual speech to this exact checklist—no OpenAI API or ChatGPT login.</p>
+        <div class="row" style="margin-top:9px">
+          <button class="mini go" id="officeAiPickBtn">Analyze video / audio</button>
+          <button class="mini" id="officeAiSetupBtn">Set up office connection</button>
+          <input type="file" id="officeMediaIn" accept="video/*,audio/*,.m4a,.mp3,.wav,.webm,.mov,.mp4" class="hide">
+        </div>
+        <div class="office-status" id="officeAiStatus" role="status" aria-live="polite"><span id="officeAiStatusText">Connect this phone once, then send walkthroughs to the office computer.</span><strong id="officeAiStatusPercent">Not connected</strong><small id="officeAiStatusDetail">Inspections still work normally whenever Office AI is unavailable.</small><i role="progressbar" aria-label="Office AI walkthrough progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><em id="officeAiStatusFill"></em></i></div>
+        <div class="office-review" id="officeAiReview"></div>
+      </div>
+      <details class="localvoice backupvoice" id="localVoice">
+        <summary>On-device transcription backup</summary>
+        <p>Use the smaller phone-based voice pack only when the office connection is unavailable. Keep this page open and use recordings up to 12 minutes.</p>
         <div class="row" style="margin-top:9px">
           <button class="mini go" id="voicePackBtn">Download offline voice pack</button>
           <button class="mini" id="mediaPickBtn">Import video / audio</button>
           <input type="file" id="mediaIn" accept="video/*,audio/*,.m4a,.mp3,.wav,.webm" class="hide">
         </div>
         <div class="voice-status" id="voiceStatus" role="status" aria-live="polite"><span id="voiceStatusText">Accuracy voice pack downloads once on Wi-Fi, then works without signal.</span><b id="voiceStatusPercent" aria-hidden="true">0%</b><small id="voiceStatusDetail">About 82 MB · better recognition for accented English</small><i id="voiceStatusBar" role="progressbar" aria-label="Offline voice pack download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><em id="voiceStatusFill"></em></i></div>
-      </div>
+      </details>
       <textarea class="in" id="dictText" placeholder="Paste the transcript here, or hit record and talk." style="margin-top:10px;min-height:92px"></textarea>
       <div class="dicthints" id="dictHints" aria-live="polite"></div>
       <div class="row" style="margin-top:9px">
@@ -637,8 +670,10 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = null;      /* null = both modes in one app */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "offline-v20";
+const APP_VERSION = "local-ai-beta-v21";
 const KEY = "cimco.inspections.v1";
+const OFFICE_AI_CONFIG_KEY = "cimco.office-ai.config.v1";
+const OFFICE_AI_PENDING_KEY = "cimco.office-ai.pending.v1";
 
 /* ---------------- templates from the paper sheet ---------------- */
 const T = {
@@ -754,7 +789,7 @@ const ROUTINE_SPACES = [
 const CODES = [["ok","✓","Good"],["work","!","Needs work"],["na","–","N/A"]];
 const CODE_LABEL = {ok:"Good", work:"Needs work", na:"N/A"};
 const FLAGS = ["work"];
-const LEGACY_STATUS = {d:"work", b:"work", c:"work", r:"work", u:"work"};
+const LEGACY_STATUS = {d:"work", b:"work", c:"work", r:"work", u:"na"};
 const MODE_LABEL = {in:"Move-in", out:"Move-out", ready:"Rent-ready", routine:"Routine"};
 
 /* ---------------- state ---------------- */
@@ -809,6 +844,22 @@ function toast(msg){
   t.textContent = msg; t.classList.add("on");
   clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove("on"), 2200);
 }
+let OFFICE_AI_BUSY = false;
+let OFFICE_AI_LAST_ERROR = "";
+let OFFICE_AI_JOB = "";
+let OFFICE_AI_POLL = null;
+let OFFICE_AI_BRIDGE_VERSION = "";
+let OFFICE_AI_POLL_FAILURES = 0;
+function officeAiScreenStatus(){
+  let configured = false;
+  try{ const c=JSON.parse(localStorage.getItem(OFFICE_AI_CONFIG_KEY)||"{}"); configured=!!(c.endpoint&&c.token); }catch(e){}
+  return {
+    configured, busy:OFFICE_AI_BUSY, job_active:!!OFFICE_AI_JOB,
+    message:(document.getElementById("officeAiStatusText")||{}).textContent||"",
+    progress:(document.getElementById("officeAiStatusPercent")||{}).textContent||"",
+    bridge_version:OFFICE_AI_BRIDGE_VERSION||"", last_error:OFFICE_AI_LAST_ERROR||""
+  };
+}
 function voiceScreenStatus(){
   return {
     ready:!!VOICE_READY,
@@ -826,7 +877,7 @@ function buildBugReport(){
     created_at:new Date().toISOString(), issue_category:value("bugCategory"),
     what_happened:value("bugWhat").trim(), expected_result:value("bugExpected").trim(),
     context:{page:location.pathname || "/",inspection_mode:cur ? modeTitle(cur) : "Home page",online:navigator.onLine,language:navigator.language || "",browser:navigator.userAgent || "",viewport:window.innerWidth + "x" + window.innerHeight},
-    voice_transcription:voiceScreenStatus(),
+    office_ai:officeAiScreenStatus(), voice_transcription:voiceScreenStatus(),
     privacy_note:"This report intentionally excludes the address, inspection answers, notes, photos, video, audio, and report contents."
   };
 }
@@ -841,12 +892,73 @@ function openBugReporter(){
   body.innerHTML = '<div class="eyebrow">HELP &amp; FEEDBACK</div><h2 style="margin:4px 0 0">Report a problem</h2>'
     + '<p style="font-size:13px;line-height:1.5;margin:7px 0">Describe what happened, then copy or download the report and send it here with a screenshot if useful.</p>'
     + '<div class="bugnote"><b>Privacy-safe:</b> this excludes the property address, inspection answers, notes, photos, video, audio, and report contents.</div>'
-    + '<label class="lab">Area that needs help</label><select class="in" id="bugCategory"><option>Offline video / audio transcription</option><option>Voice dictation</option><option>Checklist or inspection form</option><option>Progress guide or navigation</option><option>Report, print, or PDF</option><option>Saved inspections</option><option>Something else</option></select>'
+    + '<label class="lab">Area that needs help</label><select class="in" id="bugCategory"><option>Office AI walkthrough</option><option>On-device video / audio transcription</option><option>Voice dictation</option><option>Checklist or inspection form</option><option>Progress guide or navigation</option><option>Report, print, or PDF</option><option>Saved inspections</option><option>Something else</option></select>'
     + '<label class="lab" style="margin-top:10px">What happened?</label><textarea class="in" id="bugWhat" placeholder="Example: I chose a video, the voice pack finished, then transcription stopped."></textarea>'
     + '<label class="lab" style="margin-top:10px">What did you expect instead?</label><textarea class="in" id="bugExpected" placeholder="Example: The transcript should appear in the box."></textarea>'
     + '<div class="bugstatus">Current diagnostic\n' + esc((voice.message || "No voice status yet") + (voice.detail ? "\n" + voice.detail : "") + (voice.last_engine_error ? "\n" + voice.last_engine_error : "")) + '</div>'
     + '<div class="row" style="margin-top:12px"><button class="act ghost" id="bugClose">Close</button><button class="act" id="bugCopy">Copy bug report</button><button class="act solid" id="bugDownload">Download file</button></div>';
   document.getElementById("modal").classList.add("on");
+}
+
+/* ---------------- private office AI connection ---------------- */
+function loadOfficeAiConfig(){
+  try{
+    const value = JSON.parse(localStorage.getItem(OFFICE_AI_CONFIG_KEY)||"{}");
+    return {endpoint:String(value.endpoint||"").replace(/\/+$/, ""),token:String(value.token||"")};
+  }catch(e){ return {endpoint:"",token:""}; }
+}
+function validOfficeEndpoint(value){
+  const endpoint=String(value||"").trim().replace(/\/+$/, "");
+  if(!/^https:\/\//i.test(endpoint) && !/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/i.test(endpoint)) return "";
+  return endpoint;
+}
+function officeAiHeaders(config){
+  return {"X-CIMCO-Key":config.token,"ngrok-skip-browser-warning":"1"};
+}
+function setOfficeAiStatus(text,pct,state,detail){
+  const box=document.getElementById("officeAiStatus"), label=document.getElementById("officeAiStatusText"),
+    percent=document.getElementById("officeAiStatusPercent"), fill=document.getElementById("officeAiStatusFill");
+  if(!box||!label||!percent||!fill) return;
+  box.classList.remove("busy","done","failed"); if(state) box.classList.add(state);
+  label.textContent=text;
+  if(typeof pct==="number"){
+    const value=Math.max(0,Math.min(100,Math.round(pct))); percent.textContent=value+"%"; fill.style.width=value+"%";
+    const bar=fill.parentElement; bar.setAttribute("aria-valuenow",String(value));
+  }else{ percent.textContent=pct||""; fill.style.width="0%"; fill.parentElement.setAttribute("aria-valuenow","0"); }
+  document.getElementById("officeAiStatusDetail").textContent=detail||"";
+}
+function setOfficeAiBusy(value){
+  OFFICE_AI_BUSY=!!value;
+  ["officeAiPickBtn","officeAiSetupBtn"].forEach(id=>{ const el=document.getElementById(id); if(el) el.disabled=OFFICE_AI_BUSY; });
+}
+function showOfficeAiIdle(){
+  const config=loadOfficeAiConfig();
+  if(config.endpoint&&config.token) setOfficeAiStatus("Office connection saved. Choose a walkthrough when ready.",0,"","The phone sends only the selected recording and checklist labels.");
+  else setOfficeAiStatus("Connect this phone once, then send walkthroughs to the office computer.","Not connected","","Inspections still work normally whenever Office AI is unavailable.");
+}
+function openOfficeAiSetup(){
+  const config=loadOfficeAiConfig(), body=document.getElementById("modalBody");
+  body.innerHTML='<div class="eyebrow">PRIVATE LOCAL AI BETA</div><h2 style="margin:4px 0 0">Connect to the office computer</h2>'+
+    '<p style="font-size:13px;line-height:1.5;margin:7px 0">Enter the secure address and pairing key prepared on the office computer. They stay only on this phone and are excluded from reports and backups.</p>'+
+    '<label class="lab">Secure office address</label><input class="in" id="officeEndpoint" inputmode="url" autocapitalize="none" autocomplete="off" placeholder="https://your-address.ngrok-free.app" value="'+esc(config.endpoint)+'">'+
+    '<label class="lab" style="margin-top:10px">Private pairing key</label><input class="in" id="officeToken" type="password" autocapitalize="none" autocomplete="off" placeholder="Paste pairing key" value="'+esc(config.token)+'">'+
+    '<div class="pair-status" id="officePairStatus">Test the connection before saving it.</div>'+
+    '<div class="row" style="margin-top:12px"><button class="act ghost" id="officeSetupClose">Close</button><button class="act ghost" id="officeSetupClear">Forget connection</button><button class="act" id="officeSetupTest">Test connection</button><button class="act solid" id="officeSetupSave">Save</button></div>';
+  document.getElementById("modal").classList.add("on");
+}
+function enteredOfficeConfig(){
+  return {endpoint:validOfficeEndpoint((document.getElementById("officeEndpoint")||{}).value),token:String((document.getElementById("officeToken")||{}).value||"").trim()};
+}
+async function testOfficeAiConnection(config, showResult){
+  if(!config.endpoint) throw new Error("Use the full HTTPS office address.");
+  if(!config.token) throw new Error("Paste the private pairing key.");
+  const response=await fetch(config.endpoint+"/v1/pairing",{headers:officeAiHeaders(config),cache:"no-store"});
+  let data={}; try{data=await response.json();}catch(e){}
+  if(!response.ok) throw new Error(data.detail||"The office computer rejected this pairing key.");
+  if(!data.ok) throw new Error("The office bridge is online, but its local models are not ready.");
+  OFFICE_AI_BRIDGE_VERSION=data.bridge_version||"";
+  if(showResult){ showResult.className="pair-status ok"; showResult.textContent="Connected — local speech and interpretation models are ready."; }
+  return data;
 }
 
 /* Small field-friendly rewards make progress visible without slowing the walk.
@@ -1134,6 +1246,7 @@ function go(view){
   REC_ACTIVE = false;
   if(REC){ try{ REC.stop(); }catch(e){} }
   if(view==="home" && SPACE_OBSERVER){ SPACE_OBSERVER.disconnect(); SPACE_OBSERVER=null; }
+  if(view==="home" && OFFICE_AI_POLL){ clearTimeout(OFFICE_AI_POLL); OFFICE_AI_POLL=null; OFFICE_AI_JOB=""; setOfficeAiBusy(false); }
   if(view==="home") ACTIVE_SPACE_ID="";
   DICT = [];
   const home = view==="home";
@@ -1220,6 +1333,8 @@ function renderEditor(){
   renderDict();
   drawSig("T", cur.sig.t); drawSig("I", cur.sig.i);
   renderHead(); renderSpaces();
+  showOfficeAiIdle();
+  resumeOfficeAiJob();
 }
 
 function renderHead(){
@@ -1321,7 +1436,7 @@ function paintItem(sp, idx){
   const note = el.querySelector(".note");
   if(note){
     note.placeholder = "What needs work, or why it could not be tested";
-    if(!flag) note.value = "";
+    if(!flag && it.s!=="na") note.value = "";
   }
 }
 function paintSection(sp){
@@ -1707,7 +1822,7 @@ function slug(rec){
    Pasted transcript, or live speech where the browser supports it. */
 
 const SAY = [
-  ["u",  ["not tested","not testable","not checked","not verified","not inspected","couldn't test","could not test","couldnt test","didn't test","did not test","unable to test","unable to verify","can't test","cannot test","can't verify","cannot verify","not able to test","no power on site","power is off at the property","utilities are off","electricity is off","water is off","gas is off"]],
+  ["u",  ["not tested","was not tested","were not tested","not testable","not checked","not verified","not inspected","couldn't test","could not test","couldnt test","couldn't be tested","could not be tested","couldnt be tested","wasn't tested","was not tested","weren't tested","were not tested","didn't test","did not test","unable to test","unable to verify","can't test","cannot test","can't verify","cannot verify","not able to test","no power on site","power is off","power was off","power is off at the property","utilities are off","electricity is off","water is off","gas is off"]],
   ["r",  ["needs to be replaced","needs replacing","needs replacement","needs a replacement","has to be replaced","need replacing","needs replaced","replacement needed","replace it","remove and replace","beyond repair","cannot be repaired","can't be repaired","not repairable","unrepairable","end of life","worn beyond repair","needs new"]],
   ["c",  ["not working","not work","doesn't work","does not work","doesnt work","won't turn on","wont turn on","doesn't turn on","does not turn on","not functioning","does not function","is not functioning","inoperable","out of service","not operating","not running","won't run","wont run","won't start","wont start","not responding","not cooling","not heating","no airflow","no hot water","not draining","won't open","wont open","can't open","cannot open","won't close","wont close","can't close","cannot close","won't lock","wont lock","won't latch","wont latch","won't reset","wont reset","doesn't reset","does not reset","not resetting","keeps tripping","stuck","jammed","leaking","leak","leaks","dripping","running","no power"]],
   ["b",  ["needs repair","need repair","needs a repair","needs work","need work","needs some work","requires repair","requires attention","needs attention","needs fixed","needs fixing","needs to be fixed","fix it","needs touch up","need touch up","needs a touch up","need a touch up","touch up","touchup","needs paint","needs painting","repaint","repainting","needs adjustment","adjustment needed","needs battery","needs batteries","battery low","batteries low","has an issue","has issues","has a problem","has problems","problem with","problems with","acting up","acts up","making noise","makes noise","noisy","loud","rattling","rattle","buzzing","chirping","flickering","flicker","burned out","burnt out","dead","sticky","hard to open","hard to close","hard to lock","hard to use","difficult to open","difficult to close","difficult to lock","difficult to use","takes too long","too slow","slow to","weak","weak pressure","low pressure","not cold","not warm","doesn't cool","does not cool","doesnt cool","doesn't heat","does not heat","doesnt heat","doesn't flush","does not flush","doesnt flush","clogged","blocked","backed up","overflowing","rust","rusty","corroded","sagging","uneven","not level","off track","falls off","falling off","broken","cracked","crack","damaged","hit","was hit","got hit","been hit","somebody hit","someone hit","knocked over","knocked down","backed into","ran into","run into","struck","collision","busted","bust","torn","ripped","hole","holes","chipped","chip","shattered","bent","loose","missing","split","rotted","rotten","worn out","worn","wobbly","crooked","out of alignment","not aligned","peeling","flaking","dented","gouged","scraped","scratches"]],
@@ -1717,7 +1832,7 @@ const SAY = [
 ];
 /* These must win over short positive words such as "clean" or "working". */
 const NEG = [
-  ["u", ["not tested","not testable","could not test","couldn't test","unable to test","unable to verify"]],
+  ["u", ["not tested","was not tested","were not tested","not testable","could not test","couldn't test","could not be tested","couldn't be tested","unable to test","unable to verify"]],
   ["c", ["not working","not functioning","not operating","not running","not cooling","not heating","not draining","not responding"]],
   ["d", ["not clean","not tidy","not sanitary"]],
   ["ok", ["not broken","not damaged","not dirty","not leaking","no leak","no leaks","no damage","no cracks","not cracked","not stained"]],
@@ -2055,6 +2170,7 @@ function notTestedReason(txt){
   const t = norm(txt);
   if(hasPhrase(t,"no power on site")) return "No power on site";
   if(hasPhrase(t,"power is off at the property")) return "Power is off at the property";
+  if(hasPhrase(t,"power is off") || hasPhrase(t,"power was off")) return "Power was off";
   if(hasPhrase(t,"utilities are off")) return "Utilities are off";
   if(hasPhrase(t,"electricity is off")) return "Electricity is off";
   if(hasPhrase(t,"water is off")) return "Water is off";
@@ -2123,11 +2239,11 @@ function parseDictation(text){
         /* keep the note only when it says more than the code already does */
         ims.forEach(({sp,im})=>{
           const itemCode = codeForItem(txt, im, cm) || cm;
-          const note = FLAGS.indexOf(itemCode.code) >= 0 ? dictationNote(part, im.it.t, itemCode.hit, itemCode.intent) : "";
+          const note = (itemCode.code==="work" || itemCode.code==="na") ? dictationNote(part, im.it.t, itemCode.hit, itemCode.intent) : "";
           last = {sp, idx: im.i, item: im.it.t, code: itemCode.code, note, raw: part.trim(), key: sp.id+":"+im.i};
           out.push(last);
         });
-      } else if(!ims.length && cm && target && last && last.sp===target && FLAGS.indexOf(last.code) >= 0){
+      } else if(!ims.length && cm && target && last && last.sp===target && (last.code==="work" || last.code==="na")){
         const continuation = dictationNote(part, last.item, cm.hit, cm.intent);
         if(continuation) last.note = (last.note ? last.note + "; " : "") + continuation;
       } else if(!ims.length && cm && target && isSpaceWideStatement(target, txt, !!here)){
@@ -2139,14 +2255,14 @@ function parseDictation(text){
           out.push({sp: target, scope:"pass-rest", item:"Pass remaining lines", code:"ok",
             detail: "Marks " + remaining + " untouched line" + (remaining===1?"":"s") + " Good", raw:part.trim(), key:target.id+":pass-rest"});
         }else{
-          const note = FLAGS.indexOf(cm.code) >= 0 ? dictationNote(part, target.name, cm.hit, cm.intent) : "";
+          const note = (cm.code==="work" || cm.code==="na") ? dictationNote(part, target.name, cm.hit, cm.intent) : "";
           out.push({sp: target, scope:"room-condition", item:"Overall condition", code:cm.code, note,
             raw:part.trim(), key:target.id+":overall-condition"});
         }
         last = null;
       } else if(ims.length && !cm){
         last = null;
-      } else if(!ims.length && !cm && target && last && FLAGS.indexOf(last.code) >= 0 && part.trim().length > 3){
+      } else if(!ims.length && !cm && target && last && (last.code==="work" || last.code==="na") && part.trim().length > 3){
         /* trailing description belongs to the line we just flagged, unless the
            inspector is announcing the next room */
         if(SPACE_HINT.some(h=>txt.indexOf(" " + h + " ") >= 0) || matchSpace(txt)){ last = null; return; }
@@ -2187,7 +2303,7 @@ function applyDictation(rows){
     const it = r.sp.items[r.idx];
     if(!it) return;
     it.s = r.code;
-    if(r.note && FLAGS.indexOf(r.code) >= 0) it.n = it.n ? (it.n + "; " + r.note) : r.note;
+    if(r.note && (r.code==="work" || r.code==="na")) it.n = it.n ? (it.n + "; " + r.note) : r.note;
     changed++;
   });
   save(); renderSpaces(); renderHead(); pulseProgress(); celebrateCompletion(wasComplete);
@@ -2210,6 +2326,140 @@ function renderDict(){
       '<span class="dtag k-' + r.code + '">' + esc(CODE_LABEL[r.code]) + "</span>" +
       '<button class="drop" data-drop="' + i + '" aria-label="Discard">✕</button></div>').join("") +
     '<div class="row" style="margin-top:11px"><button class="act solid" id="dictApply" style="font-size:12.5px;padding:10px 13px">Apply to the sheet</button></div>';
+}
+
+function officeChecklistManifest(){
+  const items=[];
+  activeSpaces(cur).forEach(sp=>sp.items.forEach((it,index)=>{
+    if(it.dictRoom) return;
+    items.push({id:sp.id+":"+index,section:sp.name,item:it.t});
+  }));
+  return {inspection_type:MODE_LABEL[cur.mode]||"Inspection",items};
+}
+function pendingOfficeJob(){
+  try{ return JSON.parse(localStorage.getItem(OFFICE_AI_PENDING_KEY)||"null"); }catch(e){ return null; }
+}
+function savePendingOfficeJob(value){
+  if(value) localStorage.setItem(OFFICE_AI_PENDING_KEY,JSON.stringify(value));
+  else localStorage.removeItem(OFFICE_AI_PENDING_KEY);
+}
+function officeAiRows(result){
+  const rows=[];
+  (result.matches||[]).forEach(match=>{
+    const at=String(match.item_id||"").lastIndexOf(":");
+    if(at<1) return;
+    const spaceId=match.item_id.slice(0,at), index=Number(match.item_id.slice(at+1));
+    const sp=cur.spaces.find(value=>value.id===spaceId), it=sp&&sp.items[index];
+    if(!sp||!it||!["ok","work","na"].includes(match.status)) return;
+    rows.push({sp,idx:index,item:it.t,code:match.status,note:match.note||"",detail:match.evidence||match.note||"",
+      raw:match.evidence||"",key:match.item_id,confidence:match.confidence});
+  });
+  return rows;
+}
+function showOfficeAiResult(result){
+  const transcript=String(result.transcript||"").trim(), box=document.getElementById("dictText");
+  if(transcript) box.value=transcript;
+  renderTranscriptHints(box.value);
+  DICT=officeAiRows(result); renderDict();
+  const review=document.getElementById("officeAiReview"), unmatched=result.unmatched_observations||[];
+  let html='<b>'+DICT.length+' checklist suggestion'+(DICT.length===1?'':'s')+' ready.</b> Review the evidence below, remove anything questionable, then tap Apply to the sheet.';
+  if(unmatched.length) html+='<br><b>'+unmatched.length+' observation'+(unmatched.length===1?'':'s')+' need manual review:</b> '+unmatched.map(esc).join('; ');
+  review.innerHTML=html; review.classList.add("on");
+  const needs=DICT.filter(row=>row.code==="work").length;
+  setOfficeAiStatus("Walkthrough analysis is ready for review.",100,"done",DICT.length+" suggestions"+(needs?" · "+needs+" need work":"")+(unmatched.length?" · "+unmatched.length+" unmatched":""));
+  document.getElementById("dictOut").scrollIntoView({behavior:"smooth",block:"nearest"});
+  toast("Office AI finished — review before applying");
+}
+function officeAiError(message){
+  OFFICE_AI_LAST_ERROR=String(message||"The office AI request failed.");
+  setOfficeAiStatus("Office AI could not finish this walkthrough.",100,"failed",OFFICE_AI_LAST_ERROR);
+  toast("Office AI could not finish");
+}
+function uploadOfficeMedia(file,config){
+  return new Promise((resolve,reject)=>{
+    const xhr=new XMLHttpRequest(), form=new FormData();
+    form.append("media",file,file.name||"walkthrough.media");
+    form.append("manifest",JSON.stringify(officeChecklistManifest()));
+    xhr.open("POST",config.endpoint+"/v1/jobs");
+    Object.entries(officeAiHeaders(config)).forEach(([key,value])=>xhr.setRequestHeader(key,value));
+    xhr.upload.onprogress=event=>{
+      if(event.lengthComputable){
+        const pct=Math.round(event.loaded/event.total*100);
+        setOfficeAiStatus("Securely sending the walkthrough to the office…",Math.min(20,pct*.2),"busy",pct+"% uploaded · keep this page open until the upload completes");
+      }
+    };
+    xhr.onerror=()=>reject(new Error("The phone lost its connection while sending the recording."));
+    xhr.onabort=()=>reject(new Error("The walkthrough upload was cancelled."));
+    xhr.onload=()=>{
+      let data={}; try{data=JSON.parse(xhr.responseText||"{}");}catch(e){}
+      if(xhr.status<200||xhr.status>=300) return reject(new Error(data.detail||"The office computer rejected this recording."));
+      resolve(data);
+    };
+    xhr.send(form);
+  });
+}
+async function pollOfficeAiJob(jobId,config){
+  if(OFFICE_AI_POLL) clearTimeout(OFFICE_AI_POLL);
+  try{
+    const response=await fetch(config.endpoint+"/v1/jobs/"+encodeURIComponent(jobId),{headers:officeAiHeaders(config),cache:"no-store"});
+    let data={}; try{data=await response.json();}catch(e){}
+    if(!response.ok){ const failure=new Error(data.detail||"The office job could not be checked."); failure.permanent=response.status===401||response.status===404; throw failure; }
+    OFFICE_AI_POLL_FAILURES=0;
+    OFFICE_AI_BRIDGE_VERSION=data.bridge_version||OFFICE_AI_BRIDGE_VERSION;
+    const mapped=20+Math.round((Number(data.progress)||0)*.8);
+    setOfficeAiStatus(data.message||"The office computer is working…",mapped,"busy",data.stage==="queued"?"Waiting behind another walkthrough":data.stage==="transcribing"?"Private speech recognition is running locally":data.stage==="interpreting"?"Matching the transcript to this checklist":"Keep this page available; you may continue the inspection");
+    if(data.status==="complete"){
+      savePendingOfficeJob(null); OFFICE_AI_JOB=""; setOfficeAiBusy(false); showOfficeAiResult(data.result||{}); return;
+    }
+    if(data.status==="failed") throw new Error(data.error||"The office computer could not finish the walkthrough.");
+    OFFICE_AI_POLL=setTimeout(()=>pollOfficeAiJob(jobId,config),2500);
+  }catch(err){
+    OFFICE_AI_POLL_FAILURES++;
+    if(!err.permanent && (!navigator.onLine || OFFICE_AI_POLL_FAILURES<5)){
+      setOfficeAiStatus("Connection paused. The office computer keeps working.",null,"busy","This phone will check again automatically.");
+      OFFICE_AI_POLL=setTimeout(()=>pollOfficeAiJob(jobId,config),Math.min(15000,3000*OFFICE_AI_POLL_FAILURES)); return;
+    }
+    savePendingOfficeJob(null); OFFICE_AI_JOB=""; setOfficeAiBusy(false); officeAiError(err.message);
+  }
+}
+async function sendOfficeAiWalkthrough(file){
+  if(!file||OFFICE_AI_BUSY||!cur) return;
+  const config=loadOfficeAiConfig();
+  if(!config.endpoint||!config.token){ openOfficeAiSetup(); toast("Connect this phone to the office first"); return; }
+  if(!navigator.onLine){ officeAiError("A signal is needed to send the walkthrough. The rest of the inspection remains available offline."); return; }
+  setOfficeAiBusy(true); OFFICE_AI_LAST_ERROR=""; document.getElementById("officeAiReview").classList.remove("on");
+  try{
+    setOfficeAiStatus("Checking the private office connection…",1,"busy","No OpenAI API or ChatGPT browser is used.");
+    await testOfficeAiConnection(config);
+    let uploadFile=file;
+    if(fileIsVideo(file)){
+      setOfficeAiStatus("Preparing an audio-only copy on this phone…",2,"busy","This reduces the upload size; the original video stays on this device.");
+      try{
+        const audio=await extractAudioFromVideo(file,pct=>{
+          setOfficeAiStatus("Preparing an audio-only copy on this phone…",Math.max(2,Math.min(10,pct*.1)),"busy",pct+"% prepared · keep this page open");
+        });
+        const type=audio.type||"audio/webm", extension=/mp4/i.test(type)?"m4a":"webm";
+        const name=(file.name||"walkthrough").replace(/\.[^.]+$/,"")+"-audio."+extension;
+        uploadFile=typeof File==="function"?new File([audio],name,{type}):audio;
+        setOfficeAiStatus("Audio-only copy ready. Starting secure upload…",10,"busy",Math.max(1,Math.round(uploadFile.size/1024/1024))+" MB prepared from the video");
+      }catch(prepError){
+        setOfficeAiStatus("This phone could not separate the audio. Sending the original video…",10,"busy","The result still works, but the upload will take longer.");
+      }
+    }
+    const job=await uploadOfficeMedia(uploadFile,config);
+    OFFICE_AI_JOB=job.id;
+    savePendingOfficeJob({job_id:job.id,inspection_id:cur.id,created_at:Date.now()});
+    setOfficeAiStatus("Walkthrough received by the office computer.",22,"busy","You may continue inspecting while the local models work.");
+    pollOfficeAiJob(job.id,config);
+  }catch(err){ setOfficeAiBusy(false); officeAiError(err.message); }
+}
+function resumeOfficeAiJob(){
+  if(!cur||OFFICE_AI_BUSY) return;
+  const pending=pendingOfficeJob(), config=loadOfficeAiConfig();
+  if(!pending||pending.inspection_id!==cur.id||!pending.job_id||!config.endpoint||!config.token) return;
+  OFFICE_AI_JOB=pending.job_id; setOfficeAiBusy(true);
+  setOfficeAiStatus("Reconnecting to the office walkthrough job…",20,"busy","The recording does not need to be uploaded again.");
+  pollOfficeAiJob(OFFICE_AI_JOB,config);
 }
 
 /* live speech, where the browser offers it */
@@ -2494,7 +2744,7 @@ function checkVoiceDuration(seconds){
   if(!Number.isFinite(seconds) || seconds<=0) throw new Error("This file does not contain readable audio.");
   if(seconds>VOICE_MAX_SECONDS) throw new Error("For reliable phone transcription, choose a walkthrough that is 12 minutes or shorter.");
 }
-async function extractAudioFromVideo(file){
+async function extractAudioFromVideo(file,onProgress){
   const AC = window.AudioContext || window.webkitAudioContext;
   if(!AC || !window.MediaRecorder) throw new Error("This phone cannot prepare video audio. Import an audio file instead.");
   const video = document.createElement("video");
@@ -2522,10 +2772,12 @@ async function extractAudioFromVideo(file){
       video.addEventListener("ended",resolve,{once:true});
       video.addEventListener("error",()=>reject(new Error("Video playback stopped before its audio was prepared.")),{once:true});
     });
-    video.addEventListener("timeupdate",()=>{
-      voiceStatus("Preparing audio locally. Keep this page open...", Math.round(video.currentTime/video.duration*100), "busy");
-    });
-    voiceStatus("Preparing audio locally. Keep this page open...", 0, "busy");
+    const reportProgress=pct=>{
+      if(typeof onProgress==="function") onProgress(pct);
+      else voiceStatus("Preparing audio locally. Keep this page open...",pct,"busy");
+    };
+    video.addEventListener("timeupdate",()=>reportProgress(Math.round(video.currentTime/video.duration*100)));
+    reportProgress(0);
     await audioContext.resume();
     recorder.start(1000);
     await video.play();
@@ -2620,6 +2872,38 @@ async function transcribeLocalMedia(file){
 document.addEventListener("click", async e=>{
   const t = e.target;
 
+  if(t.id==="officeAiPickBtn"){
+    if(!OFFICE_AI_BUSY){
+      const config=loadOfficeAiConfig();
+      if(!config.endpoint||!config.token) openOfficeAiSetup();
+      else document.getElementById("officeMediaIn").click();
+    }
+    return;
+  }
+  if(t.id==="officeAiSetupBtn"){ if(!OFFICE_AI_BUSY) openOfficeAiSetup(); return; }
+  if(t.id==="officeSetupClose"){ document.getElementById("modal").classList.remove("on"); return; }
+  if(t.id==="officeSetupClear"){
+    if(OFFICE_AI_BUSY){ toast("Wait for the active walkthrough to finish"); return; }
+    localStorage.removeItem(OFFICE_AI_CONFIG_KEY); localStorage.removeItem(OFFICE_AI_PENDING_KEY);
+    document.getElementById("modal").classList.remove("on"); showOfficeAiIdle(); toast("Office connection forgotten on this phone"); return;
+  }
+  if(t.id==="officeSetupTest"){
+    const status=document.getElementById("officePairStatus"), config=enteredOfficeConfig();
+    status.className="pair-status"; status.textContent="Checking the office computer…";
+    try{ await testOfficeAiConnection(config,status); }
+    catch(err){ status.className="pair-status bad"; status.textContent=err.message; }
+    return;
+  }
+  if(t.id==="officeSetupSave"){
+    const status=document.getElementById("officePairStatus"), config=enteredOfficeConfig();
+    status.className="pair-status"; status.textContent="Checking before saving…";
+    try{
+      await testOfficeAiConnection(config,status);
+      localStorage.setItem(OFFICE_AI_CONFIG_KEY,JSON.stringify(config));
+      document.getElementById("modal").classList.remove("on"); showOfficeAiIdle(); toast("Office AI connected");
+    }catch(err){ status.className="pair-status bad"; status.textContent=err.message; }
+    return;
+  }
   if(t.id==="bugBtn"){ openBugReporter(); return; }
   if(t.id==="bugClose"){ document.getElementById("modal").classList.remove("on"); return; }
   if(t.id==="bugCopy"){ await copyBugReport(); return; }
@@ -2657,7 +2941,7 @@ document.addEventListener("click", async e=>{
   if(t.id==="dictApply"){
     if(!DICT.length) return;
     const n = applyDictation(DICT);
-    DICT = []; renderDict();
+    DICT = []; renderDict(); document.getElementById("officeAiReview").classList.remove("on");
     toast(n ? n + " line" + (n===1?"":"s") + " updated — check them over" : "Nothing new to mark");
     return;
   }
@@ -2729,7 +3013,7 @@ document.addEventListener("click", async e=>{
     const [spId, idx] = kb.dataset.k.split(":");
     const sp = cur.spaces.find(x=>x.id===spId), it = sp.items[+idx];
     it.s = (it.s === kb.dataset.v) ? "" : kb.dataset.v;
-    if(FLAGS.indexOf(it.s) < 0) it.n = "";
+    if(it.s!=="work" && it.s!=="na") it.n = "";
     save(); paintItem(sp, +idx); paintSection(sp); renderHead(); markFeedback(sp, +idx); pulseProgress(); celebrateCompletion(wasComplete);
     return;
   }
@@ -2928,6 +3212,10 @@ document.getElementById("mediaIn").addEventListener("change", async e=>{
   const file = e.target.files && e.target.files[0];
   e.target.value = "";
   if(file) await transcribeLocalMedia(file);
+});
+document.getElementById("officeMediaIn").addEventListener("change", async e=>{
+  const file=e.target.files&&e.target.files[0]; e.target.value="";
+  if(file) await sendOfficeAiWalkthrough(file);
 });
 document.getElementById("dictText").addEventListener("input", e=>renderTranscriptHints(e.target.value));
 
