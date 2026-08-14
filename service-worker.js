@@ -1,4 +1,4 @@
-const CACHE = 'inspection-v21-local-ai-beta';
+const CACHE = 'inspection-v22-4-resilient-office-ai';
 const ASSETS = [
   './', './index.html', './move-in.html', './move-out.html',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',

@@ -670,7 +670,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = "out";      /* locked move-out launcher */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "local-ai-beta-v21";
+const APP_VERSION = "local-ai-resilient-v22.4";
 const KEY = "cimco.inspections.v1";
 const OFFICE_AI_CONFIG_KEY = "cimco.office-ai.config.v1";
 const OFFICE_AI_PENDING_KEY = "cimco.office-ai.pending.v1";
@@ -2334,7 +2334,7 @@ function officeChecklistManifest(){
     if(it.dictRoom) return;
     items.push({id:sp.id+":"+index,section:sp.name,item:it.t});
   }));
-  return {inspection_type:MODE_LABEL[cur.mode]||"Inspection",items};
+  return {client_inspection_id:String(cur.id||""),inspection_type:MODE_LABEL[cur.mode]||"Inspection",items};
 }
 function pendingOfficeJob(){
   try{ return JSON.parse(localStorage.getItem(OFFICE_AI_PENDING_KEY)||"null"); }catch(e){ return null; }
@@ -2411,13 +2411,14 @@ async function pollOfficeAiJob(jobId,config){
     if(data.status==="complete"){
       savePendingOfficeJob(null); OFFICE_AI_JOB=""; setOfficeAiBusy(false); showOfficeAiResult(data.result||{}); return;
     }
-    if(data.status==="failed") throw new Error(data.error||"The office computer could not finish the walkthrough.");
+    if(data.status==="failed"){ const failure=new Error(data.error||"The office computer could not finish the walkthrough."); failure.permanent=true; throw failure; }
     OFFICE_AI_POLL=setTimeout(()=>pollOfficeAiJob(jobId,config),2500);
   }catch(err){
     OFFICE_AI_POLL_FAILURES++;
-    if(!err.permanent && (!navigator.onLine || OFFICE_AI_POLL_FAILURES<5)){
-      setOfficeAiStatus("Connection paused. The office computer keeps working.",null,"busy","This phone will check again automatically.");
-      OFFICE_AI_POLL=setTimeout(()=>pollOfficeAiJob(jobId,config),Math.min(15000,3000*OFFICE_AI_POLL_FAILURES)); return;
+    if(!err.permanent){
+      const delay=Math.min(30000,3000*Math.max(1,OFFICE_AI_POLL_FAILURES));
+      setOfficeAiStatus("Connection interrupted. The office computer keeps working.",null,"busy","This phone will reconnect automatically; no recording needs to be uploaded again.");
+      OFFICE_AI_POLL=setTimeout(()=>pollOfficeAiJob(jobId,config),delay); return;
     }
     savePendingOfficeJob(null); OFFICE_AI_JOB=""; setOfficeAiBusy(false); officeAiError(err.message);
   }
@@ -2453,13 +2454,35 @@ async function sendOfficeAiWalkthrough(file){
     pollOfficeAiJob(job.id,config);
   }catch(err){ setOfficeAiBusy(false); officeAiError(err.message); }
 }
-function resumeOfficeAiJob(){
+async function resumeOfficeAiJob(){
   if(!cur||OFFICE_AI_BUSY) return;
   const pending=pendingOfficeJob(), config=loadOfficeAiConfig();
-  if(!pending||pending.inspection_id!==cur.id||!pending.job_id||!config.endpoint||!config.token) return;
-  OFFICE_AI_JOB=pending.job_id; setOfficeAiBusy(true);
-  setOfficeAiStatus("Reconnecting to the office walkthrough job…",20,"busy","The recording does not need to be uploaded again.");
-  pollOfficeAiJob(OFFICE_AI_JOB,config);
+  if(!config.endpoint||!config.token) return;
+  if(pending&&pending.inspection_id===cur.id&&pending.job_id){
+    OFFICE_AI_JOB=pending.job_id; setOfficeAiBusy(true);
+    setOfficeAiStatus("Reconnecting to the office walkthrough job…",20,"busy","The recording does not need to be uploaded again.");
+    pollOfficeAiJob(OFFICE_AI_JOB,config); return;
+  }
+  try{
+    const response=await fetch(config.endpoint+"/v1/latest-job",{headers:officeAiHeaders(config),cache:"no-store"});
+    if(!response.ok) return;
+    const data=await response.json(), manifest=officeChecklistManifest();
+    const currentIds=new Set(manifest.items.map(row=>String(row.id)));
+    const matchesCurrentChecklist=(data.item_ids||[]).some(id=>currentIds.has(String(id)));
+    const exactInspection=!data.client_inspection_id||String(data.client_inspection_id)===String(cur.id);
+    const sameType=!data.inspection_type||String(data.inspection_type)===String(manifest.inspection_type);
+    const ageMs=Date.now()-(Number(data.updated_at)||0)*1000;
+    const active=data.status==="queued"||data.status==="processing";
+    if(!matchesCurrentChecklist||!exactInspection||!sameType||(!active&&ageMs>30*60*1000)) return;
+    OFFICE_AI_BRIDGE_VERSION=data.bridge_version||OFFICE_AI_BRIDGE_VERSION;
+    if(data.status==="complete"){
+      savePendingOfficeJob(null); OFFICE_AI_JOB=""; setOfficeAiBusy(false); showOfficeAiResult(data.result||{}); toast("Recovered the latest office walkthrough"); return;
+    }
+    if(!active) return;
+    OFFICE_AI_JOB=data.id; savePendingOfficeJob({job_id:data.id,inspection_id:cur.id,created_at:Date.now()}); setOfficeAiBusy(true);
+    setOfficeAiStatus("Recovered the office walkthrough job…",20,"busy","The recording does not need to be uploaded again.");
+    pollOfficeAiJob(OFFICE_AI_JOB,config);
+  }catch(e){}
 }
 
 /* live speech, where the browser offers it */

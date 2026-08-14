@@ -1,4 +1,4 @@
-# CIMCO Property Inspection — Local AI Beta
+# CIMCO Property Inspection — Resilient Local AI 22.4
 
 This build keeps the field inspection app offline-first and adds optional automatic walkthrough analysis on the always-on office computer. It does not use an OpenAI API key, a ChatGPT account, or a cloud transcription service.
 
@@ -9,6 +9,8 @@ This build keeps the field inspection app offline-first and adds optional automa
 3. Choose the inspector's recording and keep the page open. For video, the phone first makes a temporary audio-only copy to reduce the upload; if that is unsupported, it safely sends the original.
 4. The office computer transcribes the recording and matches observations to the exact checklist.
 5. Review the proposed Good, Needs work, and N/A results, then apply them to the sheet.
+
+The upload percentage and the office-processing percentage are one continuous progress display. A weak phone connection no longer discards the job: the page keeps reconnecting, and a reopened inspection can recover its recent matching office job without uploading the recording again.
 
 The normal checklist, photos, signatures, reports, and manual dictation remain available without the office connection. Inspection records still live on the phone unless the inspector exports them.
 
