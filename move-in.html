@@ -138,6 +138,15 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .mini:hover{border-color:var(--slate);color:var(--ink)}
 .mini.go{border-color:var(--ok);color:var(--ok)}
 .mini.warn{border-color:var(--rule);color:var(--work)}
+.roomtools{margin:0 0 12px;padding:13px 14px;border:1px solid var(--rule);border-left:4px solid var(--hivis);border-radius:7px;background:linear-gradient(110deg,#FFF9EF,#FFFDF9);box-shadow:0 3px 10px rgba(79,63,42,.035)}
+.roomtools-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.roomtools-head b{display:block;font-size:14px;color:var(--ink)}
+.roomtools-head span{display:block;margin-top:2px;font-size:11.5px;line-height:1.35;color:var(--slate)}
+.roomquick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.roomquick .mini{background:#fff;min-height:38px}
+.roomquick .room-primary{border-color:var(--hivis);color:var(--ink)}
+.roomtools-note{margin-top:8px;font:10px/1.4 "IBM Plex Mono",ui-monospace,monospace;color:var(--mute)}
+.print-room-groups{display:none}
 
 .item{padding:11px 14px;border-top:1px solid var(--hair)}
 .item.flagged{background:#FFF5F0}
@@ -342,7 +351,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
 }
 @media print{
   @page{margin:11mm 12mm 13mm}
-  .mast .lede,.rail,.bar,.sectools,.pad6,.cam,.mini,.toast,.lb,#celebrate,#fieldPulse,#walkProgress,.noprint,#dictCard,#addSpaces,#edFoot{display:none!important}
+  .mast .lede,.rail,.bar,.sectools,.pad6,.cam,.mini,.toast,.lb,#celebrate,#fieldPulse,#walkProgress,.noprint,#dictCard,#addSpaces,#edFoot,.roomtools{display:none!important}
   body{background:#fff;padding:0;font-size:10pt;line-height:1.35;color:#151515}
   .wrap{max-width:none!important;width:auto!important}
   .mast{background:#fff;color:#111;padding:0 0 6px;border-bottom:2px solid #1B3C46}
@@ -359,6 +368,16 @@ body[data-mode="routine"] .moveonly{display:none!important}
   .print-meta span{font-size:9.2pt;line-height:1.35;overflow-wrap:anywhere}
   .print-meta b{display:block;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:7.3pt;letter-spacing:.07em;text-transform:uppercase;color:#59666A;margin:0 0 1px}
   .sec{border:0!important;border-top:1px solid #A7B0B2!important;border-radius:0!important;box-shadow:none!important;margin:8px 0 0;break-inside:auto}
+  .sec.room-space{display:none!important}
+  .print-room-groups{display:block;margin-top:8px}
+  .print-room-group{break-inside:avoid;margin:8px 0 0;border-top:1.5px solid #1B3C46;padding-top:5px}
+  .print-room-group h2{font-size:11.5pt;color:#173943;margin:0 0 2px}
+  .print-room-group p{font-size:7.5pt;color:#59666A;margin:0 0 4px}
+  .room-matrix{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.2pt}
+  .room-matrix th,.room-matrix td{border:1px solid #C5CCCE;padding:2px 3px;text-align:center;vertical-align:middle;overflow-wrap:anywhere}
+  .room-matrix th{background:#F1F3F2;color:#173943;font-weight:600}
+  .room-matrix th:first-child,.room-matrix td:first-child{width:28%;text-align:left}
+  .room-matrix td.work{color:#9B3427;font-weight:700}.room-matrix td.ok{color:#245E49;font-weight:700}.room-matrix td.na{color:#687677}
   .sec>summary{break-after:avoid}
   .item{break-inside:avoid}
   .item.unreviewed{display:none!important}
@@ -599,14 +618,20 @@ body[data-mode="routine"] .moveonly{display:none!important}
     </div>
 
     <div class="block" id="block"></div>
-    <div id="spaces"></div>
-
-    <div class="row" id="addSpaces" style="margin:0 0 16px">
-      <button class="mini" data-add="bedroom">+ Bedroom</button>
-      <button class="mini" data-add="bathroom">+ Bathroom</button>
-      <button class="mini" data-add="living">+ Living / dining</button>
-      <button class="mini" data-add="other">+ Other space</button>
+    <div class="roomtools" id="addSpaces">
+      <div class="roomtools-head"><div><b>Rooms in this property</b><span>Add optional rooms here before or during the walkthrough. Related bedrooms and bathrooms stay together.</span></div><span class="eyebrow">Quick add</span></div>
+      <div class="roomquick">
+        <button class="mini room-primary" data-add="bedroom">+ Bedroom</button>
+        <button class="mini room-primary" data-add="guestroom">+ Guest room</button>
+        <button class="mini room-primary" data-add="bathroom">+ Full bath</button>
+        <button class="mini room-primary" data-add="halfbath">+ Half bath</button>
+        <button class="mini" data-add="living">+ Living / dining</button>
+        <button class="mini" data-add="other">+ Other space</button>
+      </div>
+      <div class="roomtools-note">Printed reports combine bedrooms and bathrooms into compact shared-checklist tables.</div>
     </div>
+    <div class="print-room-groups" id="printRoomGroups"></div>
+    <div id="spaces"></div>
 
     <div class="card" id="wkCard">
       <div class="eyebrow" id="wkEyebrow">Move-out</div>
@@ -670,25 +695,30 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = "in";      /* locked move-in launcher */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "local-ai-resilient-v22.4";
+const APP_VERSION = "room-groups-v23";
 const KEY = "cimco.inspections.v1";
 const OFFICE_AI_CONFIG_KEY = "cimco.office-ai.config.v1";
 const OFFICE_AI_PENDING_KEY = "cimco.office-ai.pending.v1";
 
 /* ---------------- templates from the paper sheet ---------------- */
+const BEDROOM_ITEMS = ["Floor","Walls","Closet","Blinds","Lights","Baseboard","Outlets / plates","Windows","Doors","A/C vents"];
+const BATHROOM_ITEMS = ["Vanity","Faucet","Toilet","Tub","Shower","Shower handle","Shower walls","Mirror","Windows","Vent","Floor","GFCI"];
+const HALF_BATH_ITEMS = ["Vanity","Faucet","Toilet","Mirror","Vent","Floor","GFCI"];
 const T = {
   living:  {label:"Living room", items:["Floor","Walls","Closet","Blinds","Lights","Baseboard","Outlets / plates","Windows","Doors","A/C vents"]},
   kitchen: {label:"Kitchen", items:["Floor","Walls","Lights","Cabinets","Handles","Faucet","Sink / disposal","Fridge","Oven / range","Vent hood","Microwave","Counter","Outlets / GFCI"]},
   laundry: {label:"Laundry & appliances", items:["Washer","Dryer","Dishwasher","Hookups / hoses","Dryer vent","Floor / walls"]},
-  bedroom: {label:"Bedroom", items:["Floor","Walls","Closet","Blinds","Lights","Baseboard","Outlets / plates","Windows","Doors","A/C vents"]},
-  bathroom:{label:"Bathroom", items:["Vanity","Faucet","Toilet","Tub","Shower","Shower handle","Shower walls","Mirror","Windows","Vent","Floor","GFCI"]},
+  bedroom: {label:"Bedroom", items:BEDROOM_ITEMS},
+  guestroom:{label:"Guest room", items:BEDROOM_ITEMS},
+  bathroom:{label:"Bathroom", items:BATHROOM_ITEMS},
+  halfbath:{label:"Half bath", items:HALF_BATH_ITEMS},
   systems: {label:"Safety & systems", items:["Smoke detectors","CO detector","A/C filter (size noted)","Thermostat","A/C cools","Water heater","Breaker panel","Main water shutoff","Locks / deadbolts"]},
   outside: {label:"Outside", items:["Front yard","Backyard","Front door","Back door","Exterior lights","Fence","Trees","Shed","Roof / siding","Screens / lanai","Garage / carport","Driveway","Pool","Mailbox"]},
   other:   {label:"Other space", items:["Floor","Walls","Lights","Windows","Doors","Outlets / plates"]}
 };
 const DEFAULT_SPACES = [
   ["living","Living room"],["kitchen","Kitchen"],["laundry","Laundry & appliances"],
-  ["bedroom","Bedroom #1"],["bathroom","Master bath"],["systems","Safety & systems"],["outside","Outside"]
+  ["bedroom","Master Bedroom"],["bathroom","Master bath"],["systems","Safety & systems"],["outside","Outside"]
 ];
 /* The rent-ready beta's real field checks, consolidated so each core line is
    a distinct decision. Property-specific checks stay off until selected. */
@@ -723,6 +753,8 @@ const READY_SPACES = [
     "Counters / fixtures (free of staining or damage)",
     "Whole-house professional clean (including cabinets, appliances, baseboards, tracks)"
   ]],
+  ["bedroom","Master Bedroom",BEDROOM_ITEMS],
+  ["bathroom","Master bath",BATHROOM_ITEMS],
   ["rr-exterior","Exterior & grounds",[
     "Roof / gutters / drainage (visually sound; water directed away)",
     "Irrigation / landscaping / grass (runs; trimmed; no roof overgrowth)",
@@ -779,6 +811,8 @@ const ROUTINE_SPACES = [
     "Floors / carpet / tile","Walls / ceilings / paint","Windows / screens / blinds",
     "Interior doors / closets","Cabinets / counters / fixtures"
   ]],
+  ["bedroom","Master Bedroom",BEDROOM_ITEMS],
+  ["bathroom","Master bath",BATHROOM_ITEMS],
   ["routine-exterior","Exterior & grounds",[
     "Yard / landscaping / debris","Exterior walls / roof / gutters","Driveway / walkways / fencing",
     "Exterior lights / house numbers","Garage / carport / pool / patio / lanai"
@@ -815,6 +849,11 @@ function money(n){ return "$" + (Math.round((n||0)*100)/100).toFixed(2); }
 function normalizeStatus(code){ return LEGACY_STATUS[code] || code || ""; }
 function normalizeRecord(rec){
   if(!rec || !Array.isArray(rec.spaces)) return rec;
+  const firstBedroom = rec.spaces.find(sp=>sp && sp.type==="bedroom");
+  if(firstBedroom && /^(?:bedroom(?:\s*#?\s*1)?|master bedroom)$/i.test(String(firstBedroom.name||"").trim())){
+    firstBedroom.name = "Master Bedroom";
+  }
+  groupRelatedRooms(rec);
   rec.spaces.forEach(sp=>(sp.items||[]).forEach(it=>{
     const prior = it.s;
     it.s = normalizeStatus(prior);
@@ -1130,6 +1169,62 @@ function shrink(file){
 }
 
 /* ---------------- records ---------------- */
+function roomFamily(value){
+  const type = typeof value==="string" ? value : (value||{}).type;
+  if(type==="bedroom" || type==="guestroom") return "bedroom";
+  if(type==="bathroom" || type==="halfbath") return "bathroom";
+  return "";
+}
+function groupRelatedRooms(rec){
+  if(!rec || !Array.isArray(rec.spaces)) return;
+  const first=rec.spaces.findIndex(sp=>roomFamily(sp));
+  if(first<0) return;
+  const bedrooms=rec.spaces.filter(sp=>roomFamily(sp)==="bedroom");
+  const bathrooms=rec.spaces.filter(sp=>roomFamily(sp)==="bathroom");
+  if(bedrooms.length+bathrooms.length<2) return;
+  const others=rec.spaces.filter(sp=>!roomFamily(sp));
+  const beforeCount=rec.spaces.slice(0,first).filter(sp=>!roomFamily(sp)).length;
+  others.splice(beforeCount,0,...bedrooms,...bathrooms);
+  rec.spaces=others;
+}
+function nextSpaceName(type){
+  const spaces = (cur&&Array.isArray(cur.spaces)) ? cur.spaces : [];
+  if(type==="bedroom") return "Bedroom " + Math.max(2, spaces.filter(sp=>sp.type==="bedroom").length + 1);
+  if(type==="guestroom"){
+    const count=spaces.filter(sp=>sp.type==="guestroom").length;
+    return count ? "Guest room " + (count+1) : "Guest room";
+  }
+  if(type==="bathroom") return "Bathroom " + Math.max(2, spaces.filter(sp=>sp.type==="bathroom").length + 1);
+  if(type==="halfbath"){
+    const count=spaces.filter(sp=>sp.type==="halfbath").length;
+    return count ? "Half bath " + (count+1) : "Half bath";
+  }
+  if(type==="living"){
+    const count=spaces.filter(sp=>sp.type==="living").length;
+    return count ? "Living / dining " + (count+1) : "Living / dining";
+  }
+  return T[type] ? T[type].label : "Other space";
+}
+function insertSpaceNearFamily(space){
+  const spaces=cur.spaces, family=roomFamily(space);
+  if(family){
+    let last=-1;
+    spaces.forEach((candidate,index)=>{ if(roomFamily(candidate)===family) last=index; });
+    if(last>=0){ spaces.splice(last+1,0,space); return; }
+    const otherFamily=family==="bedroom" ? "bathroom" : "";
+    const before=spaces.findIndex(candidate=>otherFamily && roomFamily(candidate)===otherFamily);
+    if(before>=0){ spaces.splice(before,0,space); return; }
+    if(family==="bathroom"){
+      let lastBedroom=-1;
+      spaces.forEach((candidate,index)=>{ if(roomFamily(candidate)==="bedroom") lastBedroom=index; });
+      if(lastBedroom>=0){ spaces.splice(lastBedroom+1,0,space); return; }
+    }
+  }
+  spaces.push(space);
+}
+function buildSpace(type,name){
+  return {id:uid(),type,name,items:T[type].items.map(t=>({t,s:"",n:"",base:""}))};
+}
 function makeSpaces(){
   return DEFAULT_SPACES.map(([type,name])=>({
     id: uid(), type, name,
@@ -1309,7 +1404,7 @@ function renderEditor(){
   document.querySelectorAll(".readyonly").forEach(el=>el.classList.toggle("hide", !isReady));
   document.querySelectorAll(".routineonly").forEach(el=>el.classList.toggle("hide", !isRoutine));
   document.querySelectorAll(".signCard").forEach(el=>el.classList.toggle("hide", isReady));
-  document.getElementById("addSpaces").classList.toggle("hide", isReady || isRoutine);
+  document.getElementById("addSpaces").classList.remove("hide");
   document.getElementById("wkCard").classList.toggle("hide", !isOut && !isRoutine);
   document.getElementById("keysLabel").textContent = isOut ? "Keys returned" : "Keys issued";
   document.getElementById("ackText").textContent = isOut
@@ -1371,6 +1466,38 @@ function renderBlock(){
       : `<p class="none">Nothing needs work yet. Lines that need attention collect here.</p>`);
 }
 
+function roomMatrixMarkup(rec, family, includeBlanks){
+  const labels={bedroom:"Bedrooms",bathroom:"Bathrooms"};
+  const marks={ok:"✓",work:"!",na:"N/A"};
+  let rooms=activeSpaces(rec).filter(sp=>roomFamily(sp)===family);
+  if(!includeBlanks) rooms=rooms.filter(sp=>sp.items.some(it=>!!it.s));
+  if(!rooms.length) return "";
+  let lines=[];
+  rooms.forEach(sp=>sp.items.forEach(it=>{ if(lines.indexOf(it.t)<0) lines.push(it.t); }));
+  if(!includeBlanks) lines=lines.filter(line=>rooms.some(sp=>{ const it=sp.items.find(x=>x.t===line); return it && it.s; }));
+  if(!lines.length) return "";
+  const head=rooms.map(sp=>`<th>${esc(sp.name)}</th>`).join("");
+  const body=lines.map(line=>{
+    const cells=rooms.map(sp=>{
+      const item=sp.items.find(it=>it.t===line);
+      if(!item) return '<td class="absent">—</td>';
+      return `<td class="${item.s||"blank"}">${item.s ? esc(marks[item.s]||item.s) : ""}</td>`;
+    }).join("");
+    return `<tr><td>${esc(line)}</td>${cells}</tr>`;
+  }).join("");
+  return `<section class="print-room-group"><h2>${labels[family]} · shared checklist</h2><p>✓ Good &nbsp; ! Needs work &nbsp; N/A Not applicable &nbsp; Blank Not reviewed. Details appear in Exceptions noted.</p><table class="room-matrix"><thead><tr><th>Checklist line</th>${head}</tr></thead><tbody>${body}</tbody></table></section>`;
+}
+
+function roomMatricesMarkup(rec, includeBlanks){
+  return ["bedroom","bathroom"].map(family=>roomMatrixMarkup(rec,family,includeBlanks)).join("");
+}
+
+function renderPrintRoomGroups(){
+  const host=document.getElementById("printRoomGroups");
+  if(!host) return;
+  host.innerHTML=roomMatricesMarkup(cur,cur.mode==="routine");
+}
+
 function renderSpaces(){
   const openIds = {};
   document.querySelectorAll("#spaces details.sec").forEach(d=>{ openIds[d.dataset.sp] = d.open; });
@@ -1402,7 +1529,7 @@ function renderSpaces(){
       </div>`;
     }).join("");
 
-    return `<details class="sec ${d?"":"no-reviewed"}" data-sp="${sp.id}" ${isOpen?"open":""}>
+    return `<details class="sec ${roomFamily(sp)?"room-space ":""}${d?"":"no-reviewed"}" data-sp="${sp.id}" ${isOpen?"open":""}>
       <summary><span class="caret">▶</span>${esc(sp.name)}<span class="count ${cls}">${d}/${sp.items.length}${f?" · "+f+" needs work":""}</span></summary>
       <div class="sectools">
         <button class="mini go" data-allok="${sp.id}">Pass the rest</button>
@@ -1413,6 +1540,7 @@ function renderSpaces(){
       ${items}
     </details>`;
   }).join("");
+  renderPrintRoomGroups();
   watchSpaces();
 }
 
@@ -1658,7 +1786,8 @@ function reportHTML(rec){
     ["Forwarding address", rec.mode==="out" ? m.fwd : ""]
   ].filter(r=>r[1]);
 
-  const lines = activeSpaces(rec).map(sp=>{
+  const roomLines = roomMatricesMarkup(rec,isRoutine);
+  const lines = activeSpaces(rec).filter(sp=>!roomFamily(sp)).map(sp=>{
     const reviewed = isRoutine ? sp.items.map((it,i)=>({it,i})) : reviewedItems(sp);
     if(!reviewed.length) return "";
     const rows = reviewed.map(({it,i})=>{
@@ -1714,6 +1843,7 @@ function reportHTML(rec){
     + "td.c{width:120px;font:12px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:#5D6B69}"
     + ".write{display:block;height:22px;border-bottom:1px solid #A7B0B2}.manual tr:not(:first-child) td{height:34px;border-bottom:1px solid #A7B0B2}"
     + "tr.bad td{background:#FFF5F0}tr.bad td.c{color:#B5553D;font-weight:600}tr.tot td{font-weight:700;background:#F4F0E8}"
+    + ".print-room-group p{font-size:11px;color:#5D6B69;margin:0 0 6px}.room-matrix{table-layout:fixed;font-size:12px}.room-matrix th,.room-matrix td{border:1px solid #D9D1C3;padding:5px;text-align:center;overflow-wrap:anywhere}.room-matrix th{background:#F4F0E8;font-size:11px}.room-matrix th:first-child,.room-matrix td:first-child{width:28%;text-align:left}.room-matrix td.work{background:#FFF0E8;color:#9A402B;font-weight:700}.room-matrix td.ok{color:#26715C;font-weight:700}.room-matrix td.na,.room-matrix td.blank,.room-matrix td.absent{color:#77817F}"
     + ".meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin:14px 0}"
     + ".meta div{border-left:3px solid #D5A25E;padding-left:9px}.meta b{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5D6B69}"
     + ".coverage{background:#F4F0E8;border-left:3px solid #D5A25E;padding:9px 11px;font-weight:600}"
@@ -1726,7 +1856,7 @@ function reportHTML(rec){
     + "</style><div class=\"w\"><div class=\"sub\">" + esc(ORG) + " · " + esc(modeTitle(rec)) + " inspection</div>"
     + "<h1>" + esc(title(rec)) + "</h1><p class=\"coverage\">" + s.done + " of " + s.total + " lines reviewed · " + s.flags + " need work</p>"
     + "<div class=\"meta\">" + head.map(r=>"<div><b>" + esc(r[0]) + "</b>" + esc(r[1]) + "</div>").join("") + "</div>"
-    + lines + wk + (m.misc ? "<h2>Notes</h2><p>" + esc(m.misc) + "</p>" : "")
+    + roomLines + lines + wk + (m.misc ? "<h2>Notes</h2><p>" + esc(m.misc) + "</p>" : "")
     + sigs + gallery + "</div>";
 }
 
@@ -1949,7 +2079,9 @@ function spaceAliases(sp){
   if(t==="kitchen") cands.push("kitchen","kitchenette");
   if(t==="laundry") cands.push("laundry","laundry room","utility","appliances");
   if(t==="bedroom") cands.push("bedroom","bed room","master bedroom","primary bedroom");
-  if(t==="bathroom") cands.push("bathroom","bath","master bath","guest bath","half bath","powder room","restroom");
+  if(t==="guestroom") cands.push("guest room","guest bedroom","spare room","spare bedroom");
+  if(t==="bathroom") cands.push("bathroom","bath","master bath","full bath","restroom");
+  if(t==="halfbath") cands.push("half bath","half bathroom","powder room","guest bathroom","restroom");
   if(t==="systems") cands.push("safety","systems","mechanicals","utilities");
   if(t==="outside") cands.push("outside","exterior","outdoors","yard","out back","front");
   if(t==="rr-safety") cands.push("safety","access","life safety");
@@ -3080,14 +3212,20 @@ document.addEventListener("click", async e=>{
   const add = t.closest("[data-add]");
   if(add){
     const type = add.dataset.add;
-    const n = cur.spaces.filter(s=>s.type===type).length + 1;
-    const base = T[type].label;
-    const name = prompt("Name this space", type==="bedroom" ? "Bedroom #"+n : type==="bathroom" ? (n===1?"Bathroom":"Bathroom "+n) : base);
-    if(name===null) return;
-    cur.spaces.push({id:uid(), type, name: name.trim()||base, items: T[type].items.map(x=>({t:x, s:"", n:"", base:""}))});
+    if(!T[type]) return;
+    let name=nextSpaceName(type);
+    if(type==="other"){
+      const entered=prompt("Name this space",name);
+      if(entered===null) return;
+      name=entered.trim()||name;
+    }
+    const space=buildSpace(type,name);
+    insertSpaceNearFamily(space);
     save(); renderSpaces(); renderHead();
-    const d = document.querySelector('details[data-sp="'+cur.spaces[cur.spaces.length-1].id+'"]');
-    if(d) d.scrollIntoView({behavior:"smooth", block:"center"});
+    setActiveSpace(space.id);
+    const d = document.querySelector('details[data-sp="'+space.id+'"]');
+    if(d){ d.open=true; d.scrollIntoView({behavior:"smooth", block:"center"}); }
+    toast(name + " added next to related rooms");
     return;
   }
 

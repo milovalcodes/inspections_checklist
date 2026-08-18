@@ -12,6 +12,10 @@ This build keeps the field inspection app offline-first and adds optional automa
 
 The upload percentage and the office-processing percentage are one continuous progress display. A weak phone connection no longer discards the job: the page keeps reconnecting, and a reopened inspection can recover its recent matching office job without uploading the recording again.
 
+## Flexible room groups
+
+Every inspection template starts with **Master Bedroom**. A quick-add panel near the top of the walkthrough adds Bedroom 2, guest rooms, full bathrooms, half bathrooms, living areas, and other spaces without sending the inspector to the end of the form. Bedrooms and bathrooms remain adjacent on screen. Printed/PDF reports replace repeated room sections with compact shared-checklist matrices, while exceptions and photographs retain their individual room names.
+
 The normal checklist, photos, signatures, reports, and manual dictation remain available without the office connection. Inspection records still live on the phone unless the inspector exports them.
 
 ## Important privacy boundary
