@@ -695,7 +695,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = null;      /* null = both modes in one app */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "concise-checklists-v24";
+const APP_VERSION = "live-print-sync-v25";
 const KEY = "cimco.inspections.v1";
 const OFFICE_AI_CONFIG_KEY = "cimco.office-ai.config.v1";
 const OFFICE_AI_PENDING_KEY = "cimco.office-ai.pending.v1";
@@ -1694,6 +1694,7 @@ function paintItem(sp, idx){
     note.placeholder = "What needs work, or why it could not be tested";
     if(!flag && it.s!=="na") note.value = "";
   }
+  renderPrintRoomGroups();
 }
 function paintSection(sp){
   const d = document.querySelector('details[data-sp="' + sp.id + '"]');
@@ -1852,8 +1853,10 @@ function renderPrintMeta(){
     "<span><b>" + esc(row[0]) + "</b>" + esc(row[1]) + "</span>").join("");
 }
 
-function printNow(){
+function preparePrintView(){
+  if(!cur) return;
   renderPrintMeta();
+  renderPrintRoomGroups();
   const sigNames = [["printSigT","tenantSigName"],["printSigI","inspSigName"]];
   sigNames.forEach(([id,key])=>{
     const el = document.getElementById(id);
@@ -1879,8 +1882,16 @@ function printNow(){
       + log.map(o=>'<figure><img src="' + o.p.data + '"><figcaption>' + esc(caption(o)) + "</figcaption></figure>").join("")
     : "";
 
-  setTimeout(()=>window.print(), 120);
 }
+
+function printNow(){
+  preparePrintView();
+  requestAnimationFrame(()=>{
+    preparePrintView();
+    setTimeout(()=>window.print(),0);
+  });
+}
+window.addEventListener("beforeprint",preparePrintView);
 
 /* a self-contained web page: full-size photos, opens anywhere, no app needed */
 function modeTitle(rec){ return MODE_LABEL[rec.mode] || "Inspection"; }

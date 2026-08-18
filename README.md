@@ -18,6 +18,8 @@ Every inspection template starts with **Master Bedroom**. A quick-add panel near
 
 Room checklists use one decision per physical feature: related components such as shower walls and handles, cabinet hardware, window coverings, and HVAC controls are consolidated into concise lines. Existing saved inspections are upgraded in place while retaining their statuses, notes, and photos. In room matrices, **Needs work** prints as a clear × on a subtle pink background so it cannot be mistaken for Good.
 
+The printable room matrix refreshes immediately whenever a status changes and refreshes once more at print startup. This prevents a recently changed or cleared mark from appearing with its previous value in the final PDF.
+
 The normal checklist, photos, signatures, reports, and manual dictation remain available without the office connection. Inspection records still live on the phone unless the inspector exports them.
 
 ## Important privacy boundary
