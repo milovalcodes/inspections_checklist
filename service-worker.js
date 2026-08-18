@@ -1,4 +1,4 @@
-const CACHE = 'inspection-v23-room-groups';
+const CACHE = 'inspection-v24-concise-checklists';
 const ASSETS = [
   './', './index.html', './move-in.html', './move-out.html',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',

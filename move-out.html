@@ -352,7 +352,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
 @media print{
   @page{margin:11mm 12mm 13mm}
   .mast .lede,.rail,.bar,.sectools,.pad6,.cam,.mini,.toast,.lb,#celebrate,#fieldPulse,#walkProgress,.noprint,#dictCard,#addSpaces,#edFoot,.roomtools{display:none!important}
-  body{background:#fff;padding:0;font-size:10pt;line-height:1.35;color:#151515}
+  body{background:#fff;padding:0;font-size:10pt;line-height:1.35;color:#151515;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .wrap{max-width:none!important;width:auto!important}
   .mast{background:#fff;color:#111;padding:0 0 6px;border-bottom:2px solid #1B3C46}
   .mast:after{display:none}
@@ -377,7 +377,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
   .room-matrix th,.room-matrix td{border:1px solid #C5CCCE;padding:2px 3px;text-align:center;vertical-align:middle;overflow-wrap:anywhere}
   .room-matrix th{background:#F1F3F2;color:#173943;font-weight:600}
   .room-matrix th:first-child,.room-matrix td:first-child{width:28%;text-align:left}
-  .room-matrix td.work{color:#9B3427;font-weight:700}.room-matrix td.ok{color:#245E49;font-weight:700}.room-matrix td.na{color:#687677}
+  .room-matrix td.work{background:#FCE8E5;color:#9B3427;font-weight:800}.room-matrix td.ok{color:#245E49;font-weight:700}.room-matrix td.na{color:#687677}
   .sec>summary{break-after:avoid}
   .item{break-inside:avoid}
   .item.unreviewed{display:none!important}
@@ -695,26 +695,26 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = "out";      /* locked move-out launcher */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "room-groups-v23";
+const APP_VERSION = "concise-checklists-v24";
 const KEY = "cimco.inspections.v1";
 const OFFICE_AI_CONFIG_KEY = "cimco.office-ai.config.v1";
 const OFFICE_AI_PENDING_KEY = "cimco.office-ai.pending.v1";
 
 /* ---------------- templates from the paper sheet ---------------- */
-const BEDROOM_ITEMS = ["Floor","Walls","Closet","Blinds","Lights","Baseboard","Outlets / plates","Windows","Doors","A/C vents"];
-const BATHROOM_ITEMS = ["Vanity","Faucet","Toilet","Tub","Shower","Shower handle","Shower walls","Mirror","Windows","Vent","Floor","GFCI"];
-const HALF_BATH_ITEMS = ["Vanity","Faucet","Toilet","Mirror","Vent","Floor","GFCI"];
+const BEDROOM_ITEMS = ["Floor","Walls / ceiling / trim","Closet","Windows / blinds","Lights","Doors","Outlets / switches","A/C vent"];
+const BATHROOM_ITEMS = ["Vanity / sink / faucet","Toilet","Tub","Shower","Mirror","Window","Vent / fan","Floor","GFCI / outlets"];
+const HALF_BATH_ITEMS = ["Vanity / sink / faucet","Toilet","Mirror","Vent / fan","Floor","GFCI / outlets"];
 const T = {
-  living:  {label:"Living room", items:["Floor","Walls","Closet","Blinds","Lights","Baseboard","Outlets / plates","Windows","Doors","A/C vents"]},
-  kitchen: {label:"Kitchen", items:["Floor","Walls","Lights","Cabinets","Handles","Faucet","Sink / disposal","Fridge","Oven / range","Vent hood","Microwave","Counter","Outlets / GFCI"]},
-  laundry: {label:"Laundry & appliances", items:["Washer","Dryer","Dishwasher","Hookups / hoses","Dryer vent","Floor / walls"]},
+  living:  {label:"Living room", items:BEDROOM_ITEMS},
+  kitchen: {label:"Kitchen", items:["Floor","Walls / ceiling","Lights","Cabinets / hardware","Sink / faucet / disposal","Refrigerator","Range / oven / hood","Microwave","Counters","Outlets / GFCI"]},
+  laundry: {label:"Laundry & appliances", items:["Washer / dryer","Dishwasher","Hookups / hoses / dryer vent","Floor / walls"]},
   bedroom: {label:"Bedroom", items:BEDROOM_ITEMS},
   guestroom:{label:"Guest room", items:BEDROOM_ITEMS},
   bathroom:{label:"Bathroom", items:BATHROOM_ITEMS},
   halfbath:{label:"Half bath", items:HALF_BATH_ITEMS},
-  systems: {label:"Safety & systems", items:["Smoke detectors","CO detector","A/C filter (size noted)","Thermostat","A/C cools","Water heater","Breaker panel","Main water shutoff","Locks / deadbolts"]},
-  outside: {label:"Outside", items:["Front yard","Backyard","Front door","Back door","Exterior lights","Fence","Trees","Shed","Roof / siding","Screens / lanai","Garage / carport","Driveway","Pool","Mailbox"]},
-  other:   {label:"Other space", items:["Floor","Walls","Lights","Windows","Doors","Outlets / plates"]}
+  systems: {label:"Safety & systems", items:["Smoke / CO alarms","HVAC / thermostat / filter","Water heater","Electrical panel","Main water shutoff","Locks / deadbolts"]},
+  outside: {label:"Outside", items:["Yard / landscaping","Exterior doors / locks","Exterior lights","Fence / gates","Shed / outbuildings","Roof / siding / gutters","Screens / lanai","Garage / carport","Driveway / walkways","Pool","Mailbox"]},
+  other:   {label:"Other space", items:["Floor","Walls / ceiling","Lights","Windows","Doors","Outlets / switches"]}
 };
 const DEFAULT_SPACES = [
   ["living","Living room"],["kitchen","Kitchen"],["laundry","Laundry & appliances"],
@@ -820,11 +820,71 @@ const ROUTINE_SPACES = [
 ];
 /* Each inspected line has one simple outcome. Detailed language stays in
    the note, so reports retain context without making field marking slow. */
-const CODES = [["ok","✓","Good"],["work","!","Needs work"],["na","–","N/A"]];
+const CODES = [["ok","✓","Good"],["work","×","Needs work"],["na","–","N/A"]];
 const CODE_LABEL = {ok:"Good", work:"Needs work", na:"N/A"};
 const FLAGS = ["work"];
 const LEGACY_STATUS = {d:"work", b:"work", c:"work", r:"work", u:"na"};
 const MODE_LABEL = {in:"Move-in", out:"Move-out", ready:"Rent-ready", routine:"Routine"};
+const CHECKLIST_VERSION = 2;
+const BEDROOM_GROUPS = [
+  ["Floor",["Floor"]],
+  ["Walls / ceiling / trim",["Walls / ceiling / trim","Walls / ceiling / baseboards","Walls / ceiling","Walls","Baseboard","Baseboards"]],
+  ["Closet",["Closet"]],
+  ["Windows / blinds",["Windows / blinds","Windows","Window","Blinds"]],
+  ["Lights",["Lights"]],
+  ["Doors",["Doors"]],
+  ["Outlets / switches",["Outlets / switches","Outlets / plates","Outlets"]],
+  ["A/C vent",["A/C vent","A/C vents","HVAC vent"]]
+];
+const BATHROOM_GROUPS = [
+  ["Vanity / sink / faucet",["Vanity / sink / faucet","Vanity","Sink","Faucet"]],
+  ["Toilet",["Toilet"]],
+  ["Tub",["Tub"]],
+  ["Shower",["Shower","Shower handle","Shower walls"]],
+  ["Mirror",["Mirror"]],
+  ["Window",["Window","Windows"]],
+  ["Vent / fan",["Vent / fan","Vent"]],
+  ["Floor",["Floor"]],
+  ["GFCI / outlets",["GFCI / outlets","GFCI","Outlets / GFCI"]]
+];
+const HALF_BATH_GROUPS = BATHROOM_GROUPS.filter(group=>group[0]!=="Tub" && group[0]!=="Shower" && group[0]!=="Window");
+const CONCISE_ITEM_GROUPS = {
+  living:BEDROOM_GROUPS, bedroom:BEDROOM_GROUPS, guestroom:BEDROOM_GROUPS,
+  bathroom:BATHROOM_GROUPS, halfbath:HALF_BATH_GROUPS,
+  kitchen:[
+    ["Floor",["Floor"]], ["Walls / ceiling",["Walls / ceiling","Walls"]], ["Lights",["Lights"]],
+    ["Cabinets / hardware",["Cabinets / hardware","Cabinets","Handles"]],
+    ["Sink / faucet / disposal",["Sink / faucet / disposal","Sink / disposal","Faucet"]],
+    ["Refrigerator",["Refrigerator","Fridge"]],
+    ["Range / oven / hood",["Range / oven / hood","Oven / range","Vent hood"]],
+    ["Microwave",["Microwave"]], ["Counters",["Counters","Counter"]],
+    ["Outlets / GFCI",["Outlets / GFCI"]]
+  ],
+  laundry:[
+    ["Washer / dryer",["Washer / dryer","Washer","Dryer"]], ["Dishwasher",["Dishwasher"]],
+    ["Hookups / hoses / dryer vent",["Hookups / hoses / dryer vent","Hookups / hoses","Dryer vent"]],
+    ["Floor / walls",["Floor / walls"]]
+  ],
+  systems:[
+    ["Smoke / CO alarms",["Smoke / CO alarms","Smoke detectors","CO detector"]],
+    ["HVAC / thermostat / filter",["HVAC / thermostat / filter","A/C filter (size noted)","Thermostat","A/C cools"]],
+    ["Water heater",["Water heater"]], ["Electrical panel",["Electrical panel","Breaker panel"]],
+    ["Main water shutoff",["Main water shutoff"]], ["Locks / deadbolts",["Locks / deadbolts"]]
+  ],
+  outside:[
+    ["Yard / landscaping",["Yard / landscaping","Front yard","Backyard","Trees"]],
+    ["Exterior doors / locks",["Exterior doors / locks","Front door","Back door"]],
+    ["Exterior lights",["Exterior lights"]], ["Fence / gates",["Fence / gates","Fence"]],
+    ["Shed / outbuildings",["Shed / outbuildings","Shed"]],
+    ["Roof / siding / gutters",["Roof / siding / gutters","Roof / siding"]],
+    ["Screens / lanai",["Screens / lanai"]], ["Garage / carport",["Garage / carport"]],
+    ["Driveway / walkways",["Driveway / walkways","Driveway"]], ["Pool",["Pool"]], ["Mailbox",["Mailbox"]]
+  ],
+  other:[
+    ["Floor",["Floor"]], ["Walls / ceiling",["Walls / ceiling","Walls"]], ["Lights",["Lights"]],
+    ["Windows",["Windows"]], ["Doors",["Doors"]], ["Outlets / switches",["Outlets / switches","Outlets / plates"]]
+  ]
+};
 
 /* ---------------- state ---------------- */
 let LIST = [];
@@ -847,13 +907,51 @@ function fmtDate(s){ if(!s) return ""; const p=s.split("-"); return p.length===3
 function money(n){ return "$" + (Math.round((n||0)*100)/100).toFixed(2); }
 
 function normalizeStatus(code){ return LEGACY_STATUS[code] || code || ""; }
+function strongestStatus(items,field){
+  const values=items.map(it=>normalizeStatus(it[field])).filter(Boolean);
+  if(values.indexOf("work")>=0) return "work";
+  if(values.indexOf("ok")>=0) return "ok";
+  if(values.indexOf("na")>=0) return "na";
+  return "";
+}
+function consolidateSpaceItems(sp){
+  const groups=CONCISE_ITEM_GROUPS[sp.type];
+  if(!groups || sp.checklistVersion>=CHECKLIST_VERSION || !Array.isArray(sp.items)) return null;
+  const original=sp.items, used=new Set(), next=[], remap={};
+  groups.forEach(([target,sources])=>{
+    const allowed=sources.map(x=>x.toLowerCase());
+    const indexes=[];
+    original.forEach((it,index)=>{ if(!used.has(index) && allowed.indexOf(String(it.t||"").toLowerCase())>=0) indexes.push(index); });
+    if(!indexes.length) return;
+    indexes.forEach(index=>used.add(index));
+    const items=indexes.map(index=>original[index]);
+    const noted=items.filter(it=>String(it.n||"").trim());
+    let note="";
+    if(noted.length===1) note=noted[0].n;
+    else if(noted.length>1) note=noted.map(it=>it.t+": "+it.n).join(" · ");
+    const newIndex=next.length;
+    indexes.forEach(index=>{ if(index!==newIndex) remap[index]=newIndex; });
+    next.push(Object.assign({},items[0],{
+      t:target, s:strongestStatus(items,"s"), base:strongestStatus(items,"base"), n:note,
+      dictRoom:items.some(it=>!!it.dictRoom)
+    }));
+  });
+  original.forEach((it,index)=>{
+    if(used.has(index)) return;
+    const newIndex=next.length;
+    if(index!==newIndex) remap[index]=newIndex;
+    next.push(it);
+  });
+  sp.items=next;
+  sp.checklistVersion=CHECKLIST_VERSION;
+  return Object.keys(remap).length ? remap : null;
+}
 function normalizeRecord(rec){
   if(!rec || !Array.isArray(rec.spaces)) return rec;
   const firstBedroom = rec.spaces.find(sp=>sp && sp.type==="bedroom");
   if(firstBedroom && /^(?:bedroom(?:\s*#?\s*1)?|master bedroom)$/i.test(String(firstBedroom.name||"").trim())){
     firstBedroom.name = "Master Bedroom";
   }
-  groupRelatedRooms(rec);
   rec.spaces.forEach(sp=>(sp.items||[]).forEach(it=>{
     const prior = it.s;
     it.s = normalizeStatus(prior);
@@ -862,12 +960,20 @@ function normalizeRecord(rec){
       it.n = "Not tested" + (it.n ? " — " + it.n : "");
     }
   }));
+  const photoMap=Object.assign({},rec._itemPhotoMap||{});
+  rec.spaces.forEach(sp=>{
+    const remap=consolidateSpaceItems(sp);
+    if(remap) photoMap[sp.id]=remap;
+  });
+  if(Object.keys(photoMap).length) rec._itemPhotoMap=photoMap;
+  groupRelatedRooms(rec);
   return rec;
 }
 function loadAll(){
   try{ const r=localStorage.getItem(KEY); LIST = r?JSON.parse(r):[]; }catch(e){ LIST=[]; }
   if(!Array.isArray(LIST)) LIST=[];
   LIST.forEach(normalizeRecord);
+  try{ localStorage.setItem(KEY,JSON.stringify(LIST)); }catch(e){}
 }
 let saveTimer;
 function save(){
@@ -1152,6 +1258,27 @@ async function photoDeleteInsp(inspId){
     });
   }catch(e){}
 }
+async function migrateItemPhotos(rec){
+  const maps=rec&&rec._itemPhotoMap;
+  if(!maps || !Object.keys(maps).length) return;
+  const d=await db();
+  const records=await new Promise((res,rej)=>{
+    const rq=d.transaction("p","readonly").objectStore("p").getAll();
+    rq.onsuccess=()=>res(rq.result||[]); rq.onerror=()=>rej(rq.error);
+  });
+  const writes=[];
+  records.filter(photo=>photo.insp===rec.id).forEach(photo=>{
+    const at=String(photo.key||"").lastIndexOf(":");
+    if(at<0) return;
+    const spaceId=photo.key.slice(0,at), oldIndex=photo.key.slice(at+1), map=maps[spaceId];
+    if(!map || !Object.prototype.hasOwnProperty.call(map,oldIndex)) return;
+    const newKey=spaceId+":"+map[oldIndex];
+    if(newKey!==photo.key) writes.push(photoPut(Object.assign({},photo,{key:newKey})));
+  });
+  await Promise.all(writes);
+  delete rec._itemPhotoMap;
+  save();
+}
 function shrink(file){
   return new Promise(res=>{
     const url = URL.createObjectURL(file), img = new Image();
@@ -1223,23 +1350,23 @@ function insertSpaceNearFamily(space){
   spaces.push(space);
 }
 function buildSpace(type,name){
-  return {id:uid(),type,name,items:T[type].items.map(t=>({t,s:"",n:"",base:""}))};
+  return {id:uid(),type,name,checklistVersion:CHECKLIST_VERSION,items:T[type].items.map(t=>({t,s:"",n:"",base:""}))};
 }
 function makeSpaces(){
   return DEFAULT_SPACES.map(([type,name])=>({
-    id: uid(), type, name,
+    id: uid(), type, name, checklistVersion:CHECKLIST_VERSION,
     items: T[type].items.map(t=>({t, s:"", n:"", base:""}))
   }));
 }
 function makeReadySpaces(){
   return READY_SPACES.map(([type,name,items,tag])=>({
-    id: uid(), type, name, tag:tag||"",
+    id: uid(), type, name, tag:tag||"", checklistVersion:CHECKLIST_VERSION,
     items: items.map(t=>({t, s:"", n:"", base:""}))
   }));
 }
 function makeRoutineSpaces(){
   return ROUTINE_SPACES.map(([type,name,items])=>({
-    id: uid(), type, name,
+    id: uid(), type, name, checklistVersion:CHECKLIST_VERSION,
     items: items.map(t=>({t, s:"", n:"", base:""}))
   }));
 }
@@ -1262,7 +1389,7 @@ function newInspection(mode, from, seed){
     rec.meta.tenant = from.meta.tenant; rec.meta.owner = from.meta.owner;
     rec.from = from.id;
     rec.spaces = from.spaces.map(sp=>({
-      id: uid(), type: sp.type, name: sp.name,
+      id: uid(), type: sp.type, name: sp.name, checklistVersion:sp.checklistVersion||CHECKLIST_VERSION,
       items: sp.items.map(it=>({t: it.t, s:"", n:"", base: normalizeStatus(it.s)}))
     }));
   }
@@ -1278,7 +1405,7 @@ async function createMoveInFromReady(){
   const spaces = activeSpaces(source).map(sp=>{
     const id = uid(); spaceMap[sp.id] = id;
     return {
-      id, type:sp.type, name:sp.name,
+      id, type:sp.type, name:sp.name, checklistVersion:sp.checklistVersion||CHECKLIST_VERSION,
       items:sp.items.map(it=>({t:it.t, s:normalizeStatus(it.s), n:it.n||"", base:"", dictRoom:!!it.dictRoom}))
     };
   });
@@ -1362,6 +1489,7 @@ async function openRec(rec){
   document.getElementById("wk").dataset.sig = "";
   const dt = document.getElementById("dictText"); if(dt) dt.value = "";
   go("editor");
+  try{ await migrateItemPhotos(cur); }catch(e){}
   try{ photos = await photoLoad(rec.id); renderSpaces(); }catch(e){}
 }
 
@@ -1468,7 +1596,7 @@ function renderBlock(){
 
 function roomMatrixMarkup(rec, family, includeBlanks){
   const labels={bedroom:"Bedrooms",bathroom:"Bathrooms"};
-  const marks={ok:"✓",work:"!",na:"N/A"};
+  const marks={ok:"✓",work:"×",na:"N/A"};
   let rooms=activeSpaces(rec).filter(sp=>roomFamily(sp)===family);
   if(!includeBlanks) rooms=rooms.filter(sp=>sp.items.some(it=>!!it.s));
   if(!rooms.length) return "";
@@ -1485,7 +1613,7 @@ function roomMatrixMarkup(rec, family, includeBlanks){
     }).join("");
     return `<tr><td>${esc(line)}</td>${cells}</tr>`;
   }).join("");
-  return `<section class="print-room-group"><h2>${labels[family]} · shared checklist</h2><p>✓ Good &nbsp; ! Needs work &nbsp; N/A Not applicable &nbsp; Blank Not reviewed. Details appear in Exceptions noted.</p><table class="room-matrix"><thead><tr><th>Checklist line</th>${head}</tr></thead><tbody>${body}</tbody></table></section>`;
+  return `<section class="print-room-group"><h2>${labels[family]} · shared checklist</h2><p>✓ Good &nbsp; × Needs work &nbsp; N/A Not applicable &nbsp; Blank Not reviewed. Details appear in Exceptions noted.</p><table class="room-matrix"><thead><tr><th>Checklist line</th>${head}</tr></thead><tbody>${body}</tbody></table></section>`;
 }
 
 function roomMatricesMarkup(rec, includeBlanks){
@@ -1833,7 +1961,7 @@ function reportHTML(rec){
 
   return "<!doctype html><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
     + "<title>" + esc(modeTitle(rec) + " — " + title(rec)) + "</title><style>"
-    + "body{font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#27424A;background:#F4F0E8;margin:0;padding:24px}"
+    + "body{font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#27424A;background:#F4F0E8;margin:0;padding:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}"
     + ".w{max-width:900px;margin:0 auto;background:#FFFDF9;border:1px solid #D9D1C3;padding:26px}"
     + "h1{font-size:21px;text-transform:uppercase;letter-spacing:.02em;margin:0 0 2px;color:#27424A}"
     + ".sub{font:12px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#5D6B69;margin-bottom:14px}"
@@ -1843,7 +1971,7 @@ function reportHTML(rec){
     + "td.c{width:120px;font:12px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:#5D6B69}"
     + ".write{display:block;height:22px;border-bottom:1px solid #A7B0B2}.manual tr:not(:first-child) td{height:34px;border-bottom:1px solid #A7B0B2}"
     + "tr.bad td{background:#FFF5F0}tr.bad td.c{color:#B5553D;font-weight:600}tr.tot td{font-weight:700;background:#F4F0E8}"
-    + ".print-room-group p{font-size:11px;color:#5D6B69;margin:0 0 6px}.room-matrix{table-layout:fixed;font-size:12px}.room-matrix th,.room-matrix td{border:1px solid #D9D1C3;padding:5px;text-align:center;overflow-wrap:anywhere}.room-matrix th{background:#F4F0E8;font-size:11px}.room-matrix th:first-child,.room-matrix td:first-child{width:28%;text-align:left}.room-matrix td.work{background:#FFF0E8;color:#9A402B;font-weight:700}.room-matrix td.ok{color:#26715C;font-weight:700}.room-matrix td.na,.room-matrix td.blank,.room-matrix td.absent{color:#77817F}"
+    + ".print-room-group p{font-size:11px;color:#5D6B69;margin:0 0 6px}.room-matrix{table-layout:fixed;font-size:12px}.room-matrix th,.room-matrix td{border:1px solid #D9D1C3;padding:5px;text-align:center;overflow-wrap:anywhere}.room-matrix th{background:#F4F0E8;font-size:11px}.room-matrix th:first-child,.room-matrix td:first-child{width:28%;text-align:left}.room-matrix td.work{background:#FCE8E5;color:#9A402B;font-weight:800}.room-matrix td.ok{color:#26715C;font-weight:700}.room-matrix td.na,.room-matrix td.blank,.room-matrix td.absent{color:#77817F}"
     + ".meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin:14px 0}"
     + ".meta div{border-left:3px solid #D5A25E;padding-left:9px}.meta b{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5D6B69}"
     + ".coverage{background:#F4F0E8;border-left:3px solid #D5A25E;padding:9px 11px;font-weight:600}"
@@ -1971,13 +2099,36 @@ const NEG = [
 
 /* extra words that should match a line on the sheet */
 const ALIAS = {
+  "Walls / ceiling / trim":["wall","walls","ceiling","baseboard","baseboards","trim","molding","drywall","paint"],
+  "Walls / ceiling":["wall","walls","ceiling","drywall","paint"],
+  "Windows / blinds":["window","windows","glass","screen","blind","blinds","shade","shades","curtain","curtains"],
+  "Outlets / switches":["outlet","outlets","switch","switches","plate","plates","receptacle"],
+  "A/C vent":["ac vent","a c vent","air vent","vent","vents","register","registers","supply"],
+  "Vanity / sink / faucet":["vanity","sink","basin","faucet","faucets","tap","spout","medicine cabinet"],
+  "Vent / fan":["vent","fan","exhaust fan","vent fan"],
+  "GFCI / outlets":["gfci","gfi","g f c i","outlet","outlets","reset button"],
+  "Cabinets / hardware":["cabinet","cabinets","cupboard","cupboards","drawer","drawers","handle","handles","hinge","hinges"],
+  "Sink / faucet / disposal":["sink","faucet","tap","spout","disposal","garbage disposal"],
+  "Refrigerator":["fridge","freezer","icemaker","ice maker"],
+  "Range / oven / hood":["oven","range","stove","cooktop","burner","burners","hood","range hood","exhaust"],
+  "Shower":["shower","shower handle","shower valve","valve","shower wall","shower walls","tile","tiles","surround"],
+  "Counters":["counter","countertop","countertops"],
+  "Washer / dryer":["washer","washing machine","dryer","clothes dryer"],
+  "Hookups / hoses / dryer vent":["hookup","hookups","hose","hoses","connections","dryer vent","dryer duct","lint"],
+  "Smoke / CO alarms":["smoke detector","smoke alarm","smoke alarms","carbon monoxide","co alarm","c o detector"],
+  "HVAC / thermostat / filter":["hvac","ac","air conditioning","thermostat","filter","air filter","ac filter","cooling"],
+  "Electrical panel":["breaker","breakers","panel","electrical panel"],
+  "Yard / landscaping":["yard","front yard","backyard","lawn","grass","landscaping","tree","trees","bushes","shrubs"],
+  "Exterior doors / locks":["front door","back door","entry door","rear door","slider","sliding door","lock","locks","deadbolt"],
+  "Fence / gates":["fence","fencing","gate","gates"],
+  "Shed / outbuildings":["shed","storage shed","outbuilding","outbuildings"],
+  "Roof / siding / gutters":["roof","siding","soffit","gutter","gutters"],
+  "Driveway / walkways":["driveway","drive","walkway","walkways","sidewalk","concrete","pavers"],
   "Outlets / plates":["outlet","outlets","plate","plates","switch","switches","receptacle"],
   "A/C vents":["ac vent","a c vent","air vent","vent","vents","register","registers","supply"],
   "Oven / range":["oven","range","stove","cooktop","burner","burners"],
   "Sink / disposal":["sink","disposal","garbage disposal"],
   "Vent hood":["hood","range hood","exhaust"],
-  "Shower handle":["handle","shower valve","valve"],
-  "Shower walls":["shower wall","tile","tiles","surround"],
   "Outlets / GFCI":["outlet","outlets","gfci","plug","plugs"],
   "Baseboard":["baseboards","base board","trim","molding"],
   "Blinds":["blind","shades","curtains","curtain"],
