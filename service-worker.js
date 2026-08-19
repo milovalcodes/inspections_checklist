@@ -1,8 +1,8 @@
-const CACHE = 'inspection-v25-live-print-sync';
+const CACHE = 'inspection-v27-branded-print-header';
 const ASSETS = [
   './', './index.html', './move-in.html', './move-out.html',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',
-  './icon-192.png', './icon-512.png'
+  './icon-192.png', './icon-512.png', './cimco-logo.png'
 ];
 
 self.addEventListener('install', event => {

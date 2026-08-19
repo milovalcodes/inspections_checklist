@@ -20,6 +20,12 @@ Room checklists use one decision per physical feature: related components such a
 
 The printable room matrix refreshes immediately whenever a status changes and refreshes once more at print startup. This prevents a recently changed or cleared mark from appearing with its previous value in the final PDF.
 
+Printed and downloadable reports use the current CIMCO logo in a compact corporate header. Header and body content share the same internal print gutter, so they remain aligned even when browser margins are set to None or Custom and browser-generated URL headers are disabled.
+
+On wider screens, a sticky left-side room bookmark lists every inspection area, shows reviewed and exception counts, highlights the room currently in view, and jumps directly to a selected room. Narrow screens use a compact **Jump to room** selector. Both controls are screen-only and stay out of printed reports.
+
+Pricing fields display an automatic dollar prefix. Totals and report values are normalized to two-decimal currency formatting, so entering `50` is shown as `$50.00` in the final report.
+
 The normal checklist, photos, signatures, reports, and manual dictation remain available without the office connection. Inspection records still live on the phone unless the inspector exports them.
 
 ## Important privacy boundary
