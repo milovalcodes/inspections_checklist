@@ -227,7 +227,9 @@ details[open]>summary .caret{transform:rotate(90deg)}
 /* signatures */
 .sigs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .sigbox{border:1px solid var(--rule);background:#FFFEFB;padding:9px}
-.sigbox canvas{width:100%;height:110px;background:#fff;border:1px dashed var(--rule);touch-action:none;display:block}
+.sig-surface{position:relative}
+.sigbox canvas{width:100%;height:auto;aspect-ratio:30/11;background:#fff;border:1px dashed var(--rule);touch-action:none;display:block}
+.sig-print{display:none}
 .sigbox .row{display:flex;gap:6px;align-items:center;margin-top:7px}
 .ack{font-size:12.5px;color:var(--slate);margin-top:11px;line-height:1.5;border-left:3px solid var(--hivis);padding-left:10px}
 
@@ -449,9 +451,12 @@ body[data-mode="routine"] .moveonly{display:none!important}
   .signCard{border-top:1px solid #A7B0B2!important;margin-top:12px;padding-top:8px}
   .signCard>.eyebrow{display:none}.signCard h2{font-size:11.5pt;color:#173943;margin:0 0 5px}
   .signCard p{font-size:8.5pt!important;color:#444!important;margin:0 0 7px!important}
-  .signCard .sigs{gap:18px;margin-top:8px}.signCard .sigbox{border:0!important;background:#fff!important;padding:0!important}
+  .signCard .sigs{gap:18px;margin-top:8px}.signCard .sigbox{border:0!important;background:#fff!important;padding:0!important;min-width:0}
   .signCard .sigbox .eyebrow{display:block!important;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:7.3pt;letter-spacing:.07em;text-transform:uppercase;color:#59666A;margin:0 0 1px}
-  .signCard .sigbox canvas{height:65px!important;background:transparent!important;border:0!important;border-bottom:1px solid #7B8587!important}
+  .signCard .sig-surface{height:.68in;border-bottom:1px solid #7B8587;display:flex;align-items:flex-end;justify-content:flex-start;overflow:hidden}
+  .signCard .sigbox canvas{display:none!important}
+  .signCard .sig-print{display:block!important;width:auto!important;height:auto!important;max-width:2.35in!important;max-height:.58in!important;object-fit:contain!important;object-position:left bottom!important;image-rendering:auto!important}
+  .signCard .sig-print[hidden]{display:none!important}
   .signCard .sigbox .row{display:none!important}.print-sig-name{display:block;font-size:8.5pt;color:#444;margin-top:3px}
   #wkCard{border-top:2px solid #1B3C46!important;margin-top:12px!important;padding-top:8px!important}
   #wkCard>.eyebrow{display:none!important}#wkCard h2{font-size:11.5pt;color:#173943;margin:0 0 4px}
@@ -692,13 +697,13 @@ body[data-mode="routine"] .moveonly{display:none!important}
       <div class="sigs">
         <div class="sigbox">
           <div class="eyebrow">Tenant</div>
-          <canvas id="sigT" width="600" height="220"></canvas>
+          <div class="sig-surface"><canvas id="sigT" width="1200" height="440"></canvas><img class="sig-print" id="sigTPrint" alt="Tenant signature" hidden></div>
           <div class="row"><input class="in m" data-m="tenantSigName" placeholder="Printed name"><button class="mini" data-clear="T">Clear</button></div>
           <div class="print-sig-name" id="printSigT"></div>
         </div>
         <div class="sigbox">
           <div class="eyebrow">Inspector / agent</div>
-          <canvas id="sigI" width="600" height="220"></canvas>
+          <div class="sig-surface"><canvas id="sigI" width="1200" height="440"></canvas><img class="sig-print" id="sigIPrint" alt="Inspector signature" hidden></div>
           <div class="row"><input class="in m" data-m="inspSigName" placeholder="Printed name"><button class="mini" data-clear="I">Clear</button></div>
           <div class="print-sig-name" id="printSigI"></div>
         </div>
@@ -1854,14 +1859,49 @@ function renderBar(){
 
 /* ---------------- signature pads ---------------- */
 function sigCanvas(which){ return document.getElementById(which==="T" ? "sigT" : "sigI"); }
+function sigPrintImage(which){ return document.getElementById(which==="T" ? "sigTPrint" : "sigIPrint"); }
+function setPrintSignature(which, data){
+  const img = sigPrintImage(which);
+  if(!img) return;
+  if(data){ img.src = data; img.hidden = false; }
+  else{ img.removeAttribute("src"); img.hidden = true; }
+}
+function trimmedSignature(c){
+  const ctx = c.getContext("2d"), px = ctx.getImageData(0,0,c.width,c.height).data;
+  let left=c.width, top=c.height, right=-1, bottom=-1;
+  for(let y=0;y<c.height;y++) for(let x=0;x<c.width;x++){
+    if(px[(y*c.width+x)*4+3] < 10) continue;
+    if(x<left) left=x; if(x>right) right=x; if(y<top) top=y; if(y>bottom) bottom=y;
+  }
+  if(right<left || bottom<top) return "";
+  const pad = 18;
+  left=Math.max(0,left-pad); top=Math.max(0,top-pad);
+  right=Math.min(c.width-1,right+pad); bottom=Math.min(c.height-1,bottom+pad);
+  const out=document.createElement("canvas");
+  out.width=right-left+1; out.height=bottom-top+1;
+  const outCtx=out.getContext("2d");
+  outCtx.imageSmoothingEnabled=true; outCtx.imageSmoothingQuality="high";
+  outCtx.drawImage(c,left,top,out.width,out.height,0,0,out.width,out.height);
+  return out.toDataURL("image/png");
+}
 function drawSig(which, data){
   const c = sigCanvas(which), ctx = c.getContext("2d");
   ctx.clearRect(0,0,c.width,c.height);
-  if(data){ const img = new Image(); img.onload = ()=>ctx.drawImage(img,0,0,c.width,c.height); img.src = data; }
+  setPrintSignature(which,data);
+  if(data){
+    const img = new Image();
+    img.onload = ()=>{
+      const pad=24, scale=Math.min((c.width-pad*2)/img.naturalWidth,(c.height-pad*2)/img.naturalHeight);
+      const w=img.naturalWidth*scale, h=img.naturalHeight*scale;
+      ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
+      ctx.drawImage(img,(c.width-w)/2,(c.height-h)/2,w,h);
+    };
+    img.src = data;
+  }
 }
 function initSig(which){
   const c = sigCanvas(which), ctx = c.getContext("2d");
-  ctx.lineWidth = 2.5; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#16181A";
+  ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#16181A";
   let drawing = false;
   const pos = e=>{ const r = c.getBoundingClientRect();
     return [(e.clientX-r.left)*(c.width/r.width), (e.clientY-r.top)*(c.height/r.height)]; };
@@ -1871,7 +1911,12 @@ function initSig(which){
     const [x,y] = pos(e); ctx.lineTo(x,y); ctx.stroke(); });
   const end = ()=>{ if(!drawing) return; drawing = false;
     if(!cur) return;
-    try{ cur.sig[which==="T"?"t":"i"] = c.toDataURL("image/png"); save(); }catch(e){} };
+    try{
+      const data=trimmedSignature(c);
+      cur.sig[which==="T"?"t":"i"] = data;
+      setPrintSignature(which,data);
+      save();
+    }catch(e){} };
   c.addEventListener("pointerup", end);
   c.addEventListener("pointerleave", end);
   c.addEventListener("pointercancel", end);
@@ -1930,6 +1975,7 @@ function preparePrintView(){
   if(!cur) return;
   renderPrintMeta();
   renderPrintRoomGroups();
+  setPrintSignature("T",cur.sig.t); setPrintSignature("I",cur.sig.i);
   const sigNames = [["printSigT","tenantSigName"],["printSigI","inspSigName"]];
   sigNames.forEach(([id,key])=>{
     const el = document.getElementById(id);
@@ -2064,7 +2110,7 @@ function reportHTML(rec){
     + ".gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:12px}"
     + ".gal figure{margin:0}.gal img{width:100%;border:1px solid #D8D6CF;display:block}.gal figcaption{font-size:12.5px;color:#4A5157;margin-top:5px}"
     + "@media print{.gal{display:block}.gal figure{display:inline-block;width:48%;vertical-align:top;margin:0 1% 14px 0}}"
-    + ".sigs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.sigs span{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#4A5157;margin-bottom:4px}.sigs img{width:100%;max-width:280px;border-bottom:1px solid #16181A}"
+    + ".sigs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.sigs>div{min-width:0;min-height:.8in;border-bottom:1px solid #16181A;display:flex;flex-direction:column;justify-content:flex-end}.sigs span{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#4A5157;margin-bottom:4px}.sigs img{display:block;width:auto;height:auto;max-width:2.35in;max-height:.58in;object-fit:contain;object-position:left bottom;image-rendering:auto}"
     + "@media print{@page{margin:0}body{background:#fff;padding:0}.w{border:0;padding:8mm!important;max-width:none}.gal{grid-template-columns:1fr 1fr}figure{break-inside:avoid}}"
     + "</style><div class=\"w\"><div class=\"brand\"><img src=\"" + esc(REPORT_LOGO_DATA||"./cimco-logo.png") + "\" alt=\"CIMCO Property Management\"><div class=\"brand-copy\"><div class=\"sub\">" + esc(ORG) + "</div><h1>" + esc(modeTitle(rec)) + " inspection</h1></div></div>"
     + "<h1 class=\"property\">" + esc(title(rec)) + "</h1><p class=\"coverage\">" + s.done + " of " + s.total + " lines reviewed · " + s.flags + " need work</p>"
