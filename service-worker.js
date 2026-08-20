@@ -1,4 +1,4 @@
-const CACHE = 'inspection-v28-print-safe-signatures';
+const CACHE = 'inspection-v29-vector-signatures';
 const ASSETS = [
   './', './index.html', './move-in.html', './move-out.html',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',

@@ -1866,27 +1866,62 @@ function setPrintSignature(which, data){
   if(data){ img.src = data; img.hidden = false; }
   else{ img.removeAttribute("src"); img.hidden = true; }
 }
-function trimmedSignature(c){
-  const ctx = c.getContext("2d"), px = ctx.getImageData(0,0,c.width,c.height).data;
-  let left=c.width, top=c.height, right=-1, bottom=-1;
-  for(let y=0;y<c.height;y++) for(let x=0;x<c.width;x++){
-    if(px[(y*c.width+x)*4+3] < 10) continue;
-    if(x<left) left=x; if(x>right) right=x; if(y<top) top=y; if(y>bottom) bottom=y;
+const SIG_STROKES={T:[],I:[]}, SIG_LEGACY={T:"",I:""};
+function sigMid(a,b){ return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}; }
+function sigWidth(p){ return 2.8 + 4.4*Math.pow(Math.max(.12,Math.min(1,p)),.75); }
+function sigNum(n){ return Math.round(n*10)/10; }
+function sigPoint(e,c,prev){
+  const r=c.getBoundingClientRect(), x=(e.clientX-r.left)*(c.width/r.width), y=(e.clientY-r.top)*(c.height/r.height);
+  const dt=prev ? Math.max(1,e.timeStamp-prev.t) : 1, speed=prev ? Math.hypot(x-prev.x,y-prev.y)/dt : 0;
+  const pressure=e.pointerType==="pen" && e.pressure>0 ? e.pressure : Math.max(.22,.68-Math.min(.46,speed*.035));
+  return {x:sigNum(x),y:sigNum(y),p:Math.round(pressure*100)/100,t:e.timeStamp};
+}
+function sigXmlAttr(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+function signatureSvg(strokes,legacy){
+  const all=strokes.flat(), full=!!legacy;
+  if(!all.length && !legacy) return "";
+  let left=0,top=0,right=1200,bottom=440;
+  if(!full){
+    left=Math.max(0,Math.min(...all.map(p=>p.x))-20); top=Math.max(0,Math.min(...all.map(p=>p.y))-20);
+    right=Math.min(1200,Math.max(...all.map(p=>p.x))+20); bottom=Math.min(440,Math.max(...all.map(p=>p.y))+20);
   }
-  if(right<left || bottom<top) return "";
-  const pad = 18;
-  left=Math.max(0,left-pad); top=Math.max(0,top-pad);
-  right=Math.min(c.width-1,right+pad); bottom=Math.min(c.height-1,bottom+pad);
-  const out=document.createElement("canvas");
-  out.width=right-left+1; out.height=bottom-top+1;
-  const outCtx=out.getContext("2d");
-  outCtx.imageSmoothingEnabled=true; outCtx.imageSmoothingQuality="high";
-  outCtx.drawImage(c,left,top,out.width,out.height,0,0,out.width,out.height);
-  return out.toDataURL("image/png");
+  const paths=[];
+  strokes.forEach(points=>{
+    if(points.length===1){
+      const p=points[0],r=sigWidth(p.p)/2;
+      paths.push('<circle cx="'+sigNum(p.x)+'" cy="'+sigNum(p.y)+'" r="'+sigNum(r)+'" fill="#16181A"/>');
+      return;
+    }
+    for(let i=0;i<points.length-1;i++){
+      const a=points[i], b=points[i+1];
+      const start=i===0 ? a : sigMid(points[i-1],a), end=i===points.length-2 ? b : sigMid(a,b);
+      const width=sigWidth((a.p+b.p)/2);
+      paths.push('<path d="M '+sigNum(start.x)+' '+sigNum(start.y)+' Q '+sigNum(a.x)+' '+sigNum(a.y)+' '+sigNum(end.x)+' '+sigNum(end.y)+'" stroke-width="'+sigNum(width)+'"/>');
+    }
+  });
+  const w=Math.max(1,right-left),h=Math.max(1,bottom-top);
+  const image=legacy ? '<image href="'+sigXmlAttr(legacy)+'" x="24" y="24" width="1152" height="392" preserveAspectRatio="xMidYMid meet"/>' : '';
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+sigNum(w)+'" height="'+sigNum(h)+'" viewBox="'+sigNum(left)+' '+sigNum(top)+' '+sigNum(w)+' '+sigNum(h)+'"><g fill="none" stroke="#16181A" stroke-linecap="round" stroke-linejoin="round">'+image+paths.join('')+'</g></svg>';
+  return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+}
+function drawLiveSigSegment(ctx,points){
+  const n=points.length;
+  if(n<2) return;
+  const a=points[n-2],b=points[n-1],start=n===2?a:sigMid(points[n-3],a),end=sigMid(a,b);
+  ctx.beginPath(); ctx.moveTo(start.x,start.y); ctx.quadraticCurveTo(a.x,a.y,end.x,end.y);
+  ctx.lineWidth=sigWidth((a.p+b.p)/2); ctx.stroke();
+}
+function finishLiveSigStroke(ctx,points){
+  if(points.length===1){ const p=points[0]; ctx.beginPath(); ctx.arc(p.x,p.y,sigWidth(p.p)/2,0,Math.PI*2); ctx.fill(); return; }
+  if(points.length<2) return;
+  const a=points[points.length-2],b=points[points.length-1],start=sigMid(a,b);
+  ctx.beginPath(); ctx.moveTo(start.x,start.y); ctx.quadraticCurveTo(b.x,b.y,b.x,b.y);
+  ctx.lineWidth=sigWidth((a.p+b.p)/2); ctx.stroke();
 }
 function drawSig(which, data){
   const c = sigCanvas(which), ctx = c.getContext("2d");
   ctx.clearRect(0,0,c.width,c.height);
+  SIG_STROKES[which]=[]; SIG_LEGACY[which]=data||"";
   setPrintSignature(which,data);
   if(data){
     const img = new Image();
@@ -1901,18 +1936,21 @@ function drawSig(which, data){
 }
 function initSig(which){
   const c = sigCanvas(which), ctx = c.getContext("2d");
-  ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#16181A";
-  let drawing = false;
-  const pos = e=>{ const r = c.getBoundingClientRect();
-    return [(e.clientX-r.left)*(c.width/r.width), (e.clientY-r.top)*(c.height/r.height)]; };
-  c.addEventListener("pointerdown", e=>{ drawing = true; c.setPointerCapture(e.pointerId);
-    const [x,y] = pos(e); ctx.beginPath(); ctx.moveTo(x,y); });
+  ctx.lineCap="round"; ctx.lineJoin="round"; ctx.strokeStyle="#16181A"; ctx.fillStyle="#16181A";
+  let drawing=false,stroke=[];
+  c.addEventListener("pointerdown", e=>{ drawing=true; stroke=[]; c.setPointerCapture(e.pointerId);
+    stroke.push(sigPoint(e,c,null)); });
   c.addEventListener("pointermove", e=>{ if(!drawing) return; e.preventDefault();
-    const [x,y] = pos(e); ctx.lineTo(x,y); ctx.stroke(); });
+    const events=e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    events.forEach(ev=>{ const prev=stroke[stroke.length-1],p=sigPoint(ev,c,prev);
+      if(prev && Math.hypot(p.x-prev.x,p.y-prev.y)<1.5) return;
+      stroke.push(p); drawLiveSigSegment(ctx,stroke); }); });
   const end = ()=>{ if(!drawing) return; drawing = false;
     if(!cur) return;
     try{
-      const data=trimmedSignature(c);
+      finishLiveSigStroke(ctx,stroke);
+      if(stroke.length) SIG_STROKES[which].push(stroke.map(p=>({x:p.x,y:p.y,p:p.p})));
+      const data=signatureSvg(SIG_STROKES[which],SIG_LEGACY[which]);
       cur.sig[which==="T"?"t":"i"] = data;
       setPrintSignature(which,data);
       save();
