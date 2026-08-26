@@ -1,4 +1,4 @@
-const CACHE = 'inspection-v29-vector-signatures';
+const CACHE = 'inspection-v30-hide-transcription-beta';
 const ASSETS = [
   './', './index.html', './move-in.html', './move-out.html',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',

@@ -245,6 +245,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .dnote{font-size:12.5px;color:var(--slate);margin:10px 0 0;padding-left:10px;border-left:3px solid var(--hivis)}
 #micBtn.live{background:var(--work);border-color:var(--work);color:#fff}
 .localvoice{margin-top:11px;padding:11px;border:1px solid #D8CCB7;border-radius:6px;background:linear-gradient(110deg,#FFF9EE,#FFFDF9)}
+[data-transcription-beta]{display:none!important}
 .localvoice b{font-size:12.5px}
 .localvoice p{margin:4px 0 0;font-size:12px;line-height:1.45;color:var(--slate)}
 .dicthints{display:none;align-items:center;gap:7px;flex-wrap:wrap;margin-top:7px;padding:7px 9px;border-left:3px solid var(--hivis);background:#FFF8EC;color:var(--slate);font-size:11.5px;line-height:1.35}
@@ -626,7 +627,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
         <button class="mini" id="micBtn">🎤 Start recording</button>
         <button class="mini" id="dictHelp">What to say</button>
       </div>
-      <div class="officeai" id="officeAI">
+      <div class="officeai" id="officeAI" data-transcription-beta>
         <div class="officeai-head"><b>Office AI walkthrough</b><span class="beta-pill">PRIVATE BETA</span></div>
         <p>Choose a walkthrough video or audio file. Your office computer privately transcribes it and matches casual speech to this exact checklist—no OpenAI API or ChatGPT login.</p>
         <div class="row" style="margin-top:9px">
@@ -637,7 +638,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
         <div class="office-status" id="officeAiStatus" role="status" aria-live="polite"><span id="officeAiStatusText">Connect this phone once, then send walkthroughs to the office computer.</span><strong id="officeAiStatusPercent">Not connected</strong><small id="officeAiStatusDetail">Inspections still work normally whenever Office AI is unavailable.</small><i role="progressbar" aria-label="Office AI walkthrough progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><em id="officeAiStatusFill"></em></i></div>
         <div class="office-review" id="officeAiReview"></div>
       </div>
-      <details class="localvoice backupvoice" id="localVoice">
+      <details class="localvoice backupvoice" id="localVoice" data-transcription-beta>
         <summary>On-device transcription backup</summary>
         <p>Use the smaller phone-based voice pack only when the office connection is unavailable. Keep this page open and use recordings up to 12 minutes.</p>
         <div class="row" style="margin-top:9px">
@@ -734,7 +735,8 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = "out";      /* null = both modes in one app */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "branded-print-header-v27";
+const APP_VERSION = "hide-transcription-beta-v30";
+const TRANSCRIPTION_BETA_VISIBLE = false;
 let REPORT_LOGO_DATA = "";
 let REPORT_LOGO_PROMISE = null;
 const KEY = "cimco.inspections.v1";
@@ -1092,8 +1094,8 @@ function openBugReporter(){
   body.innerHTML = '<div class="eyebrow">HELP &amp; FEEDBACK</div><h2 style="margin:4px 0 0">Report a problem</h2>'
     + '<p style="font-size:13px;line-height:1.5;margin:7px 0">Describe what happened, then copy or download the report and send it here with a screenshot if useful.</p>'
     + '<div class="bugnote"><b>Privacy-safe:</b> this excludes the property address, inspection answers, notes, photos, video, audio, and report contents.</div>'
-    + '<label class="lab">Area that needs help</label><select class="in" id="bugCategory"><option>Office AI walkthrough</option><option>On-device video / audio transcription</option><option>Voice dictation</option><option>Checklist or inspection form</option><option>Progress guide or navigation</option><option>Report, print, or PDF</option><option>Saved inspections</option><option>Something else</option></select>'
-    + '<label class="lab" style="margin-top:10px">What happened?</label><textarea class="in" id="bugWhat" placeholder="Example: I chose a video, the voice pack finished, then transcription stopped."></textarea>'
+    + '<label class="lab">Area that needs help</label><select class="in" id="bugCategory"><option>Voice dictation</option><option>Checklist or inspection form</option><option>Progress guide or navigation</option><option>Report, print, or PDF</option><option>Saved inspections</option><option>Something else</option></select>'
+    + '<label class="lab" style="margin-top:10px">What happened?</label><textarea class="in" id="bugWhat" placeholder="Example: describe what you expected and what happened instead."></textarea>'
     + '<label class="lab" style="margin-top:10px">What did you expect instead?</label><textarea class="in" id="bugExpected" placeholder="Example: The transcript should appear in the box."></textarea>'
     + '<div class="bugstatus">Current diagnostic\n' + esc((voice.message || "No voice status yet") + (voice.detail ? "\n" + voice.detail : "") + (voice.last_engine_error ? "\n" + voice.last_engine_error : "")) + '</div>'
     + '<div class="row" style="margin-top:12px"><button class="act ghost" id="bugClose">Close</button><button class="act" id="bugCopy">Copy bug report</button><button class="act solid" id="bugDownload">Download file</button></div>';
@@ -1619,8 +1621,7 @@ function renderEditor(){
   renderDict();
   drawSig("T", cur.sig.t); drawSig("I", cur.sig.i);
   renderHead(); renderSpaces();
-  showOfficeAiIdle();
-  resumeOfficeAiJob();
+  if(TRANSCRIPTION_BETA_VISIBLE){ showOfficeAiIdle(); resumeOfficeAiJob(); }
 }
 
 function renderHead(){
