@@ -1,4 +1,4 @@
-const CACHE = 'inspection-v31-hide-hands-free';
+const CACHE = 'inspection-v32-cimco-brand';
 const ASSETS = [
   './', './index.html', './move-in.html', './move-out.html',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',
