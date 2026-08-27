@@ -1,4 +1,4 @@
-const CACHE = 'inspection-v30-hide-transcription-beta';
+const CACHE = 'inspection-v31-hide-hands-free';
 const ASSETS = [
   './', './index.html', './move-in.html', './move-out.html',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',

@@ -245,7 +245,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .dnote{font-size:12.5px;color:var(--slate);margin:10px 0 0;padding-left:10px;border-left:3px solid var(--hivis)}
 #micBtn.live{background:var(--work);border-color:var(--work);color:#fff}
 .localvoice{margin-top:11px;padding:11px;border:1px solid #D8CCB7;border-radius:6px;background:linear-gradient(110deg,#FFF9EE,#FFFDF9)}
-[data-transcription-beta]{display:none!important}
+#dictCard,[data-transcription-beta]{display:none!important}
 .localvoice b{font-size:12.5px}
 .localvoice p{margin:4px 0 0;font-size:12px;line-height:1.45;color:var(--slate)}
 .dicthints{display:none;align-items:center;gap:7px;flex-wrap:wrap;margin-top:7px;padding:7px 9px;border-left:3px solid var(--hivis);background:#FFF8EC;color:var(--slate);font-size:11.5px;line-height:1.35}
@@ -735,7 +735,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = "out";      /* null = both modes in one app */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "hide-transcription-beta-v30";
+const APP_VERSION = "hide-hands-free-v31";
 const TRANSCRIPTION_BETA_VISIBLE = false;
 let REPORT_LOGO_DATA = "";
 let REPORT_LOGO_PROMISE = null;
@@ -1094,7 +1094,7 @@ function openBugReporter(){
   body.innerHTML = '<div class="eyebrow">HELP &amp; FEEDBACK</div><h2 style="margin:4px 0 0">Report a problem</h2>'
     + '<p style="font-size:13px;line-height:1.5;margin:7px 0">Describe what happened, then copy or download the report and send it here with a screenshot if useful.</p>'
     + '<div class="bugnote"><b>Privacy-safe:</b> this excludes the property address, inspection answers, notes, photos, video, audio, and report contents.</div>'
-    + '<label class="lab">Area that needs help</label><select class="in" id="bugCategory"><option>Voice dictation</option><option>Checklist or inspection form</option><option>Progress guide or navigation</option><option>Report, print, or PDF</option><option>Saved inspections</option><option>Something else</option></select>'
+    + '<label class="lab">Area that needs help</label><select class="in" id="bugCategory"><option>Checklist or inspection form</option><option>Progress guide or navigation</option><option>Report, print, or PDF</option><option>Saved inspections</option><option>Something else</option></select>'
     + '<label class="lab" style="margin-top:10px">What happened?</label><textarea class="in" id="bugWhat" placeholder="Example: describe what you expected and what happened instead."></textarea>'
     + '<label class="lab" style="margin-top:10px">What did you expect instead?</label><textarea class="in" id="bugExpected" placeholder="Example: The transcript should appear in the box."></textarea>'
     + '<div class="bugstatus">Current diagnostic\n' + esc((voice.message || "No voice status yet") + (voice.detail ? "\n" + voice.detail : "") + (voice.last_engine_error ? "\n" + voice.last_engine_error : "")) + '</div>'
