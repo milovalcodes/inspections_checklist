@@ -12,17 +12,19 @@
   <style>
     :root{--navy:#00437D;--deep:#002E57;--mid:#1E6C9F;--aqua:#00D5D9;--pale:#F3F8FB;--light:#DCECF6;--ink:#173943;--slate:#53666D;--paper:#F7F4ED;--card:#FFFEFB;--rule:#C9D8DF;--ok:#287F6B;--warn:#B84C42;--shadow:0 12px 30px rgba(0,46,87,.09)}
     *{box-sizing:border-box}html{background:var(--paper);color:var(--ink);font-family:"Archivo","Helvetica Neue",Arial,sans-serif}body{margin:0;min-height:100vh;background:linear-gradient(180deg,#EEF6FA 0, var(--paper) 360px)}
-    button,input,select,textarea{font:inherit}.wrap{width:min(1060px,calc(100% - 32px));margin:auto}.mast{background:linear-gradient(118deg,var(--deep),var(--navy));color:#fff;border-bottom:4px solid var(--aqua)}
-    .mast-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:24px 0}.brand{display:flex;align-items:center;gap:18px}.brand img{width:168px;height:58px;object-fit:contain;object-position:left center;background:#fff;border-radius:7px;padding:7px 10px}.eyebrow{font:500 11px/1.3 "IBM Plex Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mid)}
-    .mast .eyebrow{color:#7DE7E6}.mast h1{font-size:26px;line-height:1.1;margin:5px 0 0}.back{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.42);border-radius:6px;padding:10px 13px;font-size:13px;font-weight:600}.back:hover{background:rgba(255,255,255,.1)}
+    button,input,select,textarea{font:inherit}.wrap{width:min(1060px,calc(100% - 32px));margin:auto}.mast{position:relative;overflow:hidden;background:linear-gradient(118deg,var(--deep),var(--navy));color:#fff;border-bottom:4px solid var(--aqua)}
+    .mast::after{content:"";position:absolute;inset:0 0 0 58%;pointer-events:none;opacity:.12;background:repeating-linear-gradient(135deg,transparent 0 23px,rgba(255,255,255,.38) 24px,transparent 25px)}
+    .mast-inner{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:28px;padding:18px 0}.brand{display:flex;align-items:center;gap:20px;min-width:0}.brand img{display:block;width:auto;height:54px;max-width:146px;object-fit:contain;object-position:left center;image-rendering:auto;background:transparent;border:0;border-radius:0;padding:0;filter:brightness(0) invert(1);opacity:.98}.brand-copy{border-left:1px solid rgba(255,255,255,.3);padding-left:20px}.eyebrow{font:500 11px/1.3 "IBM Plex Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mid)}
+    .mast .eyebrow{color:#7DE7E6}.mast h1{font-size:25px;line-height:1.1;margin:4px 0 0;letter-spacing:-.015em}.back{min-height:44px;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.48);border-radius:6px;padding:10px 14px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}.back:hover{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.75)}
     main{padding:30px 0 46px}.intro{margin-bottom:18px}.intro h2{font-size:22px;margin:5px 0 8px}.intro p{max-width:760px;color:var(--slate);line-height:1.55;margin:0}.layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:18px;align-items:start}
     .card{background:var(--card);border:1px solid var(--rule);border-top:3px solid var(--navy);border-radius:8px;padding:20px;box-shadow:var(--shadow)}.card h2,.card h3{margin:4px 0 0}.fields{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:18px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}.field span{font-size:12px;font-weight:700;color:var(--ink)}.field small{font-size:11px;color:var(--slate);line-height:1.4}
     .control{width:100%;min-height:44px;border:1px solid #AFC3CC;border-radius:6px;background:#fff;color:var(--ink);padding:10px 11px;outline:none}.control:focus{border-color:var(--mid);box-shadow:0 0 0 3px rgba(30,108,159,.13)}textarea.control{min-height:92px;resize:vertical;line-height:1.45}.hint{background:var(--pale);border-left:3px solid var(--aqua);padding:10px 12px;font-size:12px;line-height:1.45;color:var(--slate);margin-top:15px}
+    a:focus-visible,button:focus-visible{outline:3px solid #7DE7E6;outline-offset:3px}.field .optional{font-weight:500;color:var(--slate)}
     .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.btn{min-height:44px;border-radius:6px;border:1px solid var(--navy);padding:10px 13px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}.btn.primary{background:var(--navy);color:#fff}.btn.primary:hover{background:var(--mid)}.btn.secondary{background:#fff;color:var(--navy)}.btn.secondary:hover{background:var(--pale)}.btn:disabled{opacity:.48;cursor:not-allowed}
     .preview{position:sticky;top:18px}.preview-box{border:1px solid var(--rule);border-radius:7px;background:var(--pale);padding:15px;margin-top:15px}.preview-title{font-size:17px;line-height:1.35;margin:0 0 13px;color:var(--deep)}.preview-row{display:grid;grid-template-columns:82px minmax(0,1fr);gap:8px;padding:8px 0;border-top:1px solid #D7E3E8;font-size:12px;line-height:1.45}.preview-row:first-of-type{border-top:0}.preview-row b{color:var(--slate)}.preview-row span{overflow-wrap:anywhere}.description{white-space:pre-wrap;max-height:240px;overflow:auto}.privacy{display:flex;gap:9px;align-items:flex-start;color:var(--slate);font-size:11px;line-height:1.45;margin:14px 0 0}.privacy strong{color:var(--ok);font-size:16px;line-height:1}
     .status{min-height:20px;margin:10px 0 0;font-size:12px;color:var(--ok)}.status.error{color:var(--warn)}
-    @media(max-width:780px){.mast-inner{align-items:flex-start}.brand img{width:138px;height:50px}.mast h1{font-size:21px}.layout{grid-template-columns:1fr}.preview{position:static}.fields{grid-template-columns:1fr}.field.full{grid-column:auto}}
-    @media(max-width:520px){.wrap{width:min(100% - 20px,1060px)}.mast-inner{display:grid}.back{justify-self:start}.card{padding:15px}.actions{grid-template-columns:1fr}.brand{gap:12px}.brand img{width:118px}.mast h1{font-size:19px}}
+    @media(max-width:780px){.mast::after{inset:0 0 0 44%}.brand img{width:auto;height:48px;max-width:128px}.brand-copy{padding-left:16px}.mast h1{font-size:21px}.layout{grid-template-columns:1fr}.preview{position:static}.fields{grid-template-columns:1fr}.field.full{grid-column:auto}}
+    @media(max-width:520px){.wrap{width:min(100% - 20px,1060px)}.mast-inner{display:grid;gap:12px;padding:15px 0}.back{justify-self:start}.card{padding:15px}.actions{grid-template-columns:1fr}.brand{gap:12px}.brand img{width:auto;height:42px;max-width:108px}.brand-copy{padding-left:12px}.mast h1{font-size:18px}.mast .eyebrow{font-size:9px}}
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
   </style>
 </head>
@@ -31,7 +33,7 @@
     <div class="wrap mast-inner">
       <div class="brand">
         <img src="./cimco-logo.png" alt="CIMCO Property Management">
-        <div><div class="eyebrow">Front desk</div><h1>Inspection scheduling</h1></div>
+        <div class="brand-copy"><div class="eyebrow">Front desk</div><h1>Inspection scheduling</h1></div>
       </div>
       <a class="back" href="./index.html">← Inspection app</a>
     </div>
@@ -56,10 +58,10 @@
           <label class="field"><span>Date</span><input class="control" id="date" type="date" required></label>
           <label class="field"><span>Start time</span><input class="control" id="time" type="time" required></label>
           <label class="field full"><span>Property address</span><input class="control" id="address" autocomplete="street-address" placeholder="123 Main Street, Hollywood, FL 33020" required></label>
-          <label class="field"><span>Unit or apartment</span><input class="control" id="unit" placeholder="Unit 4B"></label>
+          <label class="field"><span>Unit or apartment <span class="optional">(optional)</span></span><input class="control" id="unit" placeholder="Unit 4B"></label>
           <label class="field"><span>Inspector email</span><input class="control" id="inspector" type="email" autocomplete="email" placeholder="inspector@example.com" required></label>
-          <label class="field full"><span>Tenant or occupant email</span><input class="control" id="tenant" type="email" autocomplete="email" placeholder="tenant@example.com"><small>Optional for vacant or rent-ready properties.</small></label>
-          <label class="field full"><span>Guest-visible notes</span><textarea class="control" id="notes" placeholder="Example: Please meet at the front entrance. A representative will provide access."></textarea><small>Do not include lockbox codes, alarm codes, or private internal notes.</small></label>
+          <label class="field full"><span>Tenant or occupant email <span class="optional">(optional)</span></span><input class="control" id="tenant" type="email" autocomplete="email" placeholder="tenant@example.com"><small>Leave blank for vacant or rent-ready properties.</small></label>
+          <label class="field full"><span>Guest-visible notes <span class="optional">(optional)</span></span><textarea class="control" id="notes" placeholder="Example: Please meet at the front entrance. A representative will provide access."></textarea><small>Do not include lockbox codes, alarm codes, or private internal notes.</small></label>
         </div>
         <div class="hint">Times are created in <strong>Eastern Time (America/New_York)</strong>. Google Calendar will display the correct local time for each guest.</div>
         <div class="actions">
