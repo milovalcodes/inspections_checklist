@@ -522,6 +522,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
   .strip{display:none}
 }
 </style>
+<link rel="stylesheet" href="./app-theme.css?v=45">
 
 <header class="mast">
   <div class="wrap">
@@ -797,7 +798,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = "out";      /* null = both modes in one app */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "scheduler-ui-v35";
+const APP_VERSION = "professional-layout-v45";
 const TRANSCRIPTION_BETA_VISIBLE = false;
 let REPORT_LOGO_DATA = "";
 let REPORT_LOGO_PROMISE = null;
@@ -2270,27 +2271,27 @@ function reportHTML(rec){
 
   return "<!doctype html><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
     + "<title>" + esc(modeTitle(rec) + " — " + title(rec)) + "</title><style>"
-    + "body{font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#27424A;background:#F4F0E8;margin:0;padding:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}"
-    + ".w{max-width:900px;margin:0 auto;background:#FFFDF9;border:1px solid #D9D1C3;padding:26px}"
-    + "h1{font-size:21px;text-transform:uppercase;letter-spacing:.02em;margin:0 0 2px;color:#27424A}.property{font-size:18px;margin-top:12px}"
-    + ".brand{display:grid;grid-template-columns:145px minmax(0,1fr);gap:18px;align-items:center;border-bottom:2px solid #27424A;padding-bottom:11px}.brand img{display:block;width:140px;max-height:62px;object-fit:contain;object-position:left center}.brand-copy{border-left:1px solid #A7B0B2;padding-left:18px}.brand .sub{margin:0 0 3px}.brand h1{font-size:20px}"
-    + ".sub{font:12px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#5D6B69}"
-    + "h2{font-size:15px;text-transform:uppercase;letter-spacing:.02em;margin:22px 0 6px;border-bottom:2px solid #27424A;padding-bottom:4px}"
+    + "body{font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#1B2730;background:#F3F7F9;margin:0;padding:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}"
+    + ".w{max-width:900px;margin:0 auto;background:#fff;border:1px solid #D2DFE6;padding:26px;box-shadow:0 8px 26px rgba(0,46,87,.08)}"
+    + "h1{font-size:21px;text-transform:uppercase;letter-spacing:.02em;margin:0 0 2px;color:#102F46}.property{font-size:18px;margin-top:12px}"
+    + ".brand{display:grid;grid-template-columns:116px minmax(0,1fr);gap:18px;align-items:center;border-bottom:2px solid #00437D;padding-bottom:11px}.brand img{display:block;width:auto;height:54px;max-width:116px;object-fit:contain;object-position:left center;image-rendering:auto}.brand-copy{border-left:1px solid #AAB8C0;padding-left:18px}.brand .sub{margin:0 0 3px}.brand h1{font-size:20px}"
+    + ".sub{font:12px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#526D7D}"
+    + "h2{font-size:15px;text-transform:uppercase;letter-spacing:.02em;margin:22px 0 6px;border-bottom:2px solid #00437D;padding-bottom:4px;color:#102F46}"
     + "table{width:100%;border-collapse:collapse;font-size:13.5px}"
-    + "td{border-bottom:1px solid #EDEBE5;padding:6px 8px;vertical-align:top}"
+    + "td{border-bottom:1px solid #E1E8EC;padding:6px 8px;vertical-align:top}"
     + "td.c{width:120px;font:12px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:#5D6B69}"
     + ".write{display:block;height:22px;border-bottom:1px solid #A7B0B2}.manual tr:not(:first-child) td{height:34px;border-bottom:1px solid #A7B0B2}"
     + "tr.bad td{background:#FFF5F0}tr.bad td.c{color:#B5553D;font-weight:600}tr.tot td{font-weight:700;background:#F4F0E8}"
     + ".print-room-group p{font-size:11px;color:#5D6B69;margin:0 0 6px}.room-matrix{table-layout:fixed;font-size:12px}.room-matrix th,.room-matrix td{border:1px solid #D9D1C3;padding:5px;text-align:center;overflow-wrap:anywhere}.room-matrix th{background:#F4F0E8;font-size:11px}.room-matrix th:first-child,.room-matrix td:first-child{width:28%;text-align:left}.room-matrix td.work{background:#FCE8E5;color:#9A402B;font-weight:800}.room-matrix td.ok{color:#26715C;font-weight:700}.room-matrix td.na,.room-matrix td.blank,.room-matrix td.absent{color:#77817F}"
     + ".meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin:14px 0}"
-    + ".meta div{border-left:3px solid #D5A25E;padding-left:9px}.meta b{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#5D6B69}"
-    + ".coverage{background:#F4F0E8;border-left:3px solid #D5A25E;padding:9px 11px;font-weight:600}"
+    + ".meta div{border-left:3px solid #1E6C9F;padding-left:9px}.meta b{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#526D7D}"
+    + ".coverage{background:#F3F8FB;border-left:3px solid #1E6C9F;padding:9px 11px;font-weight:600}"
     + ".fig{font:11px ui-monospace,Menlo,monospace;color:#4A5157;white-space:nowrap}"
     + ".gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:12px}"
-    + ".gal figure{margin:0}.gal img{width:100%;border:1px solid #D8D6CF;display:block}.gal figcaption{font-size:12.5px;color:#4A5157;margin-top:5px}"
+    + ".gal figure{margin:0}.gal img{width:100%;border:1px solid #AAB8C0;display:block}.gal figcaption{font-size:12.5px;color:#4A5C66;margin-top:5px}"
     + "@media print{.gal{display:block}.gal figure{display:inline-block;width:48%;vertical-align:top;margin:0 1% 14px 0}}"
     + ".sigs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.sigs>div{min-width:0;min-height:.8in;border-bottom:1px solid #16181A;display:flex;flex-direction:column;justify-content:flex-end}.sigs span{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#4A5157;margin-bottom:4px}.sigs img{display:block;width:auto;height:auto;max-width:2.35in;max-height:.58in;object-fit:contain;object-position:left bottom;image-rendering:auto}"
-    + "@media print{@page{margin:0}body{background:#fff;padding:0}.w{border:0;padding:8mm!important;max-width:none}.gal{grid-template-columns:1fr 1fr}figure{break-inside:avoid}}"
+    + "@media print{@page{size:Letter portrait;margin:12mm 14mm 15mm}body{background:#fff;padding:0}.w{border:0;box-shadow:none;padding:0!important;max-width:none}.brand{break-inside:avoid}.meta,.coverage,h2{break-after:avoid-page}table thead{display:table-header-group}tr,figure{break-inside:avoid}.gal{grid-template-columns:1fr 1fr}}"
     + "</style><div class=\"w\"><div class=\"brand\"><img src=\"" + esc(REPORT_LOGO_DATA||"./cimco-logo.png") + "\" alt=\"CIMCO Property Management\"><div class=\"brand-copy\"><div class=\"sub\">" + esc(ORG) + "</div><h1>" + esc(modeTitle(rec)) + " inspection</h1></div></div>"
     + "<h1 class=\"property\">" + esc(title(rec)) + "</h1><p class=\"coverage\">" + s.done + " of " + s.total + " lines reviewed · " + s.flags + " need work</p>"
     + "<div class=\"meta\">" + head.map(r=>"<div><b>" + esc(r[0]) + "</b>" + esc(r[1]) + "</div>").join("") + "</div>"

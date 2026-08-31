@@ -1,6 +1,6 @@
-const CACHE = 'inspection-v35-scheduler-ui';
+const CACHE = 'inspection-v45-professional-layout';
 const ASSETS = [
-  './', './index.html', './move-in.html', './move-out.html', './schedule.html',
+  './', './index.html', './move-in.html', './move-out.html', './schedule.html', './app-theme.css?v=45',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',
   './icon-192.png', './icon-512.png', './cimco-logo.png'
 ];
