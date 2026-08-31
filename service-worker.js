@@ -1,6 +1,6 @@
-const CACHE = 'inspection-v33-form-conversion';
+const CACHE = 'inspection-v34-scheduler';
 const ASSETS = [
-  './', './index.html', './move-in.html', './move-out.html',
+  './', './index.html', './move-in.html', './move-out.html', './schedule.html',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',
   './icon-192.png', './icon-512.png', './cimco-logo.png'
 ];
