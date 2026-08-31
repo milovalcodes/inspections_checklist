@@ -87,6 +87,13 @@ textarea.in{resize:vertical;min-height:60px;line-height:1.45}
 .seg{display:flex;gap:6px}
 .seg button{flex:1;min-height:42px;border:1px solid var(--rule);background:#FFFEFB;color:var(--slate);border-radius:5px;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 .seg button.on{background:var(--ink);border-color:var(--ink);color:var(--hivis)}
+.form-switch{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,190px) auto;gap:8px;align-items:end;margin-top:12px;padding:10px;border:1px solid var(--rule);border-left:4px solid var(--brand);border-radius:6px;background:var(--brand-pale)}
+.form-switch-copy{min-width:0}
+.form-switch-copy b{display:block;font-size:13px;color:var(--ink)}
+.form-switch-copy small{display:block;margin-top:2px;color:var(--slate);font-size:11.5px;line-height:1.35}
+.form-switch label span{display:block;margin-bottom:3px;font:9px/1.2 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--slate)}
+.form-switch select{min-height:38px;padding:7px 9px}
+.form-switch .mini:disabled{opacity:.48;cursor:default}
 
 /* progress strip */
 .strip{margin-top:14px;height:12px;background:repeating-linear-gradient(45deg,#E8E0D2 0 6px,#DDD3C4 6px 12px);position:relative;overflow:hidden;border-radius:99px}
@@ -135,6 +142,7 @@ details[open]>summary .caret{transform:rotate(90deg)}
 .count{margin-left:auto;font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--slate);letter-spacing:.05em;white-space:nowrap}
 .count.flag{color:var(--work);font-weight:600}
 .count.ok{color:var(--ok)}
+.carry-badge{margin-left:2px;padding:2px 5px;border:1px solid #AFC8D7;border-radius:99px;background:var(--brand-pale);color:var(--brand);font:8px/1.2 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
 .sectools{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 11px;border-bottom:1px solid var(--rule)}
 .mini{border:1px solid var(--rule);background:#FFFEFB;color:var(--slate);border-radius:5px;padding:7px 10px;min-height:36px;
   font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
@@ -396,6 +404,8 @@ body[data-mode="routine"] .moveonly{display:none!important}
   .report-logo{width:126px;height:62px}
   .mast .lede{margin-left:138px;font-size:12px}
   .mast h1{font-size:21px}
+  .form-switch{grid-template-columns:minmax(0,1fr) auto;align-items:end}
+  .form-switch-copy{grid-column:1/-1}
   .grid{grid-template-columns:1fr}
   .sigs{grid-template-columns:1fr}
   .legend{grid-template-columns:repeat(2,1fr)}
@@ -590,6 +600,12 @@ body[data-mode="routine"] .moveonly{display:none!important}
       </div>
       <div class="print-meta" id="printMeta"></div>
 
+      <div class="form-switch noprint" aria-label="Change inspection form type">
+        <div class="form-switch-copy"><b id="formTypeCurrent">Current form: Move-in</b><small>Switch forms without losing completed checks, notes, photos, pricing, or signatures.</small></div>
+        <label><span>Change to</span><select class="in" id="formTypeSelect"><option value="in">Move-in</option><option value="out">Move-out</option><option value="ready">Rent-ready</option><option value="routine">Routine</option></select></label>
+        <button class="mini go" id="convertFormBtn" type="button" disabled>Convert</button>
+      </div>
+
       <details id="metaBox">
         <summary class="mini" style="margin-top:13px;display:inline-block">Header &amp; details</summary>
         <div class="grid">
@@ -772,7 +788,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = "out";      /* null = both modes in one app */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "cimco-brand-v32";
+const APP_VERSION = "form-conversion-v33";
 const TRANSCRIPTION_BETA_VISIBLE = false;
 let REPORT_LOGO_DATA = "";
 let REPORT_LOGO_PROMISE = null;
@@ -1472,6 +1488,78 @@ function makeRoutineSpaces(){
     items: items.map(t=>({t, s:"", n:"", base:""}))
   }));
 }
+function makeSpacesForMode(mode){
+  return mode==="ready" ? makeReadySpaces() : mode==="routine" ? makeRoutineSpaces() : makeSpaces();
+}
+function conversionKey(value){
+  return String(value||"").toLowerCase().replace(/&/g," and ").replace(/[^a-z0-9]+/g," ").trim();
+}
+function mergeDestinationItems(space,destination){
+  const existing=new Set((space.items||[]).map(it=>conversionKey(it.t)));
+  destination.items.forEach(item=>{
+    const key=conversionKey(item.t);
+    if(!existing.has(key)){
+      space.items.push({t:item.t,s:"",n:"",base:""});
+      existing.add(key);
+    }
+  });
+  space.checklistVersion=CHECKLIST_VERSION;
+  if(destination.tag) space.tag=destination.tag;
+  else delete space.tag;
+  delete space.carriedFrom;
+  return space;
+}
+function findConversionSpace(source,destination,used){
+  const name=conversionKey(destination.name);
+  let index=source.findIndex((space,i)=>!used.has(i) && space.type===destination.type && conversionKey(space.name)===name);
+  if(index>=0) return index;
+  const sameType=source.map((space,i)=>({space,i})).filter(entry=>!used.has(entry.i) && entry.space.type===destination.type);
+  return sameType.length===1 ? sameType[0].i : -1;
+}
+function normalizeConvertedPricing(nextMode){
+  Object.keys(cur.wk||{}).forEach(key=>{
+    const row=cur.wk[key];
+    if(!row) return;
+    if(nextMode==="routine"){
+      if(row.k==="wear") row.k="maintenance";
+      if(row.k==="dmg") row.k="tenant";
+    }else if(nextMode==="out"){
+      if(row.k==="maintenance") row.k="wear";
+      if(row.k==="tenant") row.k="dmg";
+    }
+  });
+}
+function convertInspectionForm(nextMode){
+  if(!cur || !Object.prototype.hasOwnProperty.call(MODE_LABEL,nextMode) || nextMode===cur.mode) return false;
+  const previousMode=cur.mode, source=cur.spaces.slice(), destination=makeSpacesForMode(nextMode), used=new Set();
+  const merged=destination.map(template=>{
+    const index=findConversionSpace(source,template,used);
+    if(index<0) return template;
+    used.add(index);
+    return mergeDestinationItems(source[index],template);
+  });
+  const destinationTypes=new Set(destination.map(space=>space.type));
+  source.forEach((space,index)=>{
+    if(used.has(index)) return;
+    if(!destinationTypes.has(space.type) && !roomFamily(space)) space.carriedFrom=previousMode;
+    else delete space.carriedFrom;
+    merged.push(space);
+  });
+  cur.spaces=merged;
+  groupRelatedRooms(cur);
+  cur.mode=nextMode;
+  cur.meta=cur.meta||{};
+  if(!Array.isArray(cur.meta.workCategories)) cur.meta.workCategories=[];
+  if(!Array.isArray(cur.meta.readyTags)) cur.meta.readyTags=[];
+  normalizeConvertedPricing(nextMode);
+  cur.conversions=Array.isArray(cur.conversions) ? cur.conversions : [];
+  cur.conversions.push({from:previousMode,to:nextMode,at:Date.now()});
+  document.getElementById("wk").dataset.sig="";
+  save();
+  go("editor");
+  toast("Converted to " + MODE_LABEL[nextMode] + " — existing work kept");
+  return true;
+}
 function newInspection(mode, from, seed){
   const rec = {
     id: uid(), mode, created: Date.now(), updated: Date.now(),
@@ -1479,7 +1567,7 @@ function newInspection(mode, from, seed){
            meterE:"", meterW:"", keys:"", fwd:"", misc:"", clean:"", photoSize:"md", tenantSigName:"", inspSigName:"",
            access:"", marketStatus:"hold", responsible:"", estimatedCost:"", workCategories:[], readyTags:[],
            visitReason:"", entryStatus:""},
-    spaces: mode==="ready" ? makeReadySpaces() : mode==="routine" ? makeRoutineSpaces() : makeSpaces(), wk:{}, sig:{t:"", i:""}, from: null
+    spaces: makeSpacesForMode(mode), wk:{}, sig:{t:"", i:""}, from: null
   };
   if(seed){
     rec.meta.address = seed.address || "";
@@ -1630,6 +1718,9 @@ function renderEditor(){
   const m = cur.meta, isOut = cur.mode==="out", isReady = cur.mode==="ready", isRoutine = cur.mode==="routine";
   document.getElementById("mastTitle").textContent = MODE_LABEL[cur.mode] + " inspection";
   document.getElementById("edEyebrow").textContent = MODE_LABEL[cur.mode];
+  document.getElementById("formTypeCurrent").textContent = "Current form: " + MODE_LABEL[cur.mode];
+  document.getElementById("formTypeSelect").value = cur.mode;
+  document.getElementById("convertFormBtn").disabled = true;
   document.querySelectorAll(".outonly").forEach(el=>el.classList.toggle("hide", !isOut));
   document.querySelectorAll(".readyonly").forEach(el=>el.classList.toggle("hide", !isReady));
   document.querySelectorAll(".routineonly").forEach(el=>el.classList.toggle("hide", !isRoutine));
@@ -1648,7 +1739,10 @@ function renderEditor(){
   document.querySelectorAll("[data-work]").forEach(b=> b.checked = Array.isArray(m.workCategories) && m.workCategories.indexOf(b.dataset.work)>=0);
   document.querySelectorAll("[data-ready-tag]").forEach(b=> b.checked = Array.isArray(m.readyTags) && m.readyTags.indexOf(b.dataset.readyTag)>=0);
 
-  document.getElementById("edFoot").textContent = cur.from
+  const lastConversion = Array.isArray(cur.conversions) && cur.conversions.length ? cur.conversions[cur.conversions.length-1] : null;
+  document.getElementById("edFoot").textContent = lastConversion
+    ? "Converted from " + MODE_LABEL[lastConversion.from] + " to " + MODE_LABEL[lastConversion.to] + ". Completed checks, notes, photos, pricing, and signatures were retained."
+    : cur.mode==="out" && cur.from
     ? "Baseline loaded from the move-in inspection for this address — every line shows how it was handed over."
     : cur.sourceReady ? "Created from the rent-ready walkthrough. Condition, notes, and photos were carried over — add only the move-in details."
     : isReady ? "Walk the property, mark only what you reviewed, then share the turnover notation. Access details stay internal."
@@ -1756,7 +1850,7 @@ function renderSpaces(){
       const k = sp.id + ":" + i;
       const flag = FLAGS.indexOf(it.s)>=0;
       const pics = photos[k] || [];
-      const baseHtml = it.base
+      const baseHtml = cur.mode==="out" && it.base
         ? `<span class="base ${it.base!==it.s && it.s ? "chg" : ""}">Move-in: ${esc(CODE_LABEL[it.base]||it.base)}${it.base!==it.s && it.s ? " → " + esc(CODE_LABEL[it.s]) : ""}</span>`
         : "";
       return `<div class="item ${flag?"flagged":""} ${it.s==="na"?"is-na":""} ${!it.s?"unreviewed":""}" data-key="${k}">
@@ -1774,7 +1868,7 @@ function renderSpaces(){
     }).join("");
 
     return `<details class="sec ${roomFamily(sp)?"room-space ":""}${d?"":"no-reviewed"}" data-sp="${sp.id}" ${isOpen?"open":""}>
-      <summary><span class="caret">▶</span>${esc(sp.name)}<span class="count ${cls}">${d}/${sp.items.length}${f?" · "+f+" needs work":""}</span></summary>
+      <summary><span class="caret">▶</span>${esc(sp.name)}${sp.carriedFrom?`<span class="carry-badge noprint">Carried from ${esc(MODE_LABEL[sp.carriedFrom]||sp.carriedFrom)}</span>`:""}<span class="count ${cls}">${d}/${sp.items.length}${f?" · "+f+" needs work":""}</span></summary>
       <div class="sectools">
         <button class="mini go" data-allok="${sp.id}">Pass the rest</button>
         <button class="mini" data-additem="${sp.id}">+ Line</button>
@@ -3506,6 +3600,11 @@ document.addEventListener("click", async e=>{
   if(rec){ const r = LIST.find(x=>x.id===rec.dataset.open); if(r) openRec(r); return; }
 
   if(t.id==="homeBtn"){ go("home"); return; }
+  if(t.id==="convertFormBtn"){
+    const select=document.getElementById("formTypeSelect");
+    convertInspectionForm(select.value);
+    return;
+  }
 
   if(t.id==="walkProgress"){
     window.scrollTo({top:0, behavior:"smooth"});
@@ -3725,6 +3824,11 @@ document.addEventListener("input", e=>{
   if(t.id==="search"){ renderHome(); }
 });
 document.addEventListener("change", e=>{
+  if(e.target.id==="formTypeSelect"){
+    const button=document.getElementById("convertFormBtn");
+    button.disabled=!cur || e.target.value===cur.mode;
+    return;
+  }
   if(e.target.id==="roomJumpSelect"){
     jumpToSpace(e.target.value);
     return;
