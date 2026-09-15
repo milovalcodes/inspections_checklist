@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CIMCO Inspection App · Regression Check</title>
+  <style>
+    :root{font-family:"Segoe UI",Arial,sans-serif;color:#102F46;background:#EEF4F8}
+    body{margin:0;padding:32px}.panel{max-width:760px;margin:auto;padding:24px;border:1px solid #C8D8E2;border-top:4px solid #00437D;border-radius:14px;background:#fff;box-shadow:0 12px 35px rgba(0,46,87,.1)}
+    h1{margin:0;font-size:24px}.sub{color:#526D7D;margin:8px 0 20px}.status{padding:12px;border-radius:9px;background:#F3F8FB;font-weight:600}.status.pass{background:#EEF8F4;color:#2B7D68}.status.fail{background:#FFF3F1;color:#B84C42}
+    ul{list-style:none;padding:0;margin:16px 0 0}li{padding:9px 0;border-top:1px solid #E5EEF3}li:before{content:"✓";margin-right:9px;color:#2B7D68;font-weight:700}pre{white-space:pre-wrap;color:#B84C42}
+    iframe{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none}
+  </style>
+</head>
+<body>
+  <main class="panel"><h1>Inspection App regression check</h1><p class="sub">Runs against isolated test storage and never touches real inspection records.</p><div class="status" id="status">Running checks…</div><ul id="results"></ul><pre id="error"></pre></main>
+  <iframe id="app" title="Test app" src="../index.html?selftest=1"></iframe>
+  <script>
+    const frame=document.getElementById("app"),status=document.getElementById("status"),results=document.getElementById("results"),error=document.getElementById("error");
+    frame.addEventListener("load",async()=>{
+      try{
+        const api=frame.contentWindow.__CIMCO_TEST__;
+        if(!api||typeof api.run!=="function") throw new Error("The inspection test API did not load.");
+        const checks=await api.run();
+        results.innerHTML=checks.map(check=>"<li>"+check.name+"</li>").join("");
+        status.textContent=checks.length+" checks passed"; status.className="status pass";
+      }catch(err){ status.textContent="Regression check failed"; status.className="status fail"; error.textContent=err&&err.stack||String(err); }
+    });
+  </script>
+</body>
+</html>

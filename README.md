@@ -59,4 +59,9 @@ Run `./CHECK-BRIDGE.ps1` whenever the phone cannot connect. See `FIELD-CONNECTIO
 
 The printed/PDF report removes app controls and unreviewed clutter. Routine reports preserve blank lines for maintenance handwriting, and their estimated work total remains blank until at least one price is entered.
 
+## Regression checks
+
+- Run `node tests/static-check.mjs` after changing the app. It validates script syntax, mode parity, shared assets, and the offline cache list.
+- Open `tests/regression.html` through a local web server to run the browser checks. They use isolated test-only storage and cover autosave, form conversion, room grouping, pricing, signatures, photos, export/import data, and printable report generation.
+
 This is a beta. Review every proposed result before applying it, and review the completed report before it is signed or filed.
