@@ -88,12 +88,14 @@
 
   .dashboard-tools{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:12px 15px;border-top:1px solid #E1EAF0;border-bottom:1px solid #D7E3E9;background:linear-gradient(180deg,#F9FBFC,#F2F7F9)}
   .dashboard-filters{display:flex;gap:6px;flex-wrap:wrap}
-  .dashboard-filters button{min-height:34px;padding:7px 10px;border:1px solid #C7D7DF;border-radius:999px;background:#fff;color:var(--slate);font:600 10px/1.2 "IBM Plex Mono",monospace;letter-spacing:.035em}
+  .dashboard-filters button{min-height:40px;padding:9px 12px;border:1px solid #C7D7DF;border-radius:999px;background:#fff;color:var(--slate);font:600 10px/1.2 "IBM Plex Mono",monospace;letter-spacing:.035em}
   .dashboard-filters button.on{border-color:var(--brand);background:var(--brand);color:#fff;box-shadow:0 3px 9px rgba(0,67,125,.16)}
   .dashboard-sort{display:grid;gap:3px;min-width:170px}.dashboard-sort span{font:600 9px/1.2 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--slate)}
-  .dashboard-sort select{min-height:36px;border:1px solid #C7D7DF;border-radius:8px;background:#fff;color:var(--ink);padding:6px 28px 6px 9px;font-size:12px}
+  .dashboard-sort select{min-height:40px;border:1px solid #C7D7DF;border-radius:8px;background:#fff;color:var(--ink);padding:7px 28px 7px 9px;font-size:12px}
   .enhanced-record{transition:background .18s ease}.enhanced-record:hover{background:#F7FAFC}
   .enhanced-record .rec{padding-top:14px;padding-bottom:14px;background:transparent}
+  .rec .badge{width:58px;height:40px;border-radius:9px;font-size:9px;line-height:1;letter-spacing:.045em;white-space:nowrap;overflow:hidden}
+  .recdelete{min-height:40px;border-radius:8px}
   .record-progress{display:block;height:5px;margin-top:8px;overflow:hidden;border-radius:999px;background:#E1EAF0}
   .record-progress em{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--brand-mid),var(--ok))}
   .record-side{display:grid;min-width:104px;justify-items:end;gap:2px}.record-side>b{font:700 16px/1 "Archivo",sans-serif;color:var(--brand)}
@@ -108,7 +110,7 @@
   .health-dot{width:10px;height:10px;margin:8px 5px;border-radius:50%;background:#8CA1AD;box-shadow:0 0 0 4px rgba(140,161,173,.12)}
   .health-dot.ready{background:var(--ok);box-shadow:0 0 0 4px rgba(43,125,104,.12)}.health-dot.offline{background:var(--brand-mid)}.health-dot.update{background:var(--work)}.health-dot.limited{background:var(--na)}
   .health-meter{display:block;height:4px;margin-top:8px;overflow:hidden;border-radius:999px;background:#DFE8ED}.health-meter em{display:block;width:0;height:100%;background:var(--ok)}.health-meter em.warn{background:var(--work)}
-  .health-action{margin-top:7px;padding:4px 7px;border:1px solid var(--brand-mid);border-radius:6px;background:#fff;color:var(--brand);font:600 9px/1.2 "IBM Plex Mono",monospace;text-transform:uppercase}
+  .health-action{min-height:34px;margin-top:7px;padding:7px 9px;border:1px solid var(--brand-mid);border-radius:7px;background:#fff;color:var(--brand);font:600 9px/1.2 "IBM Plex Mono",monospace;text-transform:uppercase}
 
   .app-dialog-backdrop{position:fixed;z-index:100;inset:0;display:grid;place-items:center;padding:18px;background:rgba(0,31,58,.55);backdrop-filter:blur(6px);opacity:0;transition:opacity .16s ease}
   .app-dialog-backdrop[hidden]{display:none}.app-dialog-backdrop.on{opacity:1}.dialog-open{overflow:hidden}
@@ -137,6 +139,9 @@
   .card{padding:15px;border-radius:8px}.card h2{font-size:18px}.newbtn{padding:13px}
   body[data-view="editor"] main.wrap{padding-top:4px}
   body[data-view="editor"] .room-jump-mobile{margin-top:10px}
+  .room-jump-mobile select,.form-switch select{min-height:44px}
+  .mini{min-height:44px}
+  .cam{width:44px;height:44px}
   .k{min-height:50px}
   .bar{gap:6px;padding-left:10px;padding-right:10px}
   .bar .act{min-width:0}
@@ -144,14 +149,22 @@
   .walk-tools{grid-template-columns:1fr}.walk-pref{justify-content:center}
   .dashboard-tools{display:grid;align-items:stretch}.dashboard-sort{min-width:0}.dashboard-sort select{width:100%}
   .dashboard-filters{display:grid;grid-template-columns:1fr 1fr}.dashboard-filters button{width:100%}
-  .record-side{min-width:74px}.record-side small:not(.attention):not(.complete){display:none}.backup-mark{display:none!important}
+  .enhanced-record .rec{display:grid;grid-template-columns:54px minmax(0,1fr);gap:7px 9px;align-items:center;padding:12px 8px 12px 12px}
+  .enhanced-record .rec>.badge{grid-row:1 / span 2}
+  .enhanced-record .record-side{grid-column:2;display:flex;min-width:0;justify-content:flex-start;align-items:center;gap:6px}
+  .rec .badge{width:54px}
+  .recdelete{min-height:44px;padding:9px 8px}
+  .record-side small:not(.attention):not(.complete){display:none}.backup-mark{display:none!important}
   .health-grid{grid-template-columns:1fr}.health-item{min-height:0}
+  .health-action{min-height:40px}
   .photo-panel{grid-template-columns:1fr;width:100%;gap:9px}.photo-panel .act{width:100%}
   .app-dialog{padding:19px;border-radius:14px}.dialog-actions{display:grid;grid-template-columns:1fr 1fr}.dialog-actions .act{width:100%}
   .room-state{display:none}
 }
 
 @media screen and (max-width:430px){
+  .enhanced-record .rec{grid-template-columns:50px minmax(0,1fr);padding-left:10px}
+  .rec .badge{width:50px;font-size:8.5px;letter-spacing:.025em}
   .bar-label-wide{display:none}
   .bar-label-short{display:inline}
   .bar .act{font-size:12px;padding-left:5px;padding-right:5px}
