@@ -1,7 +1,9 @@
-:root{--ok:#2B7D68;--work:#B84C42;--na:#788B97}
+:root{--ok:#2B7D68;--work:#B84C42;--na:#788B97;--ui-radius:10px;--ui-shadow:0 6px 18px rgba(0,46,87,.065)}
 
 /* Screen interface: brand color for structure, semantic color only for status. */
 @media screen{
+  html{scroll-behavior:smooth;scroll-padding-top:88px}
+  body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   body{background:#F3F7F9}
   .wrap{max-width:920px}
   .mast{background:linear-gradient(118deg,var(--brand-deep),var(--brand));color:#fff;padding:16px 0 0;border-bottom:4px solid #00D5D9;box-shadow:0 5px 18px rgba(0,46,87,.18)}
@@ -20,19 +22,29 @@
   .chip .tick{color:#7DE7E6}.chip.on .tick{color:var(--ok)}
   main.wrap{padding-top:3px}
 
-  .card{border:1px solid #D2DFE6;border-top-width:1px;border-radius:10px;box-shadow:0 6px 18px rgba(0,46,87,.065);padding:18px}
+  .card{border:1px solid #D2DFE6;border-top-width:1px;border-radius:var(--ui-radius);box-shadow:var(--ui-shadow);padding:18px}
   .card:hover{box-shadow:0 8px 24px rgba(0,46,87,.085)}
   #home>.card:first-child,#home>.card:nth-child(2),#editor>.card:first-of-type,#wkCard,.signCard{border-top:3px solid var(--brand)}
   .card h2{font-size:19px;text-transform:none;letter-spacing:-.015em}
   .in,.mini,.cam,.k,.seg button,.checkrow label,.sigbox{background:#fff;border-color:#C9D7DF}
   .in:focus{border-color:var(--brand-mid);box-shadow:0 0 0 3px rgba(30,108,159,.12)}
+  .in::placeholder{color:#78909E;opacity:1}
+  button:disabled{cursor:not-allowed}
   .strip,.walk-progress-line i{background:#E1EAF0}
   .fieldpulse{background:#fff;border-color:#C9DDE9;box-shadow:none}.fieldpulse.complete{background:#F3FAF7;border-color:#B7D8CD}
   .form-switch{background:#F5F9FB;border-color:#C9DDE9}
 
   .roomtools{background:#fff;border-color:#D2DFE6;border-left-color:var(--brand);box-shadow:0 4px 12px rgba(0,46,87,.045)}
-  .sec{border-color:#D2DFE6;border-radius:9px;box-shadow:0 3px 12px rgba(0,46,87,.045)}
-  .sec>summary{padding:13px 15px;background:#fff}.sectools{padding:0 15px 12px}
+  .sec{border-color:#D2DFE6;border-radius:9px;box-shadow:0 3px 12px rgba(0,46,87,.045);scroll-margin-top:88px}
+  .sec>summary{padding:13px 15px;background:#fff;min-height:50px;cursor:pointer;transition:background .18s ease,color .18s ease}.sectools{padding:0 15px 12px}
+  .sec[open]>summary{background:#F7FAFC}
+  .sec>summary:hover{background:#F0F6F9}
+  .item{scroll-margin-top:88px}
+  .cam{color:var(--brand);font-size:0;box-shadow:0 1px 2px rgba(0,46,87,.05)}
+  .cam:before{content:"\1F4F7";font-size:16px}
+  .cam:hover{border-color:var(--brand-mid);background:var(--brand-pale)}
+  .k:not(.on):hover{border-color:var(--brand-mid);background:var(--brand-pale);color:var(--brand)}
+  .k[aria-pressed="true"]{box-shadow:0 4px 12px rgba(0,46,87,.14)}
   .item{padding:12px 15px}.item.flagged{background:#FFF5F3}.note{background:#fff;border-color:#E2B9B2}
   .section-bookmarks,.room-jump-mobile{background:rgba(255,255,255,.98);border-color:#CDDCE4;border-top-color:var(--brand);box-shadow:0 8px 24px rgba(0,46,87,.12)}
   .section-bookmark.on{background:#EAF3F8;box-shadow:inset 3px 0 var(--brand)}
@@ -51,15 +63,32 @@
   .act{border-color:#AFC4D0}.act:hover{background:var(--brand-pale)}
   .act.solid{background:var(--brand);border-color:var(--brand)}.act.solid:hover{background:var(--brand-mid)}
   .k.on.k-ok{background:var(--ok)}.k.on.k-work{background:var(--work)}.k.on.k-na{background:var(--na)}
+  .bar-label-short{display:none}
+  .save-indicator{position:absolute;right:14px;top:-35px;display:flex;align-items:center;gap:5px;max-width:calc(100vw - 28px);padding:6px 10px;border:1px solid #B9D7CC;border-radius:999px;background:rgba(244,251,248,.98);box-shadow:0 5px 16px rgba(0,46,87,.12);color:var(--ok);font:600 10px/1.2 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.04em;opacity:0;transform:translateY(5px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+  .save-indicator.on{opacity:1;transform:translateY(0)}
 }
 
 @media screen and (max-width:560px){
+  body[data-view="editor"] .mast{padding-top:10px}
+  body[data-view="editor"] .mast .rail{display:none!important}
   .mast{padding-top:14px}.mast-head{grid-template-columns:auto minmax(0,1fr);gap:12px}
   .report-logo{width:auto;height:43px;max-width:100px}.mast-copy{padding-left:12px}
   .mast .sub{font-size:8.5px}.mast h1{font-size:19px}
   .mast .lede{margin:10px 0 0;font-size:12px;border-top:1px solid rgba(255,255,255,.18);padding-top:9px}
   .mast .pad{height:12px}.rail{padding-top:10px}.chip{min-width:112px}
   .card{padding:15px;border-radius:8px}.card h2{font-size:18px}.newbtn{padding:13px}
+  body[data-view="editor"] main.wrap{padding-top:4px}
+  body[data-view="editor"] .room-jump-mobile{margin-top:10px}
+  .k{min-height:50px}
+  .bar{gap:6px;padding-left:10px;padding-right:10px}
+  .bar .act{min-width:0}
+  .save-indicator{right:10px}
+}
+
+@media screen and (max-width:360px){
+  .bar-label-wide{display:none}
+  .bar-label-short{display:inline}
+  .bar .act{font-size:12px;padding-left:5px;padding-right:5px}
 }
 
 /* Print/PDF: restrained color, stable margins, repeatable tables, sharp signatures. */

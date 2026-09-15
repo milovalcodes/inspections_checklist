@@ -1,6 +1,6 @@
-const CACHE = 'inspection-v45-professional-layout';
+const CACHE = 'inspection-v46-ui-polish';
 const ASSETS = [
-  './', './index.html', './move-in.html', './move-out.html', './schedule.html', './app-theme.css?v=45',
+  './', './index.html', './move-in.html', './move-out.html', './schedule.html', './app-theme.css?v=46',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',
   './icon-192.png', './icon-512.png', './cimco-logo.png'
 ];

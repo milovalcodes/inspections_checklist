@@ -522,7 +522,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
   .strip{display:none}
 }
 </style>
-<link rel="stylesheet" href="./app-theme.css?v=45">
+<link rel="stylesheet" href="./app-theme.css?v=46">
 
 <header class="mast">
   <div class="wrap">
@@ -798,7 +798,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = "out";      /* null = both modes in one app */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "professional-layout-v45";
+const APP_VERSION = "ui-polish-v46";
 const TRANSCRIPTION_BETA_VISIBLE = false;
 let REPORT_LOGO_DATA = "";
 let REPORT_LOGO_PROMISE = null;
@@ -1095,12 +1095,24 @@ function loadAll(){
   LIST.forEach(normalizeRecord);
   try{ localStorage.setItem(KEY,JSON.stringify(LIST)); }catch(e){}
 }
-let saveTimer;
+let saveTimer, saveNoticeTimer, saveNoticeText="";
+function paintSaveNotice(){
+  const el=document.getElementById("saveIndicator");
+  if(!el) return;
+  el.textContent=saveNoticeText;
+  el.classList.toggle("on",!!saveNoticeText);
+}
+function showSaveNotice(){
+  saveNoticeText="✓ Saved on this device";
+  paintSaveNotice();
+  clearTimeout(saveNoticeTimer);
+  saveNoticeTimer=setTimeout(()=>{ saveNoticeText=""; paintSaveNotice(); },1400);
+}
 function save(){
   if(cur) cur.updated = Date.now();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(()=>{
-    try{ localStorage.setItem(KEY, JSON.stringify(LIST)); }
+    try{ localStorage.setItem(KEY, JSON.stringify(LIST)); showSaveNotice(); }
     catch(e){ toast("Storage is full — export and delete an old inspection"); }
   }, 250);
 }
@@ -1870,7 +1882,7 @@ function renderSpaces(){
           <button class="cam" data-cam="${k}" aria-label="Add photo of ${esc(it.t)}">📷${pics.length?`<b>${pics.length}</b>`:""}</button>
         </div>
         <div class="pad6">${CODES.map(([v,g,lab])=>
-          `<button class="k k-${v} ${it.s===v?"on":""}" data-k="${k}" data-v="${v}" aria-label="${lab}">${g}<small>${lab.toUpperCase()}</small></button>`).join("")}</div>
+          `<button class="k k-${v} ${it.s===v?"on":""}" data-k="${k}" data-v="${v}" aria-label="${lab}" aria-pressed="${it.s===v}">${g}<small>${lab.toUpperCase()}</small></button>`).join("")}</div>
         <textarea class="note" data-note="${k}" placeholder="What needs work, or why it could not be tested">${esc(it.n)}</textarea>
         <div class="pnote"></div>
         <div class="thumbs">${pics.map(p=>`<img src="${p.data}" data-ph="${p.id}" alt="Photo of ${esc(it.t)}">`).join("")}</div>
@@ -1900,7 +1912,11 @@ function paintItem(sp, idx){
   el.classList.toggle("flagged", flag);
   el.classList.toggle("unreviewed", !it.s);
   el.classList.toggle("is-na", it.s === "na");
-  el.querySelectorAll(".k").forEach(b => b.classList.toggle("on", b.dataset.v === it.s));
+  el.querySelectorAll(".k").forEach(b => {
+    const selected=b.dataset.v === it.s;
+    b.classList.toggle("on",selected);
+    b.setAttribute("aria-pressed",String(selected));
+  });
   const pc = el.querySelector(".pcode");
   if(pc) pc.textContent = it.s ? CODE_LABEL[it.s] : "—";
   const base = el.querySelector(".base");
@@ -1985,18 +2001,19 @@ function renderWk(){
 
 function renderBar(){
   const bar = document.getElementById("bar");
+  const saved=`<span class="save-indicator ${saveNoticeText?"on":""}" id="saveIndicator" role="status" aria-live="polite">${esc(saveNoticeText)}</span>`;
   if(document.body.dataset.view === "home"){
-    bar.innerHTML = `<div class="st">${LIST.length} saved · ${ORG}</div>
+    bar.innerHTML = `${saved}<div class="st">${LIST.length} saved · ${ORG}</div>
       <button class="act ghost" id="bugBtn">Report issue</button>
       <button class="act solid" data-new="${MODE_LOCK||"ready"}">New inspection</button>`;
     return;
   }
   const s = stats(cur);
-  bar.innerHTML = `<div class="st"><b>${esc(title(cur))}</b> — ${s.done}/${s.total}${s.flags? " · "+s.flags+" needs work":""}</div>
-    <button class="act ghost" id="homeBtn">All</button>
-    <button class="act ghost" id="bugBtn">Report issue</button>
-    <button class="act" id="copyBtn">Copy report</button>
-    <button class="act solid" id="printBtn">Print / PDF</button>`;
+  bar.innerHTML = `${saved}<div class="st"><b>${esc(title(cur))}</b> — ${s.done}/${s.total}${s.flags? " · "+s.flags+" needs work":""}</div>
+    <button class="act ghost" id="homeBtn" aria-label="All inspections"><span class="bar-label-wide">All inspections</span><span class="bar-label-short">Home</span></button>
+    <button class="act ghost" id="bugBtn" aria-label="Report an issue"><span class="bar-label-wide">Report issue</span><span class="bar-label-short">Issue</span></button>
+    <button class="act" id="copyBtn" aria-label="Copy report"><span class="bar-label-wide">Copy report</span><span class="bar-label-short">Copy</span></button>
+    <button class="act solid" id="printBtn" aria-label="Print or save PDF"><span class="bar-label-wide">Print / PDF</span><span class="bar-label-short">Print</span></button>`;
 }
 
 /* ---------------- signature pads ---------------- */
