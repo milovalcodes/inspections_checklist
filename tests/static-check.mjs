@@ -27,6 +27,7 @@ const enhancements=read("app-enhancements.js");
 for(const marker of ["openDialog","jumpNextUnreviewed","renderDashboard","updateHealth","processPhotos","initPwaHealth","runSelfTests"]){
   assert.ok(enhancements.includes(marker),`${marker} is included`);
 }
+assert.match(read("tests/regression.html"),/selftest=1&amp;suite=49/,"browser tests use a release-specific isolated URL");
 for(const marker of ["convertInspectionForm","photoPut","reportHTML","signatureSvg","insertSpaceNearFamily"]){
   assert.ok(general.includes(marker),`${marker} remains available`);
 }
