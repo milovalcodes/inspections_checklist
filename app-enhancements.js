@@ -446,11 +446,12 @@ function initPwaHealth(){
       const worker=reg.installing; if(!worker) return;
       worker.addEventListener("statechange",()=>{
         if(worker.state==="installed"&&navigator.serviceWorker.controller){ pwaWaiting=reg.waiting||worker; setPwaState("update","Update available","A newer inspection app is ready to install."); }
+        if(worker.state==="activated"){ pwaWaiting=null; online(); }
       });
     });
     return navigator.serviceWorker.ready;
   }).then(()=>online()).catch(()=>setPwaState("limited","Offline setup needs attention","Reload once while online to prepare the field kit."));
-  navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(applyingUpdate) location.reload(); });
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{ pwaWaiting=null; if(applyingUpdate) location.reload(); else online(); });
 }
 
 function findPhoto(id){

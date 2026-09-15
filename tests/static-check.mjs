@@ -12,8 +12,8 @@ for(const page of pages){
   const inline=html.match(/<script>\s*"use strict";([\s\S]*?)<\/script>/);
   assert.ok(inline,`${page} main script is present`);
   new Function('"use strict";'+inline[1]);
-  assert.match(html,/app-theme\.css\?v=51/);
-  assert.match(html,/app-enhancements\.js\?v=51/);
+  assert.match(html,/app-theme\.css\?v=52/);
+  assert.match(html,/app-enhancements\.js\?v=52/);
 }
 
 new Function(read("app-enhancements.js"));
@@ -30,13 +30,13 @@ for(const marker of ["openDialog","jumpNextUnreviewed","renderDashboard","update
 const theme=read("app-theme.css");
 assert.match(theme,/\.rec \.badge\{width:58px;[^}]*white-space:nowrap;overflow:hidden\}/,"record badges contain long labels");
 assert.match(theme,/\.cam\{width:44px;height:44px\}/,"mobile photo controls keep a full tap target");
-assert.match(read("tests/regression.html"),/selftest=1&amp;suite=51/,"browser tests use a release-specific isolated URL");
+assert.match(read("tests/regression.html"),/selftest=1&amp;suite=52/,"browser tests use a release-specific isolated URL");
 for(const marker of ["convertInspectionForm","photoPut","reportHTML","signatureSvg","insertSpaceNearFamily"]){
   assert.ok(general.includes(marker),`${marker} remains available`);
 }
 
 const worker=read("service-worker.js");
-for(const asset of ["index.html","move-in.html","move-out.html","app-theme.css?v=51","app-enhancements.js?v=51"]){
+for(const asset of ["index.html","move-in.html","move-out.html","app-theme.css?v=52","app-enhancements.js?v=52"]){
   assert.ok(worker.includes(asset),`${asset} is cached for offline use`);
 }
 assert.match(worker,/self\.skipWaiting\(\)/,"new offline builds activate without waiting for every old tab to close");
