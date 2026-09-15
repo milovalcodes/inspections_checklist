@@ -59,6 +59,10 @@ Run `./CHECK-BRIDGE.ps1` whenever the phone cannot connect. See `FIELD-CONNECTIO
 
 The printed/PDF report removes app controls and unreviewed clutter. Routine reports preserve blank lines for maintenance handwriting, and their estimated work total remains blank until at least one price is entered.
 
+## Automatic PDF delivery
+
+Every inspection now ends with **Finish & deliver**. After a one-time private connection, **Send PDF to main office** creates the report and sends it from `cimcomngmt1@gmail.com` to `cimcomngmt@gmail.com` without exposing Gmail credentials in the public website. Setup instructions and the sender code are in [`office-delivery/`](office-delivery/README.md).
+
 ## Regression checks
 
 - Run `node tests/static-check.mjs` after changing the app. It validates script syntax, mode parity, shared assets, and the offline cache list.

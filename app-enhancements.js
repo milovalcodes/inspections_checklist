@@ -2,10 +2,14 @@
 "use strict";
 
 const UI_KEY="cimco.inspection.ui.v1";
+const DELIVERY_KEY="cimco.office-delivery.config.v1";
+const OFFICE_SENDER="cimcomngmt1@gmail.com";
+const OFFICE_RECIPIENT="cimcomngmt@gmail.com";
 const DEFAULT_PREFS={autoCollapse:true,backups:{}};
 let prefs=loadPrefs(), dashFilter="all", dashSort="recent";
-let dialogResolve=null, dialogReturnFocus=null, photoBusy=false, retakePhotoId="";
+let dialogResolve=null, dialogReturnFocus=null, dialogHideTimer=null, photoBusy=false, retakePhotoId="";
 let captionTimer=null, pwaInstallEvent=null, pwaWaiting=null, applyingUpdate=false;
+let deliveryBusy=false;
 let pwaState={tone:"checking",title:"Checking offline readiness",detail:"The app is checking its local field kit."};
 
 function loadPrefs(){
@@ -36,6 +40,37 @@ function markBackedUp(records){
   records.forEach(rec=>{ prefs.backups[rec.id]=Date.now(); });
   savePrefs();
   if(document.body.dataset.view==="home") renderHome();
+}
+
+function loadDeliveryConfig(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(DELIVERY_KEY)||"{}");
+    return {endpoint:String(saved.endpoint||""),token:String(saved.token||"")};
+  }catch(e){ return {endpoint:"",token:""}; }
+}
+function validDeliveryEndpoint(value){
+  try{
+    const url=new URL(String(value||"").trim());
+    return url.protocol==="https:"&&url.hostname==="script.google.com"&&/^\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url.pathname)?url.href:"";
+  }catch(e){ return ""; }
+}
+function deliveryConfigured(){ const config=loadDeliveryConfig(); return !!(validDeliveryEndpoint(config.endpoint)&&config.token); }
+function setDeliveryStatus(message,tone){
+  const status=document.getElementById("deliveryStatus");
+  if(!status) return;
+  status.textContent=message||"";
+  status.className="delivery-status "+(tone||"");
+}
+function updateDeliveryPanel(){
+  const panel=document.getElementById("finishCard"); if(!panel||!cur) return;
+  const s=stats(cur), left=Math.max(0,s.total-s.done), sent=cur.officeDelivery&&Number(cur.officeDelivery.sentAt||0);
+  document.getElementById("finishReadiness").textContent=left?left+" checklist line"+(left===1?" is":"s are")+" still unreviewed":s.flags?s.flags+" item"+(s.flags===1?" needs":"s need")+" office attention":"Every checklist line is reviewed";
+  document.getElementById("finishReadiness").className="finish-readiness "+(left?"pending":s.flags?"attention":"complete");
+  const send=document.getElementById("sendOfficePdf"), setup=document.getElementById("deliverySetup");
+  send.disabled=deliveryBusy; send.textContent=deliveryBusy?"Creating and sending PDF…":"Send PDF to main office";
+  setup.disabled=deliveryBusy; setup.textContent=deliveryConfigured()?"Delivery settings":"Connect office delivery";
+  if(sent&&!deliveryBusy) setDeliveryStatus("Last sent to "+OFFICE_RECIPIENT+" "+relativeTime(sent)+".","sent");
+  else if(!deliveryConfigured()&&!deliveryBusy) setDeliveryStatus("One-time connection required before the first send.","setup");
 }
 
 function ensureShell(){
@@ -83,6 +118,24 @@ function ensureShell(){
         <article class="health-item" id="pwaHealth"><span class="health-dot checking" id="pwaDot" aria-hidden="true"></span><div><b id="pwaTitle">Checking offline readiness</b><small id="pwaDetail">The app is checking its local field kit.</small><button class="health-action" id="pwaAction" type="button" hidden></button></div></article>
       </div>`);
   }
+  const signCard=document.querySelector(".signCard");
+  if(signCard && !document.getElementById("finishCard")){
+    signCard.insertAdjacentHTML("afterend",`
+      <section class="card finish-card noprint" id="finishCard" aria-labelledby="finishTitle">
+        <div class="finish-copy">
+          <div class="eyebrow">Finish &amp; deliver</div>
+          <h2 id="finishTitle">Send the inspection to the office</h2>
+          <p>Creates the final PDF with its checklist, notes, photos, pricing, and signatures, then sends it directly to <b>${OFFICE_RECIPIENT}</b>.</p>
+        </div>
+        <div class="finish-readiness pending" id="finishReadiness">Checking inspection progress…</div>
+        <div class="finish-actions">
+          <button class="act solid send-office" id="sendOfficePdf" type="button">Send PDF to main office</button>
+          <button class="act ghost" id="deliverySetup" type="button">Connect office delivery</button>
+        </div>
+        <div class="delivery-status setup" id="deliveryStatus" role="status" aria-live="polite">One-time connection required before the first send.</div>
+        <small class="finish-privacy">Sent securely from ${OFFICE_SENDER}. The private connection stays only on this device and is never included in inspection exports.</small>
+      </section>`);
+  }
   const lightbox=document.getElementById("lb");
   if(lightbox && !document.getElementById("photoPanel")){
     const row=lightbox.querySelector(".row");
@@ -101,6 +154,7 @@ function ensureShell(){
 function openDialog(options){
   const shell=document.getElementById("appDialog"), form=document.getElementById("appDialogForm");
   if(dialogResolve) closeDialog(null);
+  clearTimeout(dialogHideTimer); dialogHideTimer=null;
   dialogReturnFocus=document.activeElement;
   document.getElementById("appDialogEyebrow").textContent=options.eyebrow||"Inspection app";
   document.getElementById("appDialogTitle").textContent=options.title||"Confirm";
@@ -108,6 +162,8 @@ function openDialog(options){
   if(options.html) copy.innerHTML=options.html; else copy.textContent=options.message||"";
   const field=document.getElementById("appDialogField"), input=document.getElementById("appDialogInput");
   field.hidden=!options.field;
+  input.type=options.inputType||"text";
+  input.inputMode=options.inputMode||"text";
   input.value=options.value||"";
   input.placeholder=options.placeholder||"";
   input.required=!!options.required;
@@ -127,11 +183,106 @@ function closeDialog(value){
   const shell=document.getElementById("appDialog");
   shell.classList.remove("on");
   document.body.classList.remove("dialog-open");
-  setTimeout(()=>{ shell.hidden=true; },160);
+  clearTimeout(dialogHideTimer);
+  dialogHideTimer=setTimeout(()=>{ shell.hidden=true; dialogHideTimer=null; },160);
   const resolve=dialogResolve; dialogResolve=null;
   if(resolve) resolve(value);
   if(dialogReturnFocus&&dialogReturnFocus.focus) dialogReturnFocus.focus();
   dialogReturnFocus=null;
+}
+
+async function configureDelivery(){
+  const current=loadDeliveryConfig();
+  const endpoint=await openDialog({
+    eyebrow:"Office delivery",title:"Connect automatic PDF delivery",field:true,required:true,
+    label:"Google Apps Script web app URL",inputType:"url",inputMode:"url",value:current.endpoint,
+    placeholder:"https://script.google.com/macros/s/…/exec",confirmLabel:"Continue",
+    message:"Use the deployment URL created while signed in as "+OFFICE_SENDER+"."
+  });
+  if(endpoint===null) return null;
+  const cleanEndpoint=validDeliveryEndpoint(endpoint);
+  if(!cleanEndpoint){ toast("Use the complete Google Apps Script /exec URL"); return null; }
+  const enteredToken=await openDialog({
+    eyebrow:"Office delivery",title:"Enter the private pairing key",field:true,required:!current.token,
+    label:"Pairing key",inputType:"password",value:"",
+    placeholder:current.token?"Leave blank to keep the saved key":"Paste the key from Apps Script",confirmLabel:"Save connection",
+    message:"The key stays in this browser only and is never added to reports or backups."
+  });
+  if(enteredToken===null) return null;
+  const token=String(enteredToken||current.token||"").trim();
+  if(!token){ toast("A pairing key is required"); return null; }
+  const config={endpoint:cleanEndpoint,token};
+  try{ localStorage.setItem(DELIVERY_KEY,JSON.stringify(config)); }
+  catch(e){ toast("This browser could not save the office connection"); return null; }
+  setDeliveryStatus("Office delivery is connected and ready.","sent");
+  updateDeliveryPanel();
+  toast("Office delivery connected");
+  return config;
+}
+
+function base64UrlUtf8(value){
+  const bytes=new TextEncoder().encode(String(value||""));
+  let binary="";
+  for(let i=0;i<bytes.length;i+=32768) binary+=String.fromCharCode(...bytes.subarray(i,i+32768));
+  return btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"" );
+}
+function deliveryPayload(rec,html,requestId){
+  const s=stats(rec);
+  return {
+    token:loadDeliveryConfig().token,
+    request_id:requestId,
+    report_b64:base64UrlUtf8(html),
+    file_name:slug(rec).replace(/\.json$/,".pdf"),
+    property:title(rec),inspection_type:modeTitle(rec),reviewed:String(s.done),total:String(s.total),flags:String(s.flags),
+    submitted_at:new Date().toISOString(),app_version:APP_VERSION
+  };
+}
+function postOfficeDelivery(config,payload){
+  return new Promise((resolve,reject)=>{
+    const frame=document.createElement("iframe"), form=document.createElement("form"), frameName="cimcoDelivery"+Date.now();
+    let settled=false;
+    frame.name=frameName; frame.hidden=true; frame.setAttribute("title","Office delivery response");
+    form.hidden=true; form.method="post"; form.action=config.endpoint; form.target=frameName; form.acceptCharset="UTF-8";
+    Object.entries(payload).forEach(([name,value])=>{ const field=document.createElement("textarea"); field.name=name; field.value=String(value); form.appendChild(field); });
+    const cleanup=()=>{ removeEventListener("message",onMessage); clearTimeout(timer); form.remove(); frame.remove(); };
+    const finish=(fn,value)=>{ if(settled) return; settled=true; cleanup(); fn(value); };
+    const onMessage=event=>{
+      if(event.source!==frame.contentWindow) return;
+      const data=event.data;
+      if(!data||data.type!=="cimco-report-delivery"||data.requestId!==payload.request_id) return;
+      if(data.ok) finish(resolve,data); else finish(reject,new Error(data.error||"The office email service could not send this report."));
+    };
+    const timer=setTimeout(()=>finish(reject,new Error("The office did not confirm delivery. Check the connection and try again.")),75000);
+    addEventListener("message",onMessage);
+    document.body.append(frame,form);
+    try{ form.submit(); }catch(error){ finish(reject,error); }
+  });
+}
+async function sendOfficeReport(){
+  if(!cur||deliveryBusy) return;
+  if(!navigator.onLine){ setDeliveryStatus("An internet connection is required to send the PDF.","error"); toast("Connect to the internet, then try again"); return; }
+  let config=loadDeliveryConfig();
+  if(!deliveryConfigured()){ config=await configureDelivery(); if(!config) return; }
+  const s=stats(cur), remaining=Math.max(0,s.total-s.done);
+  if(remaining){
+    const proceed=await openDialog({eyebrow:"Incomplete inspection",title:"Send with "+remaining+" unreviewed line"+(remaining===1?"?":"s?"),message:"The PDF will clearly show the current progress. You can finish the inspection and send an updated copy later.",confirmLabel:"Send anyway"});
+    if(!proceed) return;
+  }
+  deliveryBusy=true; updateDeliveryPanel(); setDeliveryStatus("Building the PDF and sending it securely…","busy");
+  try{
+    await ensureReportLogo();
+    const html=reportHTML(cur), size=new Blob([html]).size;
+    if(size>18*1024*1024) throw new Error("This report is too large to email. Reduce the number or size of its photos, then try again.");
+    const requestId=uid()+"-"+Date.now();
+    await postOfficeDelivery(config,deliveryPayload(cur,html,requestId));
+    cur.officeDelivery={sentAt:Date.now(),sender:OFFICE_SENDER,recipient:OFFICE_RECIPIENT};
+    save(); markBackedUp([cur]);
+    setDeliveryStatus("PDF sent successfully to "+OFFICE_RECIPIENT+".","sent");
+    toast("Inspection PDF sent to the main office");
+  }catch(error){
+    setDeliveryStatus(error&&error.message?error.message:"The report could not be sent. Try again.","error");
+    toast("Office delivery failed");
+  }finally{ deliveryBusy=false; updateDeliveryPanel(); }
 }
 
 function decorateSpaces(){
@@ -350,9 +501,9 @@ ensureShell();
 const originalRenderHome=renderHome;
 renderHome=function(){ originalRenderHome(); renderDashboard(); updateHealth(); };
 const originalRenderSpaces=renderSpaces;
-renderSpaces=function(){ originalRenderSpaces(); decorateSpaces(); updateWalkTools(); };
+renderSpaces=function(){ originalRenderSpaces(); decorateSpaces(); updateWalkTools(); updateDeliveryPanel(); };
 const originalRenderHead=renderHead;
-renderHead=function(){ originalRenderHead(); decorateSpaces(); updateWalkTools(); };
+renderHead=function(){ originalRenderHead(); decorateSpaces(); updateWalkTools(); updateDeliveryPanel(); };
 const originalCaption=caption;
 caption=function(row){ const base=originalCaption(row), extra=String((row.p&&row.p.caption)||"").trim(); return base+(extra?" — "+extra:""); };
 
@@ -377,7 +528,7 @@ document.addEventListener("keydown",event=>{
 
 document.addEventListener("click",event=>{
   const t=event.target.closest("button,[data-delhome],[data-additem],[data-rename],[data-delsp],[data-add]"); if(!t) return;
-  const intercept=t.id==="dictHelp"||t.id==="delBtn"||t.id==="lbDel"||t.id==="lbRetake"||t.id==="nextUnreviewed"||t.id==="collapseToggle"||t.id==="pwaAction"||t.hasAttribute("data-delhome")||t.hasAttribute("data-additem")||t.hasAttribute("data-rename")||t.hasAttribute("data-delsp")||(t.dataset.add==="other")||t.hasAttribute("data-dash-filter");
+  const intercept=t.id==="dictHelp"||t.id==="delBtn"||t.id==="lbDel"||t.id==="lbRetake"||t.id==="nextUnreviewed"||t.id==="collapseToggle"||t.id==="pwaAction"||t.id==="sendOfficePdf"||t.id==="deliverySetup"||t.hasAttribute("data-delhome")||t.hasAttribute("data-additem")||t.hasAttribute("data-rename")||t.hasAttribute("data-delsp")||(t.dataset.add==="other")||t.hasAttribute("data-dash-filter");
   if(!intercept) return;
   event.preventDefault(); event.stopImmediatePropagation();
   void (async()=>{
@@ -396,6 +547,8 @@ document.addEventListener("click",event=>{
       else if(pwaInstallEvent){ pwaInstallEvent.prompt(); await pwaInstallEvent.userChoice; pwaInstallEvent=null; paintPwaState(); }
       return;
     }
+    if(t.id==="deliverySetup"){ await configureDelivery(); return; }
+    if(t.id==="sendOfficePdf"){ await sendOfficeReport(); return; }
     if(t.id==="lbRetake"){
       const photo=findPhoto(lbCurrent); if(!photo) return;
       retakePhotoId=photo.id; camTarget=photo.key; document.getElementById("lb").classList.remove("on"); document.getElementById("camIn").click(); return;
@@ -490,6 +643,8 @@ async function runSelfTests(){
     const report=reportHTML(cur); check("Printable report includes the property",report.includes("100 Test Avenue")); check("Printable report includes photos",report.includes("data:image/jpeg")); check("Photo captions reach reports",report.includes("Test caption"));
     const payload=JSON.stringify({type:"cimco-inspection",v:1,records:[Object.assign({},cur,{photos:[photo]})]}); const imported=JSON.parse(payload); check("Photo export/import payload round-trips",imported.records[0].photos[0].caption==="Test caption");
     check("Signature data is exportable",JSON.stringify(cur).includes("data:image/svg+xml"));
+    check("Office PDF delivery has a fixed recipient",OFFICE_RECIPIENT==="cimcomngmt@gmail.com"&&OFFICE_SENDER==="cimcomngmt1@gmail.com");
+    check("Office delivery accepts only Apps Script endpoints",!!validDeliveryEndpoint("https://script.google.com/macros/s/test-deployment_123/exec")&&!validDeliveryEndpoint("https://example.com/send"));
     return results;
   }finally{
     if(testPhoto) await photoDelete(testPhoto).catch(()=>{}); localStorage.removeItem(KEY); LIST=[]; cur=null; photos={}; go("home");
@@ -497,6 +652,6 @@ async function runSelfTests(){
 }
 
 if(document.body.dataset.view==="home") renderHome(); else { renderSpaces(); renderHead(); }
-initPwaHealth(); updateWalkTools(); decorateSpaces();
+initPwaHealth(); updateWalkTools(); decorateSpaces(); updateDeliveryPanel();
 if(SELF_TEST) window.__CIMCO_TEST__={run:runSelfTests};
 })();

@@ -112,6 +112,19 @@
   .health-meter{display:block;height:4px;margin-top:8px;overflow:hidden;border-radius:999px;background:#DFE8ED}.health-meter em{display:block;width:0;height:100%;background:var(--ok)}.health-meter em.warn{background:var(--work)}
   .health-action{min-height:34px;margin-top:7px;padding:7px 9px;border:1px solid var(--brand-mid);border-radius:7px;background:#fff;color:var(--brand);font:600 9px/1.2 "IBM Plex Mono",monospace;text-transform:uppercase}
 
+  .finish-card{position:relative;overflow:hidden;border-top-color:var(--ok)!important;background:linear-gradient(135deg,#FFFFFF 0,#F3FAF7 100%)}
+  .finish-card:after{content:"✓";position:absolute;right:-12px;top:-34px;color:rgba(43,125,104,.07);font:800 150px/1 "Archivo",sans-serif;pointer-events:none}
+  .finish-copy,.finish-readiness,.finish-actions,.delivery-status,.finish-privacy{position:relative;z-index:1}
+  .finish-copy p{max-width:67ch;margin:7px 0 0;color:var(--slate);font-size:13px;line-height:1.5}.finish-copy p b{color:var(--ink)}
+  .finish-readiness{display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:6px 9px;border:1px solid #CCD9E0;border-radius:999px;background:#fff;color:var(--slate);font:600 10px/1.2 "IBM Plex Mono",monospace}
+  .finish-readiness:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--na)}
+  .finish-readiness.complete{border-color:#B8D8CD;color:var(--ok)}.finish-readiness.complete:before{background:var(--ok)}
+  .finish-readiness.attention{border-color:#E4C1BC;color:var(--work)}.finish-readiness.attention:before{background:var(--work)}
+  .finish-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.finish-actions .send-office{min-width:220px;background:var(--ok);border-color:var(--ok)}.finish-actions .send-office:hover{background:#236957;border-color:#236957}
+  .delivery-status{margin-top:11px;padding:9px 11px;border-left:3px solid var(--na);border-radius:0 8px 8px 0;background:rgba(255,255,255,.82);color:var(--slate);font-size:12px;line-height:1.4}
+  .delivery-status.busy{border-left-color:var(--brand-mid);color:var(--brand)}.delivery-status.sent{border-left-color:var(--ok);color:var(--ok)}.delivery-status.error{border-left-color:var(--work);color:var(--work)}
+  .finish-privacy{display:block;margin-top:9px;color:var(--mute);font-size:10.5px;line-height:1.4}
+
   .app-dialog-backdrop{position:fixed;z-index:100;inset:0;display:grid;place-items:center;padding:18px;background:rgba(0,31,58,.55);backdrop-filter:blur(6px);opacity:0;transition:opacity .16s ease}
   .app-dialog-backdrop[hidden]{display:none}.app-dialog-backdrop.on{opacity:1}.dialog-open{overflow:hidden}
   .app-dialog{position:relative;width:min(100%,440px);max-height:min(84vh,660px);overflow:auto;padding:22px;border:1px solid #BFD1DC;border-top:4px solid var(--brand);border-radius:16px;background:linear-gradient(145deg,#fff,#F7FAFC);box-shadow:0 24px 70px rgba(0,31,58,.28);transform:translateY(10px) scale(.985);transition:transform .18s ease}
@@ -157,6 +170,7 @@
   .record-side small:not(.attention):not(.complete){display:none}.backup-mark{display:none!important}
   .health-grid{grid-template-columns:1fr}.health-item{min-height:0}
   .health-action{min-height:40px}
+  .finish-actions{display:grid;grid-template-columns:1fr}.finish-actions .act,.finish-actions .send-office{width:100%;min-width:0}
   .photo-panel{grid-template-columns:1fr;width:100%;gap:9px}.photo-panel .act{width:100%}
   .app-dialog{padding:19px;border-radius:14px}.dialog-actions{display:grid;grid-template-columns:1fr 1fr}.dialog-actions .act{width:100%}
   .room-state{display:none}
@@ -172,7 +186,7 @@
 
 /* Print/PDF: restrained color, stable margins, repeatable tables, sharp signatures. */
 @media print{
-  .walk-tools,.dashboard-tools,.health-grid,.app-dialog-backdrop,.photo-panel,.photo-progress{display:none!important}
+  .walk-tools,.dashboard-tools,.health-grid,.finish-card,.app-dialog-backdrop,.photo-panel,.photo-progress{display:none!important}
   @page{size:Letter portrait;margin:12mm 14mm 15mm}
   html,body{background:#fff!important}
   body{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;font-size:9.4pt;line-height:1.34;color:#1B2730}
