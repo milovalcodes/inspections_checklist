@@ -1,6 +1,6 @@
-const CACHE = 'inspection-v52-office-delivery';
+const CACHE = 'inspection-v55-compact-field';
 const ASSETS = [
-  './', './index.html', './move-in.html', './move-out.html', './schedule.html', './app-theme.css?v=52', './app-enhancements.js?v=52',
+  './', './index.html', './move-in.html', './move-out.html', './schedule.html', './app-theme.css?v=55', './app-enhancements.js?v=55',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',
   './icon-192.png', './icon-512.png', './cimco-logo.png'
 ];

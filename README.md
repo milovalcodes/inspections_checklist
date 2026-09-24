@@ -1,4 +1,4 @@
-# CIMCO Property Inspection — Resilient Local AI 22.4
+# CIMCO Property Inspection — Compact Field Flow 23.0
 
 This build keeps the field inspection app offline-first and adds optional automatic walkthrough analysis on the always-on office computer. It does not use an OpenAI API key, a ChatGPT account, or a cloud transcription service.
 
@@ -59,9 +59,11 @@ Run `./CHECK-BRIDGE.ps1` whenever the phone cannot connect. See `FIELD-CONNECTIO
 
 The printed/PDF report removes app controls and unreviewed clutter. Routine reports preserve blank lines for maintenance handwriting, and their estimated work total remains blank until at least one price is entered.
 
-## Automatic PDF delivery
+## Keys, notes, and office delivery
 
-Every inspection now ends with **Finish & deliver**. After a one-time private connection, **Send PDF to main office** creates the report and sends it from `cimcomngmt1@gmail.com` to `cimcomngmt@gmail.com` without exposing Gmail credentials in the public website. Setup instructions and the sender code are in [`office-delivery/`](office-delivery/README.md).
+Move-in, move-out, and rent-ready forms now keep the property key inventory and overall inspector notes in a dedicated, easy-to-reach card. Common key types can be added with one tap, and both fields save automatically and appear in reports. The inspection screen also includes a compact section navigator and denser field layout to reduce scrolling.
+
+Automatic office delivery is temporarily hidden from the field app. Its implementation and setup instructions remain preserved in [`office-delivery/`](office-delivery/README.md) so it can be restored later without rebuilding the feature.
 
 ## Regression checks
 

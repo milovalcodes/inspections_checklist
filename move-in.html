@@ -522,7 +522,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
   .strip{display:none}
 }
 </style>
-<link rel="stylesheet" href="./app-theme.css?v=52">
+<link rel="stylesheet" href="./app-theme.css?v=55">
 
 <header class="mast">
   <div class="wrap">
@@ -609,6 +609,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
         <span class="pace-badge" id="paceBadge">START</span>
       </div>
       <div class="print-meta" id="printMeta"></div>
+      <div class="print-wrapup" id="printWrapUp"></div>
 
       <div class="form-switch noprint" aria-label="Change inspection form type">
         <div class="form-switch-copy"><b id="formTypeCurrent">Current form: Move-in</b><small>Switch forms without losing completed checks, notes, photos, pricing, or signatures.</small></div>
@@ -646,7 +647,6 @@ body[data-mode="routine"] .moveonly{display:none!important}
           </div></div>
           <label class="f"><span>Electric meter</span><input class="in m" data-m="meterE" placeholder="Reading"></label>
           <label class="f"><span>Water meter</span><input class="in m" data-m="meterW" placeholder="Reading"></label>
-          <label class="f full inoutonly moveonly" id="keysWrap"><span id="keysLabel">Keys issued</span><input class="in m" data-m="keys" placeholder="2 keys to front door, 1 mail key"></label>
           <label class="f full outonly"><span>Tenant forwarding address</span><input class="in m" data-m="fwd" placeholder="Where the deposit letter goes"></label>
           <div class="f full inoutonly moveonly">
             <span style="display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);margin-bottom:3px">House / apartment clean</span>
@@ -661,7 +661,6 @@ body[data-mode="routine"] .moveonly{display:none!important}
               <option value="sm">Small — three across</option>
               <option value="lg">Full page each</option>
             </select></label>
-          <label class="f full"><span>Misc. notes</span><textarea class="in m" data-m="misc" placeholder="Anything the sheet has no line for"></textarea></label>
         </div>
         <div class="row" style="margin-top:12px">
           <button class="mini" id="dupBtn">Duplicate</button>
@@ -678,6 +677,38 @@ body[data-mode="routine"] .moveonly{display:none!important}
         <div class="lg"><i class="tag t-na">–</i> N/A</div>
       </div>
     </div>
+
+    <nav class="inspection-nav noprint" aria-label="Inspection sections">
+      <button type="button" data-page-jump="metaBox">Details</button>
+      <button type="button" data-page-jump="fieldNotesCard" id="notesJump">Keys &amp; notes</button>
+      <button type="button" data-page-jump="spaces">Checklist</button>
+      <button type="button" data-page-jump="signCard">Sign-off</button>
+    </nav>
+
+    <section class="card field-notes-card noprint" id="fieldNotesCard" aria-labelledby="fieldNotesTitle">
+      <div class="field-notes-head">
+        <div><div class="eyebrow">Property wrap-up</div><h2 id="fieldNotesTitle">Keys &amp; overall notes</h2><p>Keep property handoff details together and easy to find in the final report.</p></div>
+        <span class="autosave-pill">Saves automatically</span>
+      </div>
+      <div class="key-notes-grid">
+        <div class="field-entry" id="keyInventoryPane">
+          <label for="keyInventory"><span id="keyInventoryLabel">Property keys on hand</span><small>List each key, remote, or fob and its quantity.</small></label>
+          <textarea class="in m" id="keyInventory" data-m="keys" placeholder="Front door key — 2&#10;Mailbox key — 1&#10;Garage remote — 1"></textarea>
+          <div class="key-quick" aria-label="Quick add key type">
+            <button type="button" data-key-add="Front door key">+ Front door</button>
+            <button type="button" data-key-add="Back door key">+ Back door</button>
+            <button type="button" data-key-add="Mailbox key">+ Mailbox</button>
+            <button type="button" data-key-add="Garage remote">+ Garage</button>
+            <button type="button" data-key-add="Gate fob">+ Gate / fob</button>
+            <button type="button" data-key-add="">+ Other</button>
+          </div>
+        </div>
+        <div class="field-entry">
+          <label for="overallNotes"><span>Overall inspector notes</span><small>Use this for property-wide context, follow-up, or anything not tied to one checklist line.</small></label>
+          <textarea class="in m" id="overallNotes" data-m="misc" placeholder="Add any overall observations or follow-up notes for this inspection."></textarea>
+        </div>
+      </div>
+    </section>
 
     <div class="card" id="dictCard">
       <div class="eyebrow">Hands-free</div>
@@ -754,7 +785,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
       <p class="ack" id="wkLegal">Florida gives a landlord 30 days after the tenant leaves to mail written notice of a claim on the deposit, and 15 days to return it when no claim is made (Fla. Stat. 83.49). Confirm the dates and wording with your broker or attorney before the letter goes out.</p>
     </div>
 
-    <div class="card signCard">
+    <div class="card signCard" id="signCard">
       <div class="eyebrow">Sign-off</div>
       <h2>Signatures</h2>
       <p class="ack" id="ackText"></p>
@@ -798,7 +829,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = "in";      /* null = both modes in one app */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "office-delivery-v52";
+const APP_VERSION = "compact-field-v55";
 const TRANSCRIPTION_BETA_VISIBLE = false;
 let REPORT_LOGO_DATA = "";
 let REPORT_LOGO_PROMISE = null;
@@ -933,6 +964,9 @@ const CODE_LABEL = {ok:"Good", work:"Needs work", na:"N/A"};
 const FLAGS = ["work"];
 const LEGACY_STATUS = {d:"work", b:"work", c:"work", r:"work", u:"na"};
 const MODE_LABEL = {in:"Move-in", out:"Move-out", ready:"Rent-ready", routine:"Routine"};
+function keysLabelForMode(mode){
+  return mode==="ready" ? "Property keys on hand" : mode==="out" ? "Keys returned / on hand" : "Keys at handover";
+}
 const CHECKLIST_VERSION = 2;
 const BEDROOM_GROUPS = [
   ["Floor",["Floor"]],
@@ -1626,7 +1660,7 @@ async function createMoveInFromReady(){
   const rec = {
     id:uid(), mode:"in", created:Date.now(), updated:Date.now(), from:null, sourceReady:source.id,
     meta:{date:today(), address:m.address||"", unit:m.unit||"", tenant:"", owner:m.owner||"", inspector:m.inspector||"", phone:"",
-      meterE:"", meterW:"", keys:"", fwd:"", misc:m.misc||"", clean:"", photoSize:m.photoSize||"md", tenantSigName:"", inspSigName:"",
+      meterE:"", meterW:"", keys:m.keys||"", fwd:"", misc:m.misc||"", clean:"", photoSize:m.photoSize||"md", tenantSigName:"", inspSigName:"",
       access:"", marketStatus:"hold", responsible:"", estimatedCost:"", workCategories:[], readyTags:[]},
     spaces, wk:{}, sig:{t:"",i:""}
   };
@@ -1751,7 +1785,10 @@ function renderEditor(){
   document.querySelectorAll(".signCard").forEach(el=>el.classList.toggle("hide", isReady));
   document.getElementById("addSpaces").classList.remove("hide");
   document.getElementById("wkCard").classList.toggle("hide", !isOut && !isRoutine);
-  document.getElementById("keysLabel").textContent = isOut ? "Keys returned" : "Keys issued";
+  document.getElementById("keyInventoryPane").classList.toggle("hide", isRoutine);
+  document.getElementById("keyInventoryLabel").textContent = keysLabelForMode(cur.mode);
+  document.getElementById("fieldNotesTitle").textContent = isRoutine ? "Overall notes" : "Keys & overall notes";
+  document.getElementById("notesJump").textContent = isRoutine ? "Notes" : "Keys & notes";
   document.getElementById("ackText").textContent = isOut
     ? "By signing, both parties confirm this sheet records the condition of the unit at move-out. Codes and photos taken today support any claim against the deposit."
     : isRoutine
@@ -1771,7 +1808,7 @@ function renderEditor(){
     : cur.sourceReady ? "Created from the rent-ready walkthrough. Condition, notes, and photos were carried over — add only the move-in details."
     : isReady ? "Walk the property, mark only what you reviewed, then share the turnover notation. Access details stay internal."
     : isRoutine ? "Use this occupied-property check to catch developing issues early. Blank print lines stay writable for maintenance follow-up."
-    : "Saves as you go, on this phone. When finished, send the PDF to the office below.";
+    : "Saves as you go on this phone. Review the keys and overall notes before signing off.";
 
   renderDict();
   drawSig("T", cur.sig.t); drawSig("I", cur.sig.i);
@@ -2153,6 +2190,7 @@ function renderPrintMeta(){
     if(workLabel(cur)) fields.push(["Work",workLabel(cur)]);
     if(m.responsible) fields.push(["Responsible",m.responsible]);
     if(m.estimatedCost) fields.push(["Est. cost",money(parseFloat(m.estimatedCost)||0)]);
+    if(m.keys) fields.push([keysLabelForMode(cur.mode),m.keys]);
   }else if(cur.mode==="routine"){
     fields.push(["Inspector",m.inspector||"________________"], ["Tenant",m.tenant||"________________"],
       ["Owner",m.owner||"________________"], ["Reason",visitLabel(m.visitReason)||"________________"],
@@ -2161,7 +2199,7 @@ function renderPrintMeta(){
   }else{
     if(m.tenant) fields.push(["Tenant",m.tenant]);
     if(m.clean) fields.push(["Unit clean",m.clean.toUpperCase()]);
-    if(m.keys) fields.push([cur.mode==="out" ? "Keys returned" : "Keys issued",m.keys]);
+    if(m.keys) fields.push([keysLabelForMode(cur.mode),m.keys]);
     if(m.meterE) fields.push(["Electric",m.meterE]);
     if(m.meterW) fields.push(["Water",m.meterW]);
   }
@@ -2180,6 +2218,10 @@ function preparePrintView(){
     const el = document.getElementById(id);
     if(el) el.textContent = cur && cur.meta && cur.meta[key] ? "Printed name: " + cur.meta[key] : "Printed name: ____________________";
   });
+  const wrapup=document.getElementById("printWrapUp"), wrapupRows=[];
+  if(cur.mode!=="routine" && cur.meta.keys) wrapupRows.push([keysLabelForMode(cur.mode),cur.meta.keys]);
+  if(cur.meta.misc) wrapupRows.push(["Overall inspector notes",cur.meta.misc]);
+  if(wrapup) wrapup.innerHTML=wrapupRows.map(row=>"<div><b>"+esc(row[0])+"</b><p>"+esc(row[1])+"</p></div>").join("");
   document.querySelectorAll("#spaces details.sec").forEach(d=>d.open = true);
   document.querySelectorAll(".item").forEach(el=>{
     const ta = el.querySelector(".note"), pn = el.querySelector(".pnote");
@@ -2228,7 +2270,8 @@ function reportHTML(rec){
   const head = isReady ? [
     ["Date", fmtDate(m.date)], ["Inspector", m.inspector], ["Owner", m.owner],
     ["Market status", marketLabel(m.marketStatus)], ["Work category", workLabel(rec)],
-    ["Responsible party", m.responsible], ["Estimated cost", m.estimatedCost ? money(parseFloat(m.estimatedCost)||0) : ""]
+    ["Responsible party", m.responsible], ["Estimated cost", m.estimatedCost ? money(parseFloat(m.estimatedCost)||0) : ""],
+    ...(m.keys ? [[keysLabelForMode(rec.mode), m.keys]] : [])
   ] : isRoutine ? [
     ["Date", fmtDate(m.date)||"________________"], ["Inspector", m.inspector||"________________"],
     ["Tenant", m.tenant||"________________"], ["Owner", m.owner||"________________"],
@@ -2238,7 +2281,7 @@ function reportHTML(rec){
   ] : [
     ["Date", fmtDate(m.date)], ["Inspector", m.inspector], ["Tenant", m.tenant], ["Owner", m.owner],
     ["Phone", m.phone], ["Unit clean", m.clean ? m.clean.toUpperCase() : ""],
-    [rec.mode==="out" ? "Keys returned" : "Keys issued", m.keys],
+    [keysLabelForMode(rec.mode), m.keys],
     ["Electric meter", m.meterE], ["Water meter", m.meterW],
     ["Forwarding address", rec.mode==="out" ? m.fwd : ""]
   ].filter(r=>r[1]);
@@ -2314,7 +2357,7 @@ function reportHTML(rec){
     + "</style><div class=\"w\"><div class=\"brand\"><img src=\"" + esc(REPORT_LOGO_DATA||"./cimco-logo.png") + "\" alt=\"CIMCO Property Management\"><div class=\"brand-copy\"><div class=\"sub\">" + esc(ORG) + "</div><h1>" + esc(modeTitle(rec)) + " inspection</h1></div></div>"
     + "<h1 class=\"property\">" + esc(title(rec)) + "</h1><p class=\"coverage\">" + s.done + " of " + s.total + " lines reviewed · " + s.flags + " need work</p>"
     + "<div class=\"meta\">" + head.map(r=>"<div><b>" + esc(r[0]) + "</b>" + esc(r[1]) + "</div>").join("") + "</div>"
-    + roomLines + lines + wk + (m.misc ? "<h2>Notes</h2><p>" + esc(m.misc) + "</p>" : "")
+    + roomLines + lines + wk + (m.misc ? "<h2>Overall inspector notes</h2><p>" + esc(m.misc) + "</p>" : "")
     + sigs + gallery + "</div>";
 }
 
@@ -2347,6 +2390,7 @@ function reportText(rec){
     if(workLabel(rec)) L.push("Work category: " + workLabel(rec));
     if(m.responsible) L.push("Responsible party: " + m.responsible);
     if(m.estimatedCost) L.push("Estimated cost: " + money(parseFloat(m.estimatedCost)||0));
+    if(m.keys) L.push(keysLabelForMode(rec.mode) + ": " + m.keys);
   }else if(isRoutine){
     if(m.tenant) L.push("Tenant: " + m.tenant);
     if(m.owner) L.push("Owner: " + m.owner);
@@ -2357,7 +2401,7 @@ function reportText(rec){
     if(m.tenant) L.push("Tenant: " + m.tenant);
     if(m.owner) L.push("Owner: " + m.owner);
     if(m.clean) L.push("Unit clean: " + m.clean.toUpperCase());
-    if(m.keys) L.push((rec.mode==="out" ? "Keys returned: " : "Keys issued: ") + m.keys);
+    if(m.keys) L.push(keysLabelForMode(rec.mode) + ": " + m.keys);
     if(m.meterE || m.meterW) L.push("Meters — electric: " + (m.meterE||"—") + ", water: " + (m.meterW||"—"));
     if(rec.mode==="out" && m.fwd) L.push("Forwarding address: " + m.fwd);
   }
@@ -2389,7 +2433,7 @@ function reportText(rec){
       L.push("");
     }
   }
-  if(m.misc) L.push("MISC. NOTES\n  " + m.misc);
+  if(m.misc) L.push("OVERALL INSPECTOR NOTES\n  " + m.misc);
   return L.join("\n");
 }
 
@@ -3927,4 +3971,4 @@ if(!SELF_TEST && "serviceWorker" in navigator){
   window.addEventListener("load", ()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
 }
 </script>
-<script src="./app-enhancements.js?v=52"></script>
+<script src="./app-enhancements.js?v=55"></script>

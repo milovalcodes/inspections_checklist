@@ -5,6 +5,7 @@ const UI_KEY="cimco.inspection.ui.v1";
 const DELIVERY_KEY="cimco.office-delivery.config.v1";
 const OFFICE_SENDER="cimcomngmt1@gmail.com";
 const OFFICE_RECIPIENT="cimcomngmt@gmail.com";
+const OFFICE_DELIVERY_VISIBLE=false;
 const DEFAULT_PREFS={autoCollapse:true,backups:{}};
 let prefs=loadPrefs(), dashFilter="all", dashSort="recent";
 let dialogResolve=null, dialogReturnFocus=null, dialogHideTimer=null, photoBusy=false, retakePhotoId="";
@@ -73,6 +74,27 @@ function updateDeliveryPanel(){
   else if(!deliveryConfigured()&&!deliveryBusy) setDeliveryStatus("One-time connection required before the first send.","setup");
 }
 
+function jumpToPageSection(id){
+  const target=document.getElementById(id); if(!target) return;
+  if(target.tagName==="DETAILS") target.open=true;
+  target.scrollIntoView({behavior:smoothBehavior(),block:"start"});
+}
+function addKeyInventoryItem(label){
+  const field=document.getElementById("keyInventory"); if(!field||!cur) return;
+  const clean=String(label||"").trim();
+  if(!clean){ field.focus(); return; }
+  const lines=field.value.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+  const index=lines.findIndex(line=>line.toLowerCase().startsWith(clean.toLowerCase()));
+  if(index>=0){
+    const match=lines[index].match(/(\d+)\s*$/);
+    lines[index]=clean+" — "+(match?Number(match[1])+1:2);
+  }else lines.push(clean+" — 1");
+  field.value=lines.join("\n");
+  field.dispatchEvent(new Event("input",{bubbles:true}));
+  field.focus(); field.setSelectionRange(field.value.length,field.value.length);
+  toast(clean+(index>=0?" count updated":" added"));
+}
+
 function ensureShell(){
   if(!document.getElementById("appDialog")){
     document.body.insertAdjacentHTML("beforeend",`
@@ -119,7 +141,7 @@ function ensureShell(){
       </div>`);
   }
   const signCard=document.querySelector(".signCard");
-  if(signCard && !document.getElementById("finishCard")){
+  if(OFFICE_DELIVERY_VISIBLE && signCard && !document.getElementById("finishCard")){
     signCard.insertAdjacentHTML("afterend",`
       <section class="card finish-card noprint" id="finishCard" aria-labelledby="finishTitle">
         <div class="finish-copy">
@@ -528,8 +550,8 @@ document.addEventListener("keydown",event=>{
 });
 
 document.addEventListener("click",event=>{
-  const t=event.target.closest("button,[data-delhome],[data-additem],[data-rename],[data-delsp],[data-add]"); if(!t) return;
-  const intercept=t.id==="dictHelp"||t.id==="delBtn"||t.id==="lbDel"||t.id==="lbRetake"||t.id==="nextUnreviewed"||t.id==="collapseToggle"||t.id==="pwaAction"||t.id==="sendOfficePdf"||t.id==="deliverySetup"||t.hasAttribute("data-delhome")||t.hasAttribute("data-additem")||t.hasAttribute("data-rename")||t.hasAttribute("data-delsp")||(t.dataset.add==="other")||t.hasAttribute("data-dash-filter");
+  const t=event.target.closest("button,[data-delhome],[data-additem],[data-rename],[data-delsp],[data-add],[data-page-jump],[data-key-add]"); if(!t) return;
+  const intercept=t.id==="dictHelp"||t.id==="delBtn"||t.id==="lbDel"||t.id==="lbRetake"||t.id==="nextUnreviewed"||t.id==="collapseToggle"||t.id==="pwaAction"||t.id==="sendOfficePdf"||t.id==="deliverySetup"||t.hasAttribute("data-delhome")||t.hasAttribute("data-additem")||t.hasAttribute("data-rename")||t.hasAttribute("data-delsp")||(t.dataset.add==="other")||t.hasAttribute("data-dash-filter")||t.hasAttribute("data-page-jump")||t.hasAttribute("data-key-add");
   if(!intercept) return;
   event.preventDefault(); event.stopImmediatePropagation();
   void (async()=>{
@@ -537,6 +559,8 @@ document.addEventListener("click",event=>{
       await openDialog({eyebrow:"Walkthrough help",title:"What to say",confirmLabel:"Got it",html:'<div class="dialog-help"><p>Say the room, then the checklist line and condition.</p><ul><li><b>“Kitchen is clean.”</b> passes untouched kitchen lines.</li><li><b>“Fridge is not cooling.”</b> marks Needs work and keeps the reason.</li><li><b>“Utilities are off.”</b> records N/A with the explanation.</li></ul><p>Nothing is applied until you review the proposed results.</p></div>'}); return;
     }
     if(t.id==="nextUnreviewed"){ jumpNextUnreviewed(); return; }
+    if(t.hasAttribute("data-page-jump")){ jumpToPageSection(t.dataset.pageJump); return; }
+    if(t.hasAttribute("data-key-add")){ addKeyInventoryItem(t.dataset.keyAdd); return; }
     if(t.id==="collapseToggle"){
       prefs.autoCollapse=!prefs.autoCollapse; savePrefs(); updateWalkTools();
       if(prefs.autoCollapse) document.querySelectorAll(".sec.is-complete[open]").forEach(el=>el.open=false);
@@ -629,7 +653,7 @@ async function runSelfTests(){
   try{
     localStorage.removeItem(KEY); LIST=[]; photos={};
     const rec=newInspection("in",null,{address:"100 Test Avenue",unit:"2A"}); cur=rec;
-    rec.spaces[0].items[0].s="work"; rec.spaces[0].items[0].n="Test note"; rec.sig.t="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E"; rec.wk[rec.spaces[0].id+":0"]={k:"dmg",c:"125.00"};
+    rec.spaces[0].items[0].s="work"; rec.spaces[0].items[0].n="Test note"; rec.meta.keys="Front door key — 2"; rec.meta.misc="Overall QA note"; rec.sig.t="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E"; rec.wk[rec.spaces[0].id+":0"]={k:"dmg",c:"125.00"};
     const bed=buildSpace("bedroom","Bedroom 2"), bath=buildSpace("bathroom","Bathroom 2"); insertSpaceNearFamily(bed); insertSpaceNearFamily(bath); groupRelatedRooms(rec);
     const families=rec.spaces.map(roomFamily), lastBed=families.lastIndexOf("bedroom"), firstBath=families.indexOf("bathroom");
     check("Related rooms remain grouped",lastBed>=0&&firstBath>lastBed);
@@ -641,11 +665,13 @@ async function runSelfTests(){
     check("Form conversion preserves completed work",!!carried&&carried.s==="work");
     check("Form conversion preserves signatures",!!cur.sig.t);
     check("Form conversion preserves pricing",Object.values(cur.wk).some(row=>row.c==="125.00"));
-    const report=reportHTML(cur); check("Printable report includes the property",report.includes("100 Test Avenue")); check("Printable report includes photos",report.includes("data:image/jpeg")); check("Photo captions reach reports",report.includes("Test caption"));
+    const report=reportHTML(cur); check("Printable report includes the property",report.includes("100 Test Avenue")); check("Printable report includes photos",report.includes("data:image/jpeg")); check("Photo captions reach reports",report.includes("Test caption")); check("Key inventory reaches reports",report.includes("Front door key — 2")); check("Overall inspector notes reach reports",report.includes("Overall QA note"));
+    convertInspectionForm("ready"); const readyReport=reportHTML(cur); check("Rent-ready reports label property keys",readyReport.includes("Property keys on hand")&&readyReport.includes("Front door key — 2"));
     const payload=JSON.stringify({type:"cimco-inspection",v:1,records:[Object.assign({},cur,{photos:[photo]})]}); const imported=JSON.parse(payload); check("Photo export/import payload round-trips",imported.records[0].photos[0].caption==="Test caption");
     check("Signature data is exportable",JSON.stringify(cur).includes("data:image/svg+xml"));
     check("Office PDF delivery has a fixed recipient",OFFICE_RECIPIENT==="cimcomngmt@gmail.com"&&OFFICE_SENDER==="cimcomngmt1@gmail.com");
     check("Office delivery accepts only Apps Script endpoints",!!validDeliveryEndpoint("https://script.google.com/macros/s/test-deployment_123/exec")&&!validDeliveryEndpoint("https://example.com/send"));
+    check("Office delivery controls are paused",!OFFICE_DELIVERY_VISIBLE&&!document.getElementById("finishCard"));
     return results;
   }finally{
     if(testPhoto) await photoDelete(testPhoto).catch(()=>{}); localStorage.removeItem(KEY); LIST=[]; cur=null; photos={}; go("home");
