@@ -13,8 +13,8 @@ for(const page of pages){
   const inline=html.match(/<script>\s*"use strict";([\s\S]*?)<\/script>/);
   assert.ok(inline,`${page} main script is present`);
   new Function('"use strict";'+inline[1]);
-  assert.match(html,/app-theme\.css\?v=55/);
-  assert.match(html,/app-enhancements\.js\?v=55/);
+  assert.match(html,/app-theme\.css\?v=56/);
+  assert.match(html,/app-enhancements\.js\?v=56/);
   assert.match(html,/id="fieldNotesCard"/);
   assert.match(html,/id="keyInventory"[^>]*data-m="keys"/);
   assert.match(html,/id="overallNotes"[^>]*data-m="misc"/);
@@ -35,18 +35,20 @@ const theme=read("app-theme.css");
 assert.match(theme,/\.rec \.badge\{width:58px;[^}]*white-space:nowrap;overflow:hidden\}/,"record badges contain long labels");
 assert.match(theme,/\.cam\{width:44px;height:44px\}/,"mobile photo controls keep a full tap target");
 assert.match(theme,/\.inspection-nav\{position:sticky/,"compact section navigation stays available while walking");
-assert.match(read("tests/regression.html"),/selftest=1&amp;suite=55/,"browser tests use a release-specific isolated URL");
+assert.match(read("tests/regression.html"),/selftest=1&amp;suite=56/,"browser tests use a release-specific isolated URL");
 for(const marker of ["convertInspectionForm","photoPut","reportHTML","signatureSvg","insertSpaceNearFamily"]){
   assert.ok(general.includes(marker),`${marker} remains available`);
 }
 
 const worker=read("service-worker.js");
-for(const asset of ["index.html","move-in.html","move-out.html","app-theme.css?v=55","app-enhancements.js?v=55"]){
+for(const asset of ["index.html","move-in.html","move-out.html","app-theme.css?v=56","app-enhancements.js?v=56"]){
   assert.ok(worker.includes(asset),`${asset} is cached for offline use`);
 }
 assert.match(worker,/self\.skipWaiting\(\)/,"new offline builds activate without waiting for every old tab to close");
 assert.match(enhancements,/OFFICE_DELIVERY_VISIBLE=false/,"office delivery controls stay paused");
 assert.match(general,/keysLabelForMode\(rec\.mode\), m\.keys/,"rent-ready reports include property keys");
+assert.match(general,/await waitForPrintImages\(\)/,"printing waits for photo decoding before opening the dialog");
+assert.match(general,/if\(appx\.innerHTML!==photoMarkup\)/,"beforeprint preserves already decoded photo nodes");
 
 const delivery=read("office-delivery/Code.gs");
 new Function(delivery);

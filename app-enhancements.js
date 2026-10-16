@@ -657,7 +657,7 @@ async function runSelfTests(){
     const bed=buildSpace("bedroom","Bedroom 2"), bath=buildSpace("bathroom","Bathroom 2"); insertSpaceNearFamily(bed); insertSpaceNearFamily(bath); groupRelatedRooms(rec);
     const families=rec.spaces.map(roomFamily), lastBed=families.lastIndexOf("bedroom"), firstBath=families.indexOf("bathroom");
     check("Related rooms remain grouped",lastBed>=0&&firstBath>lastBed);
-    testPhoto=uid(); const key=rec.spaces[0].id+":0", photo={id:testPhoto,insp:rec.id,key,data:"data:image/jpeg;base64,/9j/2Q==",caption:"Test caption",ts:Date.now()}; await photoPut(photo); photos[key]=[photo];
+    testPhoto=uid(); const key=rec.spaces[0].id+":0", photo={id:testPhoto,insp:rec.id,key,data:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",caption:"Test caption",ts:Date.now()}; await photoPut(photo); photos[key]=[photo];
     save(); await new Promise(resolve=>setTimeout(resolve,330));
     const saved=JSON.parse(localStorage.getItem(KEY)||"[]"); check("Autosave writes the inspection",saved.length===1&&saved[0].meta.address==="100 Test Avenue");
     convertInspectionForm("out");
@@ -665,7 +665,8 @@ async function runSelfTests(){
     check("Form conversion preserves completed work",!!carried&&carried.s==="work");
     check("Form conversion preserves signatures",!!cur.sig.t);
     check("Form conversion preserves pricing",Object.values(cur.wk).some(row=>row.c==="125.00"));
-    const report=reportHTML(cur); check("Printable report includes the property",report.includes("100 Test Avenue")); check("Printable report includes photos",report.includes("data:image/jpeg")); check("Photo captions reach reports",report.includes("Test caption")); check("Key inventory reaches reports",report.includes("Front door key — 2")); check("Overall inspector notes reach reports",report.includes("Overall QA note"));
+    const report=reportHTML(cur); check("Printable report includes the property",report.includes("100 Test Avenue")); check("Printable report includes photos",report.includes("data:image/")); check("Photo captions reach reports",report.includes("Test caption")); check("Key inventory reaches reports",report.includes("Front door key — 2")); check("Overall inspector notes reach reports",report.includes("Overall QA note"));
+    preparePrintView(); check("Print waits for every report photo to load",document.querySelectorAll("#appendix img").length===1&&await waitForPrintImages(1000));
     convertInspectionForm("ready"); const readyReport=reportHTML(cur); check("Rent-ready reports label property keys",readyReport.includes("Property keys on hand")&&readyReport.includes("Front door key — 2"));
     const payload=JSON.stringify({type:"cimco-inspection",v:1,records:[Object.assign({},cur,{photos:[photo]})]}); const imported=JSON.parse(payload); check("Photo export/import payload round-trips",imported.records[0].photos[0].caption==="Test caption");
     check("Signature data is exportable",JSON.stringify(cur).includes("data:image/svg+xml"));

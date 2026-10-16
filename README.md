@@ -20,6 +20,8 @@ Room checklists use one decision per physical feature: related components such a
 
 The printable room matrix refreshes immediately whenever a status changes and refreshes once more at print startup. This prevents a recently changed or cleared mark from appearing with its previous value in the final PDF.
 
+Print/PDF now preserves the prepared photo appendix and waits for every condition photo to finish decoding before the browser print dialog opens. If a stored image cannot be read, the app stops and shows an error instead of silently producing a report without photos.
+
 Printed and downloadable reports use the current CIMCO logo in a compact corporate header. Header and body content share the same internal print gutter, so they remain aligned even when browser margins are set to None or Custom and browser-generated URL headers are disabled.
 
 On wider screens, a sticky left-side room bookmark lists every inspection area, shows reviewed and exception counts, highlights the room currently in view, and jumps directly to a selected room. Narrow screens use a compact **Jump to room** selector. Both controls are screen-only and stay out of printed reports.

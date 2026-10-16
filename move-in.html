@@ -522,7 +522,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
   .strip{display:none}
 }
 </style>
-<link rel="stylesheet" href="./app-theme.css?v=55">
+<link rel="stylesheet" href="./app-theme.css?v=56">
 
 <header class="mast">
   <div class="wrap">
@@ -829,7 +829,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = "in";      /* null = both modes in one app */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "compact-field-v55";
+const APP_VERSION = "print-photo-reliability-v56";
 const TRANSCRIPTION_BETA_VISIBLE = false;
 let REPORT_LOGO_DATA = "";
 let REPORT_LOGO_PROMISE = null;
@@ -2236,20 +2236,55 @@ function preparePrintView(){
 
   const appx = document.getElementById("appendix");
   appx.className = "appx sz-" + (cur.meta.photoSize || "md");
-  appx.innerHTML = log.length
+  const photoMarkup = log.length
     ? "<h3>Photo log</h3><p class=\"lead\">" + log.length + " photo" + (log.length===1?"":"s")
       + " taken " + (fmtDate(cur.meta.date)||"on inspection") + " at " + esc(title(cur)) + ".</p>"
-      + log.map(o=>'<figure><img src="' + o.p.data + '"><figcaption>' + esc(caption(o)) + "</figcaption></figure>").join("")
+      + log.map(o=>'<figure><img src="' + o.p.data + '" loading="eager" decoding="sync"><figcaption>' + esc(caption(o)) + "</figcaption></figure>").join("")
     : "";
+  if(appx.innerHTML!==photoMarkup) appx.innerHTML=photoMarkup;
 
 }
 
-function printNow(){
-  preparePrintView();
-  requestAnimationFrame(()=>{
-    preparePrintView();
-    setTimeout(()=>window.print(),0);
+function waitForPrintImage(img,timeoutMs){
+  return new Promise(resolve=>{
+    let timer=0,settled=false;
+    const finish=ok=>{
+      if(settled) return;
+      settled=true; clearTimeout(timer);
+      img.removeEventListener("load",loaded); img.removeEventListener("error",failed);
+      resolve(!!ok);
+    };
+    const loaded=()=>finish(img.naturalWidth>0), failed=()=>finish(false);
+    if(img.complete){ loaded(); return; }
+    img.addEventListener("load",loaded,{once:true}); img.addEventListener("error",failed,{once:true});
+    timer=setTimeout(failed,timeoutMs);
+    if(typeof img.decode==="function") img.decode().then(loaded).catch(()=>{ if(img.complete) loaded(); });
   });
+}
+async function waitForPrintImages(timeoutMs=15000){
+  const images=[...document.querySelectorAll("#appendix img")];
+  if(!images.length) return true;
+  const results=await Promise.all(images.map(img=>waitForPrintImage(img,timeoutMs)));
+  return results.every(Boolean);
+}
+let printBusy=false;
+async function printNow(){
+  if(printBusy||!cur) return;
+  printBusy=true;
+  const button=document.getElementById("printBtn");
+  if(button){ button.disabled=true; button.setAttribute("aria-busy","true"); }
+  try{
+    preparePrintView();
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    if(photoLog().length) toast("Preparing report photos…");
+    const ready=await waitForPrintImages();
+    if(!ready){ toast("A report photo could not load. Reopen this inspection and try again."); return; }
+    await new Promise(resolve=>requestAnimationFrame(resolve));
+    window.print();
+  }finally{
+    printBusy=false;
+    if(button){ button.disabled=false; button.removeAttribute("aria-busy"); }
+  }
 }
 window.addEventListener("beforeprint",preparePrintView);
 
@@ -3971,4 +4006,4 @@ if(!SELF_TEST && "serviceWorker" in navigator){
   window.addEventListener("load", ()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
 }
 </script>
-<script src="./app-enhancements.js?v=55"></script>
+<script src="./app-enhancements.js?v=56"></script>
