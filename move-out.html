@@ -11,9 +11,6 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="./icon-192.png">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
 :root{
@@ -522,9 +519,10 @@ body[data-mode="routine"] .moveonly{display:none!important}
   .strip{display:none}
 }
 </style>
-<link rel="stylesheet" href="./app-theme.css?v=58">
-<link rel="stylesheet" href="./inspector-flow.css?v=58">
-<link rel="stylesheet" href="./offline-office.css?v=58">
+<link rel="stylesheet" href="./app-theme.css?v=59">
+<link rel="stylesheet" href="./inspector-flow.css?v=59">
+<link rel="stylesheet" href="./offline-office.css?v=59">
+<link rel="stylesheet" href="./field-guide.css?v=59">
 
 <header class="mast">
   <div class="wrap">
@@ -835,8 +833,9 @@ const APP_VERSION = "offline-office-v58";
 const TRANSCRIPTION_BETA_VISIBLE = false;
 let REPORT_LOGO_DATA = "";
 let REPORT_LOGO_PROMISE = null;
-const SELF_TEST = globalThis.CIMCO_PRACTICE_MODE===true || new URLSearchParams(location.search).get("selftest")==="1";
-const TEST_NAMESPACE = (new URLSearchParams(location.search).get("suite")||(globalThis.CIMCO_PRACTICE_MODE?"practice-v58":"manual")).replace(/[^a-zA-Z0-9_-]/g,"").slice(0,32);
+const PRACTICE = globalThis.CIMCO_PRACTICE_MODE===true || new URLSearchParams(location.search).get("practice")==="1";
+const SELF_TEST = PRACTICE || new URLSearchParams(location.search).get("selftest")==="1";
+const TEST_NAMESPACE = (new URLSearchParams(location.search).get("suite")||(PRACTICE?(globalThis.CIMCO_OFFICE_DESK?"office-practice-v59":"inspector-practice-v59"):"manual")).replace(/[^a-zA-Z0-9_-]/g,"").slice(0,32);
 const KEY = SELF_TEST ? "cimco.inspections.selftest.v1."+TEST_NAMESPACE : globalThis.CIMCO_OFFICE_DESK===true ? "cimco.office.inspections.v1" : "cimco.inspections.v1";
 const PHOTO_DB = SELF_TEST ? "cimco-photos-selftest-"+TEST_NAMESPACE : globalThis.CIMCO_OFFICE_DESK===true ? "cimco-office-photos" : "cimco-photos";
 const OFFICE_AI_CONFIG_KEY = "cimco.office-ai.config.v1";
@@ -3660,7 +3659,7 @@ document.addEventListener("click", async e=>{
   const clr = t.closest("[data-clear]");
   if(clr){
     const which = clr.dataset.clear;
-    cur.sig[which==="T"?"t":"i"] = ""; drawSig(which, ""); save(); return;
+    InspectionReport.clearSignature(cur,which==="T"?"t":"i"); drawSig(which, ""); save(); return;
   }
 
   const cam = t.closest("[data-cam]");
@@ -3835,9 +3834,11 @@ if(!SELF_TEST && !globalThis.CIMCO_OFFLINE_BUNDLE && "serviceWorker" in navigato
   window.addEventListener("load", ()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
 }
 </script>
-<script src="./vendor/jszip.min.js?v=58"></script>
-<script src="./office-model.js?v=58"></script>
-<script src="./inspection-reports.js?v=58"></script>
-<script src="./app-enhancements.js?v=58"></script>
-<script src="./inspector-flow.js?v=58"></script>
-<script src="./offline-office.js?v=58"></script>
+<script src="./vendor/jszip.min.js?v=59"></script>
+<script src="./office-model.js?v=59"></script>
+<script src="./inspection-reports.js?v=59"></script>
+<script src="./app-enhancements.js?v=59"></script>
+<script src="./inspector-flow.js?v=59"></script>
+<script src="./offline-office.js?v=59"></script>
+<script src="./visit-model.js?v=59"></script>
+<script src="./field-guide.js?v=59"></script>

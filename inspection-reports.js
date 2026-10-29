@@ -72,6 +72,10 @@ function recordSignature(rec,key){
 function validSignature(rec,key,map){
   return !!(rec.sig&&rec.sig[key]&&rec.signatureMeta&&rec.signatureMeta[key]&&rec.signatureMeta[key].fingerprint===fingerprint(rec,map));
 }
+function signOffVersion(rec){
+  const source=typeof OfficeModel!=="undefined"?OfficeModel.cleanRecord(rec):rec;
+  return hashText(JSON.stringify([source.sig||{},source.signatureMeta||{},source.signatureHistory||[]]));
+}
 function readiness(rec){
   const issues=[],m=rec.meta||{},s=stats(rec);
   if(!String(m.address||"").trim()) issues.push({text:"Add the property address",target:"metaBox"});
@@ -90,6 +94,14 @@ function model(rec,map){
   const hash=fingerprint(rec,map),pics=log(rec,map),refs={};
   pics.forEach(o=>(refs[o.key]=refs[o.key]||[]).push(o.n));
   return {rec,s,counts,pics,refs,pricing:pricing(rec),hash,id:String(rec.reportId||rec.id||"unsaved").toUpperCase(),issues:readiness(rec)};
+}
+function signOffIssues(rec,map){
+  if(rec.mode==='ready')return [];
+  const issues=[],m=rec.meta||{};
+  if(!validSignature(rec,'i',map))issues.push({text:'Inspector signature not recorded',target:'signatures'});
+  if(!m.tenantSignStatus&&!validSignature(rec,'t',map))issues.push({text:'Record the tenant signature or why it is unavailable',target:'signatures'});
+  else if(m.tenantSignStatus==='present'&&!validSignature(rec,'t',map))issues.push({text:'Tenant signature not recorded',target:'signatures'});
+  return issues;
 }
 const CSS=`
 .inspection-report{font:10pt/1.4 Arial,Helvetica,sans-serif;color:#172f43;background:#fff;max-width:190mm;margin:0 auto;overflow-wrap:anywhere}
@@ -143,22 +155,24 @@ function footerCSS(rec){
 }
 function body(rec,map){
   const m=rec.meta||{},d=model(rec,map),s=d.s,c=d.counts;
+  const reviewIssues=[...d.issues,...signOffIssues(rec,map)];
   const row=(name,value)=>value?`<div><b>${e(name)}</b>${e(value)}</div>`:"";
   const refs=key=>d.refs[key]?`<span class="r-ref">Photos ${d.refs[key].join(", ")}</span>`:"";
   let meta=row("Inspection date",fmtDate(m.date))+row("Inspector",m.inspector||"Not recorded")+row("Tenant",m.tenant)+row("Owner",m.owner);
-  meta+=row("Report ID",d.id)+row("Report version",d.hash)+row("Clean condition",m.clean==="yes"?"Clean":m.clean==="no"?"Needs cleaning":"");
+  meta+=row("Report ID",d.id)+row("Inspection version",d.hash)+row("Clean condition",m.clean==="yes"?"Clean":m.clean==="no"?"Needs cleaning":"");
   if(rec.mode==="routine") meta+=row("Visit reason",visitLabel(m.visitReason))+row("Attendance / access",entryLabel(m.entryStatus));
   if(rec.mode==="ready") meta+=row("Market status",marketLabel(m.marketStatus))+row("Work category",workLabel(rec))+row("Assigned to",m.responsible)+row("Overall estimate",amount(m.estimatedCost)!==null?money(amount(m.estimatedCost)/100):m.estimatedCost?"Estimate needs review":"");
   meta+=row("Electric meter",m.meterE)+row("Water meter",m.meterW);
   if(rec.mode==="out") meta+=row("Forwarding address",m.fwd);
   const pending=c.blank+c.nt;
   let content=`<article class="inspection-report"><header class="r-brand"><img src="${e(REPORT_LOGO_DATA||"./cimco-logo.png")}" alt="CIMCO Property Management"><div><p>PROPERTY CONDITION REPORT</p><h1>${e(modeTitle(rec))} inspection</h1></div></header><h2 class="r-address">${e(title(rec))}</h2><div class="r-meta">${meta}</div>`;
-  content+=`<div class="r-summary ${d.issues.length||pending?"r-alert":""}"><strong>${d.issues.length||pending?"Review needed":"Checklist recorded"}</strong><p>${s.done} of ${s.total} items recorded. ${c.ok} Good; ${c.work} Needs work; ${c.np} Not present; ${c.nt} Could not check; ${c.blank} Not reviewed${c.na?"; "+c.na+" earlier N/A results":""}.</p><p>${c.work?"Conditions needing attention are listed below.":s.done<s.total?"The inspection is incomplete. No conclusion should be drawn about unreviewed items.":"No items are marked Needs work."}</p>${pending?"<p>Unreviewed and untested items are not confirmed to be in good condition.</p>":""}${d.issues.length?"<p>"+e(d.issues.slice(0,6).map(i=>i.text).join("; "))+(d.issues.length>6?"; additional items require review.":".")+"</p>":""}</div>`;
+  content+=`<div class="r-summary ${reviewIssues.length||pending?"r-alert":""}"><strong>${reviewIssues.length||pending?"Review needed":"Checklist recorded"}</strong><p>${s.done} of ${s.total} items recorded. ${c.ok} Good; ${c.work} Needs work; ${c.np} Not present; ${c.nt} Could not check; ${c.blank} Not reviewed${c.na?"; "+c.na+" earlier N/A results":""}.</p><p>${c.work?"Conditions needing attention are listed below.":s.done<s.total?"The inspection is incomplete. No conclusion should be drawn about unreviewed items.":"No items are marked Needs work."}</p>${pending?"<p>Unreviewed and untested items are not confirmed to be in good condition.</p>":""}${reviewIssues.length?"<p>"+e(reviewIssues.slice(0,6).map(i=>i.text).join("; "))+(reviewIssues.length>6?"; additional items require review.":".")+"</p>":""}</div>`;
   const findings=[];
   activeSpaces(rec).forEach(sp=>sp.items.forEach((it,i)=>{if(["work","nt"].includes(it.s))findings.push({sp,it,key:sp.id+":"+i});}));
   findings.sort((a,b)=>Number(!!b.it.urgent)-Number(!!a.it.urgent));
   if(findings.length) content+=`<section class="r-section"><h2>Findings and inspection limits</h2>${findings.map((o,i)=>`<div class="r-finding"><b>${i+1}. ${e(o.sp.name)} / ${e(o.it.t)} - ${e(labels[o.it.s])}</b>${o.it.urgent?'<p class="r-urgent"><b>URGENT - office attention requested</b></p>':""}${o.it.category?'<p>'+e(({repair:"Repair needed",cleaning:"Cleaning needed",other:"Office review"})[o.it.category]||o.it.category)+'</p>':""}<p>${e(o.it.n||"No explanation recorded. Inspector review needed.")}</p>${refs(o.key)}</div>`).join("")}</section>`;
   if(m.misc) content+=`<section class="r-section"><h2>Overall inspector notes</h2><p class="r-text">${e(m.misc)}</p></section>`;
+  if(m.officeInstructions) content+=`<section class="r-section"><h2>Visit instructions supplied by office</h2><p class="r-text">${e(m.officeInstructions)}</p></section>`;
   if(m.keys) content+=`<section class="r-section"><h2>${e(keysLabelForMode(rec.mode))}</h2><p class="r-text">${e(m.keys)}</p></section>`;
   content+=`<section class="r-section"><h2>Detailed checklist</h2><p class="r-muted">Results describe the recorded observations. Move-in comparisons appear where results differ. Unchecked items are not confirmed Good.</p>`;
   activeSpaces(rec).forEach(sp=>{
@@ -187,7 +201,7 @@ function body(rec,map){
   content+=`<footer class="r-record">CIMCO Property Management | ${e(title(rec))} | Report ${e(d.id)} | Inspection version ${e(d.hash)}</footer>`;
   if(d.pics.length){
     const size=m.photoSize==="lg"?"large":m.photoSize==="sm"?"small":"medium";
-    content+=`<section class="r-section r-photo-log r-${size}"><h2>Photo evidence - ${d.pics.length} photos</h2><div class="r-photos">`;
+    content+=`<section class="r-section r-photo-log r-${size}"><h2>Photo evidence - ${d.pics.length} photo${d.pics.length===1?'':'s'}</h2><div class="r-photos">`;
     content+=d.pics.map(o=>`<figure><img src="${e(o.p.data)}" alt="Photo ${o.n}: ${e(o.sp.name+" / "+o.it.t)}" loading="eager"><figcaption><b>Photo ${o.n} - ${e(o.sp.name)} / ${e(o.it.t)}</b><br>${e(o.p.caption||o.it.n||labels[o.it.s]||"Condition photo")}<br><span class="r-muted">${o.p.ts?"Added to inspection "+e(new Date(o.p.ts).toLocaleDateString("en-US")):"Capture date not recorded"}</span></figcaption></figure>`).join("");
     content+="</div></section>";
   }
@@ -211,6 +225,7 @@ function text(rec){
   activeSpaces(rec).forEach(sp=>{lines.push(sp.name.toUpperCase());sp.items.forEach((it,i)=>lines.push("  "+it.t+": "+(labels[it.s]||labels[""])+(it.urgent?" [URGENT]":"")+(it.category?" ["+it.category+"]":"")+(it.n?" - "+it.n:"")+(d.refs[sp.id+":"+i]?" [Photos "+d.refs[sp.id+":"+i].join(", ")+"]":"")));lines.push("");});
   if(m.keys) lines.push(keysLabelForMode(rec.mode)+": "+m.keys);
   if(m.misc) lines.push("Overall notes: "+m.misc);
+  if(m.officeInstructions) lines.push("Visit instructions supplied by office: "+m.officeInstructions);
   if(["out","routine"].includes(rec.mode)&&d.pricing.rows.length){
     lines.push("OFFICE REVIEW - ESTIMATES");
     const kinds={wear:"Normal wear",dmg:"Tenant damage",maintenance:"Maintenance",tenant:"Tenant-caused"};
@@ -221,5 +236,5 @@ function text(rec){
   if(typeof OfflineOffice!=="undefined"){const comparisons=OfflineOffice.comparisonRows(rec);if(comparisons.length){lines.push("MOVE-IN / CURRENT PHOTO COMPARISONS");for(const row of comparisons)lines.push(row.room+" / "+row.item+": move-in "+fmtDate(row.beforeDate)+" ("+row.before.length+" photos), current "+fmtDate(row.afterDate)+" ("+row.after.length+" photos)");}}
   return lines.join("\n");
 }
-return {html,body,model,log,photoMap,pricing,amount,fingerprint,readiness,prepare,images,text,recordSignature,invalidateSignatures,validSignature};
+return {html,body,model,log,photoMap,pricing,amount,fingerprint,readiness,signOffIssues,signOffVersion,prepare,images,text,recordSignature,invalidateSignatures,validSignature,clearSignature:(rec,key)=>archiveSignature(rec,key,'Signature cleared for renewed review')};
 })();

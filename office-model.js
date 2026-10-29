@@ -3,7 +3,7 @@ var OfficeModel = (function(){
 "use strict";
 const clone=value=>JSON.parse(JSON.stringify(value));
 const modes=["in","out","ready","routine"],states=["open","in-progress","done"],categories=["repair","cleaning","other"];
-const metaFields=["date","address","unit","tenant","owner","inspector","phone","meterE","meterW","keys","fwd","misc","clean","photoSize","tenantSigName","inspSigName","marketStatus","responsible","estimatedCost","visitReason","entryStatus","tenantSignStatus"];
+const metaFields=["date","address","unit","tenant","owner","inspector","phone","meterE","meterW","keys","fwd","misc","officeInstructions","clean","photoSize","tenantSigName","inspSigName","marketStatus","responsible","estimatedCost","visitReason","entryStatus","tenantSignStatus"];
 function fail(message){throw new Error(message);}
 function text(value,max=200){if(value===undefined||value===null)return "";if(typeof value!=="string")fail("A text field has an invalid value.");if(value.length>max)fail("A text field is too long.");return value;}
 function id(value){const s=text(value,160);if(!/^[A-Za-z0-9_.:-]+$/.test(s))fail("The file has an invalid record ID.");return s;}
@@ -46,13 +46,15 @@ function cleanRecord(value){
   safeTree(value);if(!value||!modes.includes(value.mode)||!Array.isArray(value.spaces)||value.spaces.length>120)fail("This is not a supported inspection record.");
   const out={id:id(value.id),mode:value.mode,created:stamp(value.created||0),updated:stamp(value.updated||0),meta:{},spaces:value.spaces.map(room),wk:{},sig:{t:image(value.sig?.t),i:image(value.sig?.i)},signatureMeta:signatureMeta(value.signatureMeta),followUp:{}};
   out.reportId=id(value.reportId||value.id);
-  for(const field of metaFields)if(value.meta?.[field]!==undefined)out.meta[field]=text(value.meta[field],["misc","keys"].includes(field)?50000:3000);
+  for(const field of metaFields)if(value.meta?.[field]!==undefined)out.meta[field]=text(value.meta[field],["misc","keys"].includes(field)?50000:field==="officeInstructions"?5000:3000);
   out.meta.workCategories=(Array.isArray(value.meta?.workCategories)?value.meta.workCategories:[]).filter(s=>["clean","repair","replace","maintenance"].includes(s));
   out.meta.readyTags=(Array.isArray(value.meta?.readyTags)?value.meta.readyTags:[]).filter(s=>["pool","well","rural","handover"].includes(s));
   const roomIds=new Set();for(const sp of out.spaces){if(roomIds.has(sp.id))fail("Two inspection areas have the same ID.");roomIds.add(sp.id);}
   for(const [key,w] of Object.entries(value.wk||{})){if(Object.keys(out.wk).length>=3000)fail("Too many estimate rows.");out.wk[text(key,300)]={k:["wear","dmg","maintenance","tenant"].includes(w.k)?w.k:"",c:text(w.c,80)};}
   for(const [key,task] of Object.entries(value.followUp||{})){if(Object.keys(out.followUp).length>=3000)fail("Too many follow-up items.");out.followUp[text(key,300)]=cleanTask(task,key);}
   if(value.from)out.from=id(value.from);
+  if(value.visitId)out.visitId=id(value.visitId);
+  if(Number.isSafeInteger(value.visitRevision)&&value.visitRevision>0)out.visitRevision=value.visitRevision;
   if(value.signatureHistory){if(!Array.isArray(value.signatureHistory)||value.signatureHistory.length>300)fail("Signature history is too large.");out.signatureHistory=value.signatureHistory.map(s=>({party:s.party==="t"?"t":"i",data:image(s.data),fingerprint:text(s.fingerprint,64),signedAt:stamp(s.signedAt||0),archivedAt:stamp(s.archivedAt||0),reason:text(s.reason,500)}));}
   if(value.deletedAt)out.deletedAt=stamp(value.deletedAt);
   return out;

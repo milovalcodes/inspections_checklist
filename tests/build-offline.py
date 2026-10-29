@@ -4,7 +4,7 @@ import base64
 import re
 
 root = Path(__file__).resolve().parents[1]
-out = root / "output" / "releases" / "offline-v58"
+out = root / "output" / "releases" / "offline-v59"
 out.mkdir(parents=True, exist_ok=True)
 source = (root / "index.html").read_text(encoding="utf-8")
 logo = "data:image/png;base64," + base64.b64encode((root / "cimco-logo.png").read_bytes()).decode("ascii")
@@ -18,7 +18,7 @@ def inline_script(match):
     code = (root / name).read_text(encoding="utf-8").replace("</script", "<\\/script")
     return "<script>\n" + code + "\n</script>"
 
-for office, practice in [(False, False), (True, False), (True, True)]:
+for office, practice, name in [(False, False, "CIMCO-Field-App.html"), (False, True, "CIMCO-Field-Practice.html"), (True, False, "CIMCO-Office-Desk.html"), (True, True, "CIMCO-Office-Practice.html")]:
     html = re.sub(r'<link[^>]+href="https://[^>]+>', "", source)
     html = re.sub(r'<link rel="(?:manifest|icon)"[^>]*>', "", html)
     html = re.sub(r'<link rel="stylesheet" href="([^"]+)">', inline_style, html)
@@ -29,7 +29,6 @@ for office, practice in [(False, False), (True, False), (True, True)]:
     html = html.replace("<style>", flags + "<style>", 1)
     license_text = (root / "vendor" / "JSZIP-LICENSE.md").read_text(encoding="utf-8").replace("</script", "<\\/script")
     html += '\n<script type="text/plain" id="third-party-license">' + license_text + '</script>\n'
-    name = "CIMCO-Office-Practice.html" if practice else "CIMCO-Office-Desk.html" if office else "CIMCO-Field-App.html"
     assert not re.search(r'<script[^>]+src=', html)
     assert not re.search(r'<link[^>]+href=', html)
     assert 'src="./cimco-logo.png"' not in html

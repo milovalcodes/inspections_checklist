@@ -27,6 +27,7 @@ function setPanel(next,room){
   persistPlace();renderBar();
   const target=next==="room"?document.querySelector('.field-room-head'):document.getElementById(({rooms:"roomDirectory",details:"propertyDetails",notes:"fieldNotesCard",review:"reviewPanel",office:"officePanel"})[next]);
   if(target){target.scrollIntoView({block:"start",behavior:"auto"});const heading=target.querySelector("h2,h3,summary");if(heading){heading.setAttribute("tabindex","-1");heading.focus({preventScroll:true});}}
+  if(typeof FieldGuide!=="undefined")FieldGuide.onPanel(next);
 }
 function roomState(sp){
   const done=sp.items.filter(i=>!!i.s).length,work=sp.items.filter(i=>i.s==="work").length,untested=sp.items.filter(i=>i.s==="nt").length;
@@ -35,17 +36,18 @@ function roomState(sp){
 function renderDirectory(){
   if(!cur)return;
   const host=document.getElementById("roomCards");
-  host.innerHTML=activeSpaces(cur).map(sp=>{const s=roomState(sp);return `<button type="button" class="room-card ${s.done===sp.items.length?"checked":""}" data-room-open="${sp.id}"><b>${esc(sp.name)}</b><span>${s.label} · ${s.done} of ${sp.items.length} checked${s.work?" · "+s.work+" need work":""}${s.untested?" · "+s.untested+" could not check":""}</span></button>`;}).join("")||'<p>No areas yet. Add a room or area below.</p>';
+  host.innerHTML=activeSpaces(cur).map(sp=>{const s=roomState(sp);return `<button type="button" class="room-card ${s.done===sp.items.length?"checked":""}" data-room-open="${sp.id}"><b>${esc(sp.name)}</b><span>${s.label} · ${s.done} of ${sp.items.length} checked${s.work?" · "+s.work+(s.work===1?" needs work":" need work"):""}${s.untested?" · "+s.untested+" could not check":""}</span></button>`;}).join("")||'<p>No areas yet. Add a room or area below.</p>';
   const count=document.getElementById("fieldSummary"),s=stats(cur);
-  count.textContent=s.done+" of "+s.total+" items recorded"+(s.flags?" · "+s.flags+" need work":"");
+  count.textContent=s.done+" of "+s.total+" items recorded"+(s.flags?" · "+s.flags+(s.flags===1?" needs work":" need work"):"");
 }
 function renderReview(){
   if(!cur)return;
   const issues=InspectionReport.readiness(cur),host=document.getElementById("reviewIssues"),p=InspectionReport.pricing(cur);
   document.getElementById("reviewTitle").textContent=issues.length?"A few things to review":"Ready to review the report";
   host.innerHTML=issues.length?issues.map(i=>`<button type="button" class="review-fix" ${i.room?`data-review-room="${i.room}" data-review-item="${i.item}"`:`data-field-panel="${i.target==="metaBox"?"details":"rooms"}"`}>${esc(i.text)} <span aria-hidden="true">→</span></button>`).join(""):'<p>Property details and checklist explanations are recorded. Review the report before sharing it.</p>';
-  document.getElementById("reviewCost").textContent=p.rows.length?"Office review: "+(p.pending.length?p.pending.length+" items need classification or estimates.":"Recorded classifications and estimates are available."):"No work estimates recorded.";
+  document.getElementById("reviewCost").textContent=p.rows.length?"Office review: "+(p.pending.length?p.pending.length+(p.pending.length===1?" item needs classification or estimates.":" items need classification or estimates."):"Recorded classifications and estimates are available."):"No work estimates recorded.";
   const notice=document.getElementById("signatureNotice");notice.textContent=cur.signatureNotice||"";notice.hidden=!cur.signatureNotice;
+  if(typeof FieldGuide!=="undefined")FieldGuide.renderFinish();
 }
 function decorate(){
   if(!cur)return;
@@ -127,7 +129,7 @@ watchSpaces=function(){if(SPACE_OBSERVER){SPACE_OBSERVER.disconnect();SPACE_OBSE
 renderBar=function(){
   const bar=document.getElementById('bar');
   if(document.body.dataset.view==='home'){bar.innerHTML='<div class="home-save-label">Inspections stay on this phone. Use Office tools for backups.</div>';return;}
-  bar.innerHTML='<button type="button" class="act" data-field-panel="rooms">All rooms</button><button type="button" class="act" data-undo '+(!lastChange||lastChange.id!==cur.id?'disabled':'')+'>Undo</button><button type="button" class="act solid" data-field-panel="review">Review / PDF</button>';
+  bar.innerHTML='<button type="button" class="act" data-field-panel="rooms">All rooms</button><button type="button" class="act" data-undo '+(!lastChange||lastChange.id!==cur.id?'disabled':'')+'>Undo</button><button type="button" class="act solid" data-field-panel="review">Finish & send</button>';
 };
 document.addEventListener('click',async event=>{
   const t=event.target.closest('button');if(!t)return;

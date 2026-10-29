@@ -19,6 +19,7 @@ function flatten(map){return Object.values(map).flat();}
 function activeRecords(){return LIST.filter(r=>!r.deletedAt);}
 function fieldVersion(rec,map){return InspectionReport.fingerprint(rec,map);}
 function workVersion(rec){return M.canonical(rec.followUp||{});}
+function signatureTime(rec){return Math.max(0,...Object.values(rec.signatureMeta||{}).map(s=>Number(s.signedAt)||0),...(rec.signatureHistory||[]).map(s=>Number(s.archivedAt)||0));}
 function imageMap(pics){const out={};for(const photo of pics)(out[photo.key]=out[photo.key]||[]).push(photo);return out;}
 function attachBaseline(rec,value){Object.defineProperty(rec,"baselineSnapshot",{value,writable:true,configurable:true,enumerable:false});}
 function saveBlob(name,blob){
@@ -56,7 +57,7 @@ async function hydrateBaseline(){
   try{const value=await baseline(rec);if(rec!==cur||generation!==baselineGeneration)return;if(value)attachBaseline(rec,value);renderComparison();}catch(err){if(rec===cur)document.getElementById("comparisonContent").textContent="The earlier photos could not be opened. The current inspection is unchanged.";}
 }
 function receiptStatus(rec){
-  const current=fieldVersion(rec),work=workVersion(rec),history=rec.handoffs||[],last=[...history].reverse().find(h=>h.conditionVersion===current&&h.workVersion===work);
+  const current=fieldVersion(rec),work=workVersion(rec),signOffVersion=InspectionReport.signOffVersion(rec),history=rec.handoffs||[],last=[...history].reverse().find(h=>h.conditionVersion===current&&h.workVersion===work&&h.signOffVersion===signOffVersion);
   if(last?.receipt)return "Office receipt imported: "+last.receipt.receivedBy+", "+new Date(last.receipt.receivedAt).toLocaleString()+".";
   if(last)return last.shareOpenedAt?"Sharing was opened. Office receipt is still pending.":last.savedAt?"A packet copy was saved. Office receipt is still pending.":"Office packet prepared. It has not been confirmed by the office.";
   return history.length?"There are new changes to share. Earlier receipts cover earlier copies.":"Saved on this phone. No office receipt yet.";
@@ -76,25 +77,28 @@ async function preparePacket(rec=cur){
   await ensureReportLogo();const all=flatten(await photoLoad(rec.id)),prior=await baseline(rec);
   const keys=new Set(activeSpaces(rec).flatMap(sp=>sp.items.map((it,i)=>sp.id+":"+i)));
   const pics=all.filter(p=>keys.has(p.key)||p.kind==="completion");
-  const conditionVersion=fieldVersion(rec,imageMap(pics)),work=workVersion(rec),priorHash=prior?await M.digest(prior):"";
-  const existing=[...(rec.handoffs||[])].reverse().find(h=>h.conditionVersion===conditionVersion&&h.workVersion===work&&h.baselineDigest===priorHash);
+  const conditionVersion=fieldVersion(rec,imageMap(pics)),work=workVersion(rec),signOffVersion=InspectionReport.signOffVersion(rec),priorHash=prior?await M.digest(prior):"";
+  const existing=[...(rec.handoffs||[])].reverse().find(h=>h.conditionVersion===conditionVersion&&h.workVersion===work&&h.baselineDigest===priorHash&&h.signOffVersion===signOffVersion);
   if(existing){const cached=await storedPacket(existing.id);if(cached?.blob){if(prior)rec.baselinePacketId=cached.id;flushSave();prepared={...cached,rec};paintHandoff();return prepared;}}
   const packet=await M.createPacket(rec,pics,prior,conditionVersion,"packet-"+uid()),blob=await zipFor(packet);
   const entry={id:packet.id,inspectionId:rec.id,packet,blob,direction:"outgoing",createdAt:packet.createdAt};await putPacket(entry);
   if(prior)rec.baselinePacketId=packet.id;
-  rec.handoffs=rec.handoffs||[];rec.handoffs.push({id:packet.id,digest:packet.digest,conditionVersion,workVersion:work,baselineDigest:priorHash,createdAt:packet.createdAt});
+  rec.handoffs=rec.handoffs||[];rec.handoffs.push({id:packet.id,digest:packet.digest,conditionVersion,workVersion:work,signOffVersion,baselineDigest:priorHash,createdAt:packet.createdAt});
   if(!flushSave())throw new Error("The packet was prepared, but its status could not be saved. Free some storage and try again.");
   prepared={...entry,rec};paintHandoff();return prepared;
 }
+function currentPrepared(){
+  return prepared&&cur&&prepared.rec===cur&&prepared.packet.payload.conditionVersion===fieldVersion(cur)&&InspectionReport.signOffVersion(prepared.packet.payload.inspection)===InspectionReport.signOffVersion(cur)&&(cur.handoffs||[]).some(h=>h.id===prepared.id&&h.workVersion===workVersion(cur))?prepared:null;
+}
 function paintHandoff(){
   if(!cur)return;const el=document.getElementById("handoffStatus");if(el)el.textContent=receiptStatus(cur);
-  const ready=document.getElementById("packetReady"),valid=prepared&&prepared.rec.id===cur.id&&prepared.packet.payload.conditionVersion===fieldVersion(cur)&&prepared.rec===cur&&prepared.rec.handoffs.some(h=>h.id===prepared.id&&h.workVersion===workVersion(cur));
+  const ready=document.getElementById("packetReady"),valid=!!currentPrepared();
   if(ready)ready.hidden=!valid;
 }
 function markPacket(action){if(!prepared)return;const h=(prepared.rec.handoffs||[]).find(h=>h.id===prepared.id);if(h)h[action]=Date.now();flushSave();paintHandoff();}
-function downloadPrepared(){if(!prepared)throw new Error("Prepare an office packet first.");saveBlob(fileName(prepared.rec,"-office-packet.zip"),prepared.blob);markPacket("savedAt");}
+function downloadPrepared(){if(!currentPrepared())throw new Error("Prepare an office packet first.");saveBlob(fileName(prepared.rec,"-office-packet.zip"),prepared.blob);markPacket("savedAt");}
 async function sharePrepared(){
-  if(!prepared)throw new Error("Prepare an office packet first.");const file=new File([prepared.blob],fileName(prepared.rec,"-office-packet.zip"),{type:"application/zip"});
+  if(!currentPrepared())throw new Error("Prepare the report again after the latest changes.");const file=new File([prepared.blob],fileName(prepared.rec,"-office-packet.zip"),{type:"application/zip"});
   if(!navigator.canShare?.({files:[file]})||!navigator.share){downloadPrepared();message("Packet saved. Transfer it from Files or Downloads using your usual sharing tool or USB.");return;}
   try{await navigator.share({files:[file],title:"CIMCO inspection - "+title(prepared.rec)});markPacket("shareOpenedAt");}
   catch(err){if(err.name!=="AbortError")throw new Error("Sharing could not open. Choose Save packet instead.");}
@@ -121,6 +125,13 @@ async function receivePacket(raw){
     if(!equal){fork=true;incoming.reportId=incoming.reportId||originalId;incoming.id=originalId+"-copy-"+uid();local=null;}
   }
   if(local){
+    if(InspectionReport.signOffVersion(local)!==InspectionReport.signOffVersion(incoming)&&signatureTime(incoming)>signatureTime(local)){
+      const history=[...(local.signatureHistory||[]),...(incoming.signatureHistory||[])];
+      for(const party of ['t','i'])if(local.sig?.[party]&&local.sig[party]!==incoming.sig?.[party]&&!history.some(h=>h.party===party&&h.data===local.sig[party]))history.push({party,data:local.sig[party],...(local.signatureMeta||{})[party],archivedAt:signatureTime(incoming),reason:'Newer sign-off received for the same inspection conditions'});
+      const mergedHistory=history.filter((h,i)=>history.findIndex(x=>M.canonical(x)===M.canonical(h))===i);if(mergedHistory.length>300)throw new Error('This report has too much signature history to merge. Keep the original office files and save a separate copy.');
+      local.sig=clone(incoming.sig);local.signatureMeta=clone(incoming.signatureMeta||{});local.signatureHistory=mergedHistory;local.updated=Math.max(local.updated,incoming.updated);
+      if(cur===local){drawSig('T',local.sig.t||'');drawSig('I',local.sig.i||'');}
+    }
     const accepted=new Set();
     local.followUp=local.followUp||{};for(const [key,task] of Object.entries(incoming.followUp||{}))if(!local.followUp[key]||Number(task.updatedAt)>Number(local.followUp[key].updatedAt)){local.followUp[key]=task;accepted.add('followup:'+task.id);}
     const existing=flatten(await photoLoad(local.id));
@@ -168,6 +179,7 @@ async function importOfficeFile(file){
   if(value.type==="cimco-office-packet")return {kind:"packet",...await receivePacket(value)};
   if(value.type==="cimco-office-receipt")return {kind:"receipt",...importReceipt(value)};
   if(value.type==="cimco-property-layouts")return {kind:"layouts",...importLayouts(value)};
+  if(value.type==="cimco-inspection-visits"&&typeof FieldGuide!=="undefined")return {kind:"visits",...FieldGuide.importVisits(value)};
   if(value.type==="cimco-offline-backup")return {kind:"backup",...await restoreBackup(value)};
   throw new Error("Choose a CIMCO office packet, office receipt, or layout library. Use Restore a backup for an older backup file.");
 }
@@ -175,16 +187,18 @@ async function verifyPictures(pics){
   for(let start=0;start<pics.length;start+=8){const ok=await Promise.all(pics.slice(start,start+8).filter(p=>!p.deletedAt).map(async p=>{const img=new Image();img.src=p.data;const valid=await waitForPrintImage(img,10000);img.src='';return valid;}));if(ok.some(v=>!v))throw new Error("A packet photograph could not be read. Ask the inspector to prepare the packet again.");}
 }
 async function buildBackup(){
-  if(!flushSave())throw new Error("Save the current inspection before backing up.");
+  const unsaved=!flushSave(); // A backup is also the recovery route when browser storage is full.
   const ids=new Set(LIST.map(r=>r.id)),entries=(await packetEntries()).filter(p=>ids.has(p.inspectionId));
-  const value={type:"cimco-offline-backup",version:1,createdAt:Date.now(),records:LIST.map(clone),photos:(await allPhotos()).filter(p=>ids.has(p.insp)),layouts:clone(state.layouts),officeName:state.officeName,
+  const value={type:"cimco-offline-backup",version:1,createdAt:Date.now(),includesUnsavedChanges:unsaved,guide:typeof FieldGuide!=="undefined"?FieldGuide.exportState():null,records:LIST.map(clone),photos:(await allPhotos()).filter(p=>ids.has(p.insp)),layouts:clone(state.layouts),officeName:state.officeName,
     packets:entries.map(p=>({id:p.id,inspectionId:p.inspectionId,packet:p.packet,direction:p.direction,createdAt:p.createdAt,...(p.receipt?{receipt:p.receipt}:{})}))};
   const zip=new JSZip();zip.file('backup.cimco.json',JSON.stringify(value));return {value,blob:await zip.generateAsync({type:'blob',mimeType:'application/zip',compression:'DEFLATE',compressionOptions:{level:4}})};
 }
 async function deleteStoredPacket(id){const database=await store();return new Promise((resolve,reject)=>{const tx=database.transaction('packets','readwrite');tx.objectStore('packets').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});}
 async function restoreBackup(value){
-  if(LIST.length)throw new Error("Full backups restore into an empty app. Use an office packet to add an inspection to this app.");
+  if(LIST.length||(typeof FieldGuide!=="undefined"&&FieldGuide.exportState().visits.length))throw new Error("Full backups restore into an empty app. Use an office file to add an inspection or visit to this app.");
   M.safeTree(value);if(value.version!==1||!Array.isArray(value.records)||value.records.length>2000||!Array.isArray(value.photos)||!Array.isArray(value.packets)||value.packets.length>5000)throw new Error("This backup is not supported.");
+  const guide=value.guide?VisitModel.state(value.guide):null;
+  const beforeGuide=typeof FieldGuide!=="undefined"?FieldGuide.exportState():null;
   const records=value.records.map(raw=>{
     const rec=M.cleanRecord(raw);
     if(typeof raw.meta?.access==='string')rec.meta.access=raw.meta.access.slice(0,10000);
@@ -212,8 +226,9 @@ async function restoreBackup(value){
     for(const p of pictures){let id=p.id;if(used.has(id))id='restored-'+uid();used.add(id);await photoPut({...p,id});written.push(id);}
     for(const entry of verified){if(await storedPacket(entry.id))continue;const saved={...entry};if(entry.direction==='outgoing')saved.blob=await zipFor(entry.packet);await putPacket(saved);packetWrites.push(entry.id);}
     LIST=records;state.layouts=merged.layouts;state.officeName=state.officeName||String(value.officeName||'').slice(0,240);saveState();if(!flushSave())throw new Error("The restored records could not be saved.");
+    if(guide&&typeof FieldGuide!=="undefined")FieldGuide.restoreState(guide);
     renderHome();return {records:records.length,photos:pictures.length};
-  }catch(err){LIST=[];state=beforeState;try{saveState();flushSave();}catch(ignore){}for(const id of written)await purgePhoto(id);for(const id of packetWrites)await deleteStoredPacket(id);throw err;}
+  }catch(err){LIST=[];state=beforeState;try{if(beforeGuide)FieldGuide.restoreState(beforeGuide);saveState();flushSave();}catch(ignore){}for(const id of written)await purgePhoto(id);for(const id of packetWrites)await deleteStoredPacket(id);throw err;}
 }
 async function trashInspection(rec){
   if(!rec)return;rec.deletedAt=Date.now();if(!flushSave()){delete rec.deletedAt;throw new Error("The inspection could not be moved to Recently deleted.");}
@@ -320,7 +335,7 @@ async function renderTrash(host){
 function shell(){
   document.body.classList.add('offline-office-tools');if(officeMode)document.body.classList.add('office-desk-mode');
   const home=document.getElementById('homeOffice');home.insertAdjacentHTML('afterbegin','<div class="office-quick-actions"><button type="button" class="act solid" data-import-office>Receive office file</button><button type="button" class="act" data-office-view="layouts">Property layouts</button><button type="button" class="act" data-office-view="work">Maintenance follow-up</button><button type="button" class="act" data-office-view="trash">Recently deleted</button><button type="button" class="act" data-office-backup>Save complete backup</button></div>');
-  if(officeMode){const intro=document.createElement('section');intro.id='officeDeskIntro';intro.className='card';intro.innerHTML='<h2>Office desk</h2><p>Receive inspection packets, review reports, assign work, and save receipts. Files stay on this computer.</p>';intro.append(home.querySelector('.office-quick-actions'));document.getElementById('home').prepend(intro);}
+  if(officeMode){const intro=document.createElement('section');intro.id='officeDeskIntro';intro.className='card';intro.innerHTML='<h2>Office desk</h2><p>Receive inspection files, review reports, assign work, and save confirmations. Files stay on this computer.</p>';intro.append(home.querySelector('.office-quick-actions'));document.getElementById('home').prepend(intro);}
   document.querySelector('#newAddress').closest('.quickstart').insertAdjacentHTML('beforebegin','<label class="office-property-picker" hidden>Office property list<select id="officePropertySelect"></select></label>');
   document.getElementById('reviewPanel').insertAdjacentHTML('afterbegin','<section class="handoff-card"><h2>Share with the office</h2><p>Prepare one packet with this report and its photos. Share it using your phone tools, or save it for transfer by USB.</p><p id="handoffStatus" role="status"></p><button type="button" class="act solid" data-prepare-packet>Prepare office packet</button><div id="packetReady" hidden><p>Packet ready. Choose how to transfer it.</p><div class="office-actions"><button class="act solid" type="button" data-share-packet>Share packet</button><button class="act" type="button" data-save-packet>Save packet</button></div></div><button type="button" class="act" data-import-office>Import office receipt</button></section>');
   document.querySelector('.handoff-card').insertAdjacentHTML('beforeend','<details class="transfer-help"><summary>Send without putting the app online</summary><p>At the office, use LocalSend on the phone and Windows computer while both are on the same local Wi-Fi. It supports iPhone and Android. Choose Share packet and LocalSend, or Save packet and select the saved ZIP inside LocalSend.</p><p>The office imports the ZIP in Office Desk and returns a receipt file the same way. Import the receipt here to confirm the exact copy was received.</p><p>A USB file transfer also works. When away from the office, you can send the saved packet through your existing email or messaging app when a connection is available; the inspection app itself needs no online account or server.</p><p><a href="https://localsend.org/" target="_blank" rel="noopener noreferrer">LocalSend official download and setup</a></p></details>');
@@ -346,7 +361,7 @@ document.addEventListener('click',event=>{
   void(async()=>{try{
     if(t.hasAttribute('data-import-office')){document.getElementById('officeFileInput').click();return;}
     if(t.dataset.purgeInspection||t.dataset.purgePhoto){const ok=await CimcoDialog.open({title:'Delete this local copy permanently?',message:'It cannot be restored from Recently deleted after this. Copies already saved in other packets or backups are separate.',confirmLabel:'Delete permanently',danger:true});if(!ok)return;if(t.dataset.purgeInspection)await purgeInspection(t.dataset.purgeInspection);else{const p=await photoById(t.dataset.purgePhoto);if(!p?.deletedAt)throw new Error('Only deleted photos can be removed permanently.');await purgePhoto(p.id);}await renderWorkspace();message('Local copy removed permanently.');return;}
-    if(t.hasAttribute('data-office-backup')){t.disabled=true;const backup=await buildBackup();saveBlob('CIMCO-complete-backup-'+today()+'.zip',backup.blob);toast('Complete backup saved with records, photos, layouts, receipts, and deleted items.');return;}
+    if(t.hasAttribute('data-office-backup')){t.disabled=true;const backup=await buildBackup();saveBlob('CIMCO-complete-backup-'+today()+'.zip',backup.blob);if(typeof FieldGuide!=="undefined"){try{FieldGuide.noteBackup();}catch(err){toast("Backup file created. Keep the file; this device could not save its backup status.");return;}}toast('Backup file created with records, photos, layouts, receipts, and deleted items.');return;}
     if(t.dataset.officeView){await openWorkspace(t.dataset.officeView);return;}
     if(t.hasAttribute('data-close-office')){closeWorkspace();return;}
     if(t.hasAttribute('data-prepare-packet')){if(InspectionReport.readiness(cur).length){const proceed=await CimcoDialog.open({title:'Prepare a draft packet?',message:'Some inspection details or checks are unfinished. The report will clearly identify them for the office.',confirmLabel:'Prepare draft packet'});if(!proceed)return;}t.disabled=true;t.textContent='Preparing packet...';await preparePacket();toast('Packet ready. Choose Share packet or Save packet.');return;}
@@ -372,7 +387,7 @@ document.addEventListener('change',event=>{
   if(t.id==='officePropertySelect'){const l=state.layouts[t.value];if(l){document.getElementById('newAddress').value=l.address;document.getElementById('newUnit').value=l.unit;}return;}
   if(t.dataset.attentionCategory||t.dataset.attentionUrgent){const key=t.dataset.attentionCategory||t.dataset.attentionUrgent,[rid,index]=key.split(':'),it=cur.spaces.find(s=>s.id===rid).items[+index];if(t.dataset.attentionCategory)it.category=t.value;else it.urgent=t.checked;save();decorateAttention();return;}
   if(t.dataset.taskField){try{updateTask(LIST.find(r=>r.id===t.dataset.taskRecord),t.dataset.taskKey,t.dataset.taskField,t.value);message('Maintenance update saved on this computer.');}catch(err){message(err.message,true);}return;}
-  if(t.id==='officeFileInput'){const file=t.files[0];t.value='';if(!file)return;void(async()=>{try{const result=await importOfficeFile(file);await openWorkspace(result.kind==='layouts'?'layouts':'receive');message(result.kind==='backup'?result.records+' inspections restored with photos, layouts and office files.':result.kind==='receipt'?'Matching office receipt imported.':result.kind==='layouts'?result.added+' layouts added, '+result.updated+' updated.'+(result.conflicts.length?' Conflicts kept unchanged: '+result.conflicts.join('; '):''):result.duplicate?'This packet was already imported.':result.fork?'Another report version was saved. The earlier copy was kept.':'Inspection and photos saved on this computer. Enter Received by to save a receipt.');}catch(err){toast(err.message||'This file could not be opened.');message(err.message||'This file could not be opened.',true);}})();return;}
+  if(t.id==='officeFileInput'){const file=t.files[0];t.value='';if(!file)return;void(async()=>{try{const result=await importOfficeFile(file);if(result.kind==='visits'){closeWorkspace();go('home');FieldGuide.renderVisits();toast(result.added+(result.added===1?' visit added. ':' visits added. ')+(result.conflicts.length?'Started or conflicting visits were kept unchanged.':'Choose a visit to start.'));return;}if(result.kind==='receipt'&&typeof FieldGuide!=="undefined"){closeWorkspace();FieldGuide.paintStatus();if(cur)InspectorFlow.setPanel('review');toast('Office confirmation opened for the matching report.');return;}await openWorkspace(result.kind==='layouts'?'layouts':'receive');message(result.kind==='backup'?result.records+' inspections restored with photos, layouts and office files.':result.kind==='receipt'?'Matching office receipt imported.':result.kind==='layouts'?result.added+' layouts added, '+result.updated+' updated.'+(result.conflicts.length?' Conflicts kept unchanged: '+result.conflicts.join('; '):''):result.duplicate?'This packet was already imported.':result.fork?'Another report version was saved. The earlier copy was kept.':'Inspection and photos saved on this computer. Enter Received by to save a receipt.');}catch(err){toast(err.message||'This file could not be opened.');message(err.message||'This file could not be opened.',true);}})();return;}
   if(t.id==='completionFileInput'){const files=[...t.files];t.value='';if(!files.length||!completionTarget)return;const target=completionTarget;completionTarget=null;void(async()=>{try{const count=await addCompletionPhotos(target.record,target.key,files);await renderWorkspace();message(count+' completion photos saved.');}catch(err){message(err.message,true);}})();}
   if(t.name==='mode'&&t.closest('#layoutEditor')&&layoutDraft?.revision===0){layoutDraft.mode=t.value;layoutDraft.rooms=makeSpacesForMode(t.value).map(sp=>({type:sp.type,name:sp.name,tag:sp.tag||'',items:sp.items.map(it=>it.t)}));renderLayoutRooms();}
 },true);
@@ -383,5 +398,5 @@ if(SELF_TEST)window.__CIMCO_OFFICE__={preparePacket,receivePacket,issueReceipt,i
   cleanup:async()=>{state={layouts:{},officeName:'',layoutHistory:{}};prepared=null;localStorage.removeItem(STATE_KEY);const database=await store();await new Promise((resolve,reject)=>{const tx=database.transaction('packets','readwrite');tx.objectStore('packets').clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});const p=await db();await new Promise((resolve,reject)=>{const tx=p.transaction('p','readwrite');tx.objectStore('p').clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});}
 };
 renderHome();
-return {trashInspection,trashPhoto,trashRoom,restoreInspection,restorePhoto,restoreRoom,decorateAttention,paintHandoff,comparisonRows,extraReport,touchCompletion,taskPhotos};
+return {preparePacket,currentPrepared,sharePrepared,downloadPrepared,receiptStatus,openWorkspace,importOfficeFile,layoutLibrary:()=>Object.values(state.layouts).map(clone),trashInspection,trashPhoto,trashRoom,restoreInspection,restorePhoto,restoreRoom,decorateAttention,paintHandoff,comparisonRows,extraReport,touchCompletion,taskPhotos};
 })();

@@ -5,17 +5,17 @@ import {webcrypto} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url),JSZip=require('../vendor/jszip.min.js');
-const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),out=path.join(root,'output/releases/offline-v58/examples');fs.mkdirSync(out,{recursive:true});
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),out=path.join(root,'output/releases/offline-v59/examples');fs.mkdirSync(out,{recursive:true});
 const core=fs.readFileSync(path.join(root,'index.html'),'utf8').replace(/\r\n/g,'\n'),office=fs.readFileSync(path.join(root,'offline-office.js'),'utf8').replace(/\r\n/g,'\n');
 const ctx={console,crypto:webcrypto,TextEncoder,FLAGS:['work'],MODE_LABEL:{in:'Move-in',out:'Move-out',routine:'Routine',ready:'Rent-ready'},ORG:'CIMCO Property Management',REPORT_LOGO_DATA:'data:image/png;base64,'+fs.readFileSync(path.join(root,'cimco-logo.png')).toString('base64'),cur:null,photos:{}};vm.createContext(ctx);
 function extract(source,name){const a=source.indexOf('function '+name+'(');if(a<0)throw new Error(name);const tail=source.slice(a),line=tail.slice(0,tail.indexOf('\n')),end=line.trim().endsWith('}')?line.length:tail.indexOf('\n}')+2;vm.runInContext(tail.slice(0,end),ctx);}
 for(const name of ['propertyMatches','esc','fmtDate','money','activeSpaces','title','stats','flagged','modeTitle','keysLabelForMode','workLabel','marketLabel','visitLabel','entryLabel'])extract(core,name);
-vm.runInContext(fs.readFileSync(path.join(root,'office-model.js'),'utf8'),ctx);ctx.M=ctx.OfficeModel;ctx.e=ctx.esc;
+vm.runInContext(fs.readFileSync(path.join(root,'office-model.js'),'utf8'),ctx);ctx.M=ctx.OfficeModel;ctx.e=ctx.esc;vm.runInContext(fs.readFileSync(path.join(root,'visit-model.js'),'utf8'),ctx);
 vm.runInContext(fs.readFileSync(path.join(root,'inspection-reports.js'),'utf8'),ctx);
 for(const name of ['flatten','comparisonRows','taskPhotos','extraReport'])extract(office,name);
 ctx.OfflineOffice={extraReport:ctx.extraReport,comparisonRows:ctx.comparisonRows};
 const stamp=Date.parse('2026-10-29T15:00:00-04:00');
-const rec={id:'DEMO-OUT-20261029',mode:'out',created:stamp,updated:stamp,meta:{date:'2026-10-29',address:'DEMO PROPERTY - 100 Sample Lane',unit:'Practice only',inspector:'DEMO Inspector',tenant:'DEMO Tenant',owner:'DEMO Owner',keys:'Front door: 2\nMailbox: 1',misc:'DEMONSTRATION ONLY. All names, observations, photos, and work assignments in this packet are fictitious.',tenantSignStatus:'absent',photoSize:'md',readyTags:[],workCategories:[]},spaces:[],wk:{},sig:{t:'',i:''},followUp:{}};
+const rec={id:'DEMO-OUT-20261029',mode:'out',created:stamp,updated:stamp,meta:{date:'2026-10-29',address:'DEMO PROPERTY - 100 Sample Lane',unit:'Practice only',inspector:'DEMO Inspector',tenant:'DEMO Tenant',owner:'DEMO Owner',officeInstructions:'DEMO visit instructions: choose rooms in any order and add areas to match the house.',keys:'Front door: 2\nMailbox: 1',misc:'DEMONSTRATION ONLY. All names, observations, photos, and work assignments in this packet are fictitious.',tenantSignStatus:'absent',photoSize:'md',readyTags:[],workCategories:[]},spaces:[],wk:{},sig:{t:'',i:''},followUp:{}};
 for(const [i,type,name] of [[0,'living','Living room'],[1,'kitchen','Kitchen'],[2,'bedroom','Bedroom 1'],[3,'bathroom','Hall bathroom'],[4,'garage','Garage']])rec.spaces.push({id:'demo-room-'+i,type,name,checklistVersion:2,items:['Floor','Walls / ceiling','Lights','Doors / locks','Windows','Outlets'].map(t=>({t,s:'ok',n:'',base:'ok'}))});
 rec.spaces[0].items[0]={t:'Floor',s:'work',n:'DEMO observation: a raised floor edge was noted near the entry. Office review and repair follow-up requested.',base:'ok',urgent:true,category:'repair'};
 rec.spaces[1].items[1]={t:'Walls / ceiling',s:'work',n:'DEMO observation: surface marks require cleaning.',base:'ok',category:'cleaning'};
@@ -33,3 +33,5 @@ const packet=await ctx.M.createPacket(rec,pics,{inspection:prior,photos:previous
 const report=ctx.InspectionReport.html(rec,map),zip=new JSZip();zip.file('inspection.cimco.json',JSON.stringify(packet));zip.file('OPEN-REPORT.html',report);zip.file('READ-ME.txt','DEMONSTRATION PACKET ONLY. No real tenant, property, image, or signature data. Import this file in CIMCO-Office-Practice.html to try the workflow.');
 fs.writeFileSync(path.join(out,'SAMPLE-Office-Packet.zip'),await zip.generateAsync({type:'nodebuffer',compression:'DEFLATE'}));fs.writeFileSync(path.join(out,'OPEN-REPORT.html'),report);fs.writeFileSync(path.join(out,'sample-packet.json'),JSON.stringify(packet,null,2));
 console.log('Created clearly labeled office demo packet and report in '+out);
+
+const visit=ctx.VisitModel.visit({id:'DEMO-VISIT-20261029',revision:1,updatedAt:stamp,mode:rec.mode,meta:{address:rec.meta.address,unit:rec.meta.unit,date:rec.meta.date,inspector:'DEMO Inspector',officeInstructions:'Practice only. Choose rooms in any order and add areas if needed.'},layout:ctx.M.layout(rec)});fs.writeFileSync(path.join(out,'SAMPLE-Visit-File.json'),JSON.stringify({type:'cimco-inspection-visits',version:1,visits:[visit]},null,2));

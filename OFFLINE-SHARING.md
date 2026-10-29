@@ -1,10 +1,28 @@
 # CIMCO inspections: phone to office
 
+## Start with an office-prepared visit
+
+Office staff choose **Prepare a visit** in Office Desk (or **Prepare visit file (office)** under Office tools & backups). Choose a saved property layout, or enter another address, then set the inspection type, date, inspector and any instructions. Save the visit file and transfer it using local Wi-Fi sharing or USB.
+
+The inspector chooses **Open office visit file**, opens that file, and taps **Start this visit**. Address, date, name and room definitions are already filled in. Results and signatures start blank. Rooms remain flexible: add, rename or remove areas to match the actual house. Starting that visit again resumes it. An updated plan will not overwrite a visit already started.
+
+## Finish in three steps
+
+1. **Check:** Review missing items and preview the PDF. Photo reminders are helpful suggestions, not mandatory steps.
+2. **Sign:** Review and sign, or record why a tenant signature is unavailable. Missing checks or signatures require choosing to prepare a draft.
+3. **Send:** Choose **Send to office**, or **Save office file** for local transfer. These files contain the report and its photos. They require no online service or app account.
+
+Sharing is not confirmed delivery. The office imports the file and returns its confirmation file. Open that confirmation under **Office confirmation & transfer help**. The status display confirms only the matching version. Later changes or signatures need a newly prepared file.
+
+Use **Try a practice inspection** or **CIMCO-Field-Practice.html** for training. A visible banner identifies practice, and records stay separate. The Help & practice section explains the four result choices and the full routine. **Return to real inspections** returns to the real app without copying practice data.
+
+The app does not send notes to an online service. Suggested observations are built into the app and are added only when the inspector taps a phrase that matches what they saw. The saved inspector name and planned visits stay on that device and are included in complete backups.
+
 ## The daily routine
 
 1. **Inspect the house.** Choose rooms in any order. Add or rename areas to match the house. **Save and finish later** keeps the visit on the phone.
-2. **Review the visit.** Open **Review / PDF**. Check missing details, observations, photos, and signatures. Unfinished visits are labeled as drafts.
-3. **Prepare office packet.** Choose **Share packet**, or **Save packet** if sharing is unavailable. The ZIP contains the inspection, photographs, and printable report. Keep the ZIP together.
+2. **Review the visit.** Open **Finish & send**. Check missing details, observations, photos, and signatures. Unfinished visits remain identified in the report.
+3. **Prepare the report.** Follow Check, Sign, Send, then choose **Send to office** or **Save office file**. The ZIP contains the inspection, photographs, and printable report. Keep the ZIP together.
 4. **Send the ZIP.** Use LocalSend when the phone and Windows computer are on the same local Wi-Fi. No internet or inspection-app account is needed. The office accepts the file in LocalSend.
 5. **Office: receive it.** Open **CIMCO-Office-Desk.html**, choose **Receive office file**, and select the ZIP. Check the property and date. Enter the receiving staff member's name and save the receipt file.
 6. **Return the receipt.** Send the receipt back to the phone. The inspector imports it with **Receive office file** under **Office tools & backups**. Only a receipt matching that exact packet confirms office receipt. Later changes need a new packet.

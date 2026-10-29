@@ -1,8 +1,8 @@
-const CACHE = 'inspection-v58-offline-office';
+const CACHE = 'inspection-v59-simple-offline-final2';
 const ASSETS = [
-  './', './index.html', './move-in.html', './move-out.html', './schedule.html', './app-theme.css?v=58', './app-enhancements.js?v=58',
-  './inspection-reports.js?v=58', './inspector-flow.js?v=58', './inspector-flow.css?v=58',
-  './office-model.js?v=58', './offline-office.js?v=58', './offline-office.css?v=58', './vendor/jszip.min.js?v=58',
+  './', './index.html', './move-in.html', './move-out.html', './schedule.html', './app-theme.css?v=59', './app-enhancements.js?v=59',
+  './inspection-reports.js?v=59', './inspector-flow.js?v=59', './inspector-flow.css?v=59',
+  './visit-model.js?v=59', './field-guide.js?v=59', './field-guide.css?v=59', './office-model.js?v=59', './offline-office.js?v=59', './offline-office.css?v=59', './vendor/jszip.min.js?v=59',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',
   './icon-192.png', './icon-512.png', './cimco-logo.png'
 ];
