@@ -1,0 +1,35 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+import {webcrypto} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url),JSZip=require('../vendor/jszip.min.js');
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),out=path.join(root,'output/releases/offline-v58/examples');fs.mkdirSync(out,{recursive:true});
+const core=fs.readFileSync(path.join(root,'index.html'),'utf8').replace(/\r\n/g,'\n'),office=fs.readFileSync(path.join(root,'offline-office.js'),'utf8').replace(/\r\n/g,'\n');
+const ctx={console,crypto:webcrypto,TextEncoder,FLAGS:['work'],MODE_LABEL:{in:'Move-in',out:'Move-out',routine:'Routine',ready:'Rent-ready'},ORG:'CIMCO Property Management',REPORT_LOGO_DATA:'data:image/png;base64,'+fs.readFileSync(path.join(root,'cimco-logo.png')).toString('base64'),cur:null,photos:{}};vm.createContext(ctx);
+function extract(source,name){const a=source.indexOf('function '+name+'(');if(a<0)throw new Error(name);const tail=source.slice(a),line=tail.slice(0,tail.indexOf('\n')),end=line.trim().endsWith('}')?line.length:tail.indexOf('\n}')+2;vm.runInContext(tail.slice(0,end),ctx);}
+for(const name of ['propertyMatches','esc','fmtDate','money','activeSpaces','title','stats','flagged','modeTitle','keysLabelForMode','workLabel','marketLabel','visitLabel','entryLabel'])extract(core,name);
+vm.runInContext(fs.readFileSync(path.join(root,'office-model.js'),'utf8'),ctx);ctx.M=ctx.OfficeModel;ctx.e=ctx.esc;
+vm.runInContext(fs.readFileSync(path.join(root,'inspection-reports.js'),'utf8'),ctx);
+for(const name of ['flatten','comparisonRows','taskPhotos','extraReport'])extract(office,name);
+ctx.OfflineOffice={extraReport:ctx.extraReport,comparisonRows:ctx.comparisonRows};
+const stamp=Date.parse('2026-10-29T15:00:00-04:00');
+const rec={id:'DEMO-OUT-20261029',mode:'out',created:stamp,updated:stamp,meta:{date:'2026-10-29',address:'DEMO PROPERTY - 100 Sample Lane',unit:'Practice only',inspector:'DEMO Inspector',tenant:'DEMO Tenant',owner:'DEMO Owner',keys:'Front door: 2\nMailbox: 1',misc:'DEMONSTRATION ONLY. All names, observations, photos, and work assignments in this packet are fictitious.',tenantSignStatus:'absent',photoSize:'md',readyTags:[],workCategories:[]},spaces:[],wk:{},sig:{t:'',i:''},followUp:{}};
+for(const [i,type,name] of [[0,'living','Living room'],[1,'kitchen','Kitchen'],[2,'bedroom','Bedroom 1'],[3,'bathroom','Hall bathroom'],[4,'garage','Garage']])rec.spaces.push({id:'demo-room-'+i,type,name,checklistVersion:2,items:['Floor','Walls / ceiling','Lights','Doors / locks','Windows','Outlets'].map(t=>({t,s:'ok',n:'',base:'ok'}))});
+rec.spaces[0].items[0]={t:'Floor',s:'work',n:'DEMO observation: a raised floor edge was noted near the entry. Office review and repair follow-up requested.',base:'ok',urgent:true,category:'repair'};
+rec.spaces[1].items[1]={t:'Walls / ceiling',s:'work',n:'DEMO observation: surface marks require cleaning.',base:'ok',category:'cleaning'};
+rec.spaces[3].items[5].s='nt';rec.spaces[3].items[5].n='DEMO limit: power was off; outlet operation was not tested.';
+rec.wk['demo-room-0:0']={k:'',c:'125.00'};
+const tasks=ctx.M.tasks(rec,stamp);for(const t of tasks)rec.followUp[t.key]=t;
+rec.followUp['demo-room-0:0'].assignee='DEMO Maintenance Team';rec.followUp['demo-room-0:0'].state='done';rec.followUp['demo-room-0:0'].completedAt=stamp;rec.followUp['demo-room-0:0'].note='DEMO work status: completion was recorded by office staff; attached image is a demonstration placeholder.';
+rec.followUp['demo-room-1:1'].assignee='DEMO Cleaning Team';rec.followUp['demo-room-1:1'].state='in-progress';
+function picture(id,key,label,color='#e7eef4',insp=rec.id,kind){const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800"><rect width="1200" height="800" fill="'+color+'"/><rect x="35" y="35" width="1130" height="730" fill="white" stroke="#00437d" stroke-width="5"/><text x="600" y="350" text-anchor="middle" font-family="Arial" font-size="48" fill="#00437d">'+label+'</text><text x="600" y="440" text-anchor="middle" font-family="Arial" font-size="28" fill="#40596b">Demonstration image - no real property evidence</text></svg>';return {id,insp,key,data:'data:image/svg+xml;base64,'+Buffer.from(svg).toString('base64'),caption:label,ts:stamp,...(kind?{kind}:{})};}
+const pics=[picture('demo-current-floor','demo-room-0:0','DEMO CURRENT FLOOR'),picture('demo-current-wall','demo-room-1:1','DEMO CURRENT KITCHEN'),picture('demo-completion','followup:'+tasks[0].id,'DEMO COMPLETION PHOTO','#e8f3ed',rec.id,'completion')];
+const prior=structuredClone(rec);prior.id='DEMO-IN-20260901';prior.mode='in';prior.meta.date='2026-09-01';prior.followUp={};prior.wk={};prior.spaces.forEach(sp=>sp.items.forEach(it=>{it.s='ok';it.n='';delete it.urgent;delete it.category;}));
+const previous=[picture('demo-prior-floor','demo-room-0:0','DEMO MOVE-IN FLOOR','#eef1f5',prior.id)];rec.from=prior.id;rec.baselineSnapshot={inspection:prior,photos:previous};
+const map={};for(const p of pics)(map[p.key]||=[]).push(p);ctx.cur=rec;ctx.photos=map;
+const packet=await ctx.M.createPacket(rec,pics,{inspection:prior,photos:previous},ctx.InspectionReport.fingerprint(rec,map),'DEMO-PACKET-20261029');
+const report=ctx.InspectionReport.html(rec,map),zip=new JSZip();zip.file('inspection.cimco.json',JSON.stringify(packet));zip.file('OPEN-REPORT.html',report);zip.file('READ-ME.txt','DEMONSTRATION PACKET ONLY. No real tenant, property, image, or signature data. Import this file in CIMCO-Office-Practice.html to try the workflow.');
+fs.writeFileSync(path.join(out,'SAMPLE-Office-Packet.zip'),await zip.generateAsync({type:'nodebuffer',compression:'DEFLATE'}));fs.writeFileSync(path.join(out,'OPEN-REPORT.html'),report);fs.writeFileSync(path.join(out,'sample-packet.json'),JSON.stringify(packet,null,2));
+console.log('Created clearly labeled office demo packet and report in '+out);

@@ -1,0 +1,57 @@
+@media screen{
+ .offline-office-tools [hidden]{display:none!important}
+ .offline-office-tools .office-quick-actions,.offline-office-tools .office-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+ .offline-office-tools .office-quick-actions>.act{flex:1 1 190px}
+ .offline-office-tools .office-property-picker{display:grid;gap:8px;margin:12px 0;font-size:18px}
+ .offline-office-tools select,.offline-office-tools .attention-controls input{font:inherit}
+ .offline-office-tools .office-property-picker select,.offline-office-tools .attention-controls select{min-height:54px;padding:10px;border:1px solid #8ba5b7;border-radius:8px;background:#fff;color:#173247;font-size:18px;max-width:100%}
+ .offline-office-tools .handoff-card{padding:18px;margin:-4px 0 24px;border:1px solid #b3c8d6;border-left:4px solid #00437d;border-radius:10px;background:#f3f8fc}
+ .offline-office-tools .handoff-card p{font-size:18px;margin:12px 0}.offline-office-tools .handoff-card>.act{margin:8px 8px 8px 0}
+ .offline-office-tools #handoffStatus{font-weight:600;color:#234e6d}
+ .offline-office-tools #packetReady{padding:14px;background:#fff;border:1px solid #9ab8ca;border-radius:10px;margin:12px 0}
+ .offline-office-tools .transfer-help{margin:14px 0}.offline-office-tools .transfer-help summary{min-height:54px;padding:12px 0;font:600 18px/1.4 Arial,sans-serif;color:#00437d;cursor:pointer}.offline-office-tools .transfer-help a{color:#00437d;text-decoration:underline}
+ .offline-office-tools .attention-controls{display:grid;gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid #c5d4df}
+ .offline-office-tools .attention-controls label{display:grid;gap:8px;font-size:18px;color:#173247}
+ .offline-office-tools .attention-controls .urgent-check{display:flex;align-items:center;gap:12px;min-height:54px}
+ .offline-office-tools .urgent-check input{width:26px;height:26px;flex:none;accent-color:#00437d}
+ .offline-office-tools .urgent-note{padding:12px;border-left:4px solid #9d3b21;background:#fff0e6;font-size:17px;color:#76341d}
+ .offline-office-tools .comparison-card{margin-top:24px;border-top:1px solid #c0d1de;padding-top:16px}
+ .offline-office-tools .comparison-card>summary{font-size:21px;font-weight:700;min-height:54px;padding:12px 0;color:#00437d;cursor:pointer}
+ .offline-office-tools .comparison-row{margin:16px 0;border-top:1px solid #c5d4df;padding-top:16px}
+ .offline-office-tools .comparison-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+ .offline-office-tools .comparison-pair>div{min-width:0}.offline-office-tools .comparison-pair b{font-size:17px;display:block;margin-bottom:8px}
+ .offline-office-tools .comparison-pair img{display:block;width:100%;max-height:280px;object-fit:contain;background:#eef3f6;margin:8px 0;border:1px solid #b9cbd8}
+ #officeWorkspace{position:fixed;inset:4vh 12px;margin:auto;width:min(1200px,calc(100% - 24px));height:92vh;max-height:94vh;max-width:none;border:1px solid #8ba5b7;border-radius:12px;padding:0;background:#f4f7fa;color:#173247;font:18px/1.5 Arial,Helvetica,sans-serif;z-index:150}
+ #officeWorkspace[open]{display:flex;flex-direction:column}#officeWorkspace::backdrop{background:#082d48c9}
+ #officeWorkspace>header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 20px;background:#fff;border-bottom:1px solid #bacdda;flex:none}
+ #officeWorkspace h2{font:700 25px/1.3 Arial,sans-serif;margin:0 0 10px}#officeWorkspace h3{font:700 21px/1.4 Arial,sans-serif;margin:0 0 10px}
+ #officeWorkspace>header h2{margin:0}#officeWorkspace>nav{display:flex;flex-wrap:wrap;gap:8px;padding:12px 20px;background:#eaf2f8;flex:none}
+ #officeWorkspace>nav button{min-height:52px;padding:10px 14px;border:1px solid #8da7b9;border-radius:8px;background:#fff;color:#173247;font:600 17px/1.3 Arial,sans-serif}
+ #officeWorkspace>nav button[aria-pressed=true]{background:#00437d;border-color:#00437d;color:#fff}
+ #officeWorkspaceBody{padding:20px;overflow:auto;min-height:0;flex:1}
+ #officeWorkspaceBody label{display:grid;gap:7px;margin:12px 0;font:600 18px/1.4 Arial,sans-serif;color:#173247}
+ #officeWorkspaceBody input,#officeWorkspaceBody select,#officeWorkspaceBody textarea{font:400 18px/1.5 Arial,sans-serif;min-height:54px;padding:12px;border:1px solid #8ba5b7;border-radius:8px;background:#fff;color:#173247;box-sizing:border-box;width:100%;min-width:0}
+ #officeWorkspaceBody textarea{min-height:110px;resize:vertical}
+ #officeWorkspaceBody .office-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+ #officeWorkspace .office-entry,#officeWorkspace .layout-area{background:#fff;border:1px solid #bdceda;border-radius:10px;padding:18px;margin:18px 0;overflow-wrap:anywhere}
+ #officeWorkspace .office-entry p{margin:8px 0}#officeWorkspace .maintenance-entry.urgent{border-left:5px solid #a33e24;background:#fff7f1}
+ #officeWorkspace .completion-photos{display:flex;gap:12px;flex-wrap:wrap}#officeWorkspace .completion-photos figure{margin:8px 0;width:180px}
+ #officeWorkspace .completion-photos img{width:100%;height:130px;object-fit:contain;border:1px solid #b8cbd7;background:#f0f5f8}
+ #officeWorkspace .completion-photos figcaption{font-size:16px;overflow-wrap:anywhere}#officeWorkspace .trash-photo>img{width:180px;max-height:150px;object-fit:contain}
+ #officeMessage{margin:0;padding:8px 20px;font-size:17px;color:#235c4a;background:#eff7f3;flex:none}
+ #officeMessage:empty{display:none}#officeMessage.error{color:#8d3620;background:#fff1e8}
+ #officeWorkspace button:focus-visible,#officeWorkspace input:focus-visible,#officeWorkspace textarea:focus-visible,#officeWorkspace select:focus-visible{outline:3px solid #00437d;outline-offset:3px}
+ .office-desk-mode #simpleStart{display:none}.office-desk-mode #homeOffice .office-quick-actions{display:none}
+ .office-desk-mode #officeDeskIntro .office-quick-actions{display:flex}.office-desk-mode #officeDeskIntro>p{margin:12px 0}
+}
+@media screen and (max-width:600px){
+ #officeWorkspace{inset:6px;margin:auto;width:calc(100% - 12px);height:calc(100dvh - 12px);max-height:calc(100dvh - 12px)}
+ #officeWorkspace>header{padding:12px;align-items:flex-start}#officeWorkspace>header h2{font-size:22px}
+ #officeWorkspace>nav{padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ #officeWorkspace>nav button{font-size:16px;padding:10px 7px}
+ #officeWorkspaceBody{padding:14px}#officeWorkspaceBody .office-grid{grid-template-columns:1fr;gap:0}
+ #officeWorkspace .office-entry,#officeWorkspace .layout-area{padding:14px}
+ .offline-office-tools .handoff-card{padding:14px}.offline-office-tools .office-actions>.act{flex:1 1 140px}
+ .offline-office-tools .comparison-pair{grid-template-columns:1fr 1fr;gap:10px}
+}
+@media print{#officeWorkspace,.attention-controls,.handoff-card,.comparison-card{display:none!important}}

@@ -1,0 +1,60 @@
+async function runFieldChecks(win){
+  const api=win.__CIMCO_FLOW__,doc=win.document,checks=[];
+  const tick=()=>new Promise(resolve=>setTimeout(resolve,30));
+  const check=(name,value)=>{if(!value)throw new Error(name);checks.push({name,passed:true});};
+  const click=async selector=>{const el=doc.querySelector(selector);if(!el)throw new Error('Missing control '+selector);el.click();await tick();};
+  try{
+    const rec=await api.create('out',{address:'SAMPLE FIELD TEST',unit:'A'});
+    check('New inspection begins with a freely selectable room list',doc.body.dataset.fieldPanel==='rooms'&&doc.querySelectorAll('.room-card').length===7);
+    const bath=rec.spaces.find(s=>s.type==='bathroom');
+    await click('[data-room-open="'+bath.id+'"]');
+    check('An inspector can begin in any room',doc.body.dataset.fieldPanel==='room'&&doc.querySelector('.field-active').dataset.sp===bath.id);
+    check('Room title follows the selected area',doc.getElementById('fieldRoomTitle').textContent===bath.name);
+    const key=bath.id+':0';
+    await click('[data-k="'+key+'"][data-v="nt"]');
+    check('Could not check is a distinct recorded result',bath.items[0].s==='nt');
+    await click('[data-item-key="'+key+'"][data-reason="Water off"]');
+    check('Common reason buttons record useful explanations',bath.items[0].n==='Water off');
+    await click('[data-k="'+key+'"][data-v="ok"]');
+    check('Changing a result preserves the inspector note',bath.items[0].n==='Water off');
+    await click('[data-k="'+key+'"][data-v="ok"]');
+    check('Repeated taps do not silently clear a result',bath.items[0].s==='ok');
+    await click('[data-k="'+key+'"][data-v="np"]');
+    check('Not present remains separate from untested',bath.items[0].s==='np');
+    await click('[data-undo]');
+    check('Undo restores the last checklist selection and note',rec.spaces.find(s=>s.id===bath.id).items[0].s==='ok'&&rec.spaces.find(s=>s.id===bath.id).items[0].n==='Water off');
+    await click('[data-allok="'+bath.id+'"]');
+    check('Bulk marking opens a confirmation before changing remaining results',!doc.getElementById('appDialog').hidden&&doc.getElementById('appDialogTitle').textContent.includes('remaining items'));
+    await click('[data-dialog-cancel]');
+    check('Canceling bulk marking keeps unchecked items untouched',rec.spaces.find(s=>s.id===bath.id).items.some(it=>!it.s));
+    await click('[data-field-panel="rooms"]');
+    await click('[data-add="halfbath"]');
+    const half=rec.spaces.find(s=>s.type==='halfbath');
+    check('Half bathrooms can be added during the visit',!!half&&!half.items.some(i=>i.t==='Tub'||i.t==='Shower'));
+    await click('[data-rename="'+half.id+'"]');
+    doc.getElementById('appDialogInput').value='Downstairs powder room';doc.getElementById('appDialogForm').requestSubmit();await tick();
+    check('Custom room names reach the room list and report',half.name==='Downstairs powder room'&&api.report(rec).includes('Downstairs powder room'));
+    await click('[data-field-panel="rooms"]');await click('[data-add="garage"]');
+    check('Garage has its own appropriate checklist',rec.spaces.some(s=>s.type==='garage'&&s.items.some(i=>i.t==='Vehicle door / opener')));
+    await click('[data-field-panel="rooms"]');await click('[data-add="patio"]');
+    check('Patio can be added without a fixed room sequence',rec.spaces.some(s=>s.type==='patio'));
+    const patio=rec.spaces.find(s=>s.type==='patio');api.setPanel('room',patio.id);api.flush();
+    doc.getElementById('spaces').innerHTML='';
+    await api.reopen(rec);
+    check('Reopening resumes the selected room',doc.body.dataset.fieldPanel==='room'&&doc.querySelector('.field-active').dataset.sp===patio.id);
+    api.setPanel('review');
+    check('Finish review identifies missing inspector and unfinished checks',doc.getElementById('reviewIssues').textContent.includes('inspector name')&&doc.getElementById('reviewIssues').textContent.includes('still need checking'));
+    const work=rec.spaces[0];work.items[0].s='work';work.items[0].n='Test finding';api.setPanel('office');
+    const cost=doc.querySelector('[data-cost="'+work.id+':0"]');
+    // Refresh the office worksheet after introducing the controlled test finding.
+    win.__CIMCO_FLOW__.setPanel('room',work.id);doc.querySelector('[data-k="'+work.id+':0"][data-v="work"]').click();await tick();api.setPanel('office');
+    const price=doc.querySelector('[data-cost="'+work.id+':0"]');price.value='125.00';price.dispatchEvent(new win.Event('input',{bubbles:true}));
+    check('Entering a price never assigns tenant responsibility',!rec.wk[work.id+':0'].k);
+    price.value='-50';price.dispatchEvent(new win.Event('input',{bubbles:true}));
+    check('Invalid negative estimates are not silently turned positive',rec.wk[work.id+':0'].c==='-50'&&win.InspectionReport.pricing(rec).rows.find(row=>row.key===work.id+':0').cents===null);
+    const copy=await api.create('out',{address:'sample field test',unit:'A'});
+    check('Repeat visits reuse the property layout and custom names',copy.spaces.some(s=>s.name==='Downstairs powder room')&&copy.spaces.some(s=>s.type==='garage'));
+    check('Reused layouts do not copy results, notes, costs or signatures',copy.spaces.every(s=>s.items.every(i=>!i.s&&!i.n))&&Object.keys(copy.wk).length===0&&!copy.sig.t&&!copy.sig.i);
+    return checks;
+  }finally{api.cleanup();}
+}

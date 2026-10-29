@@ -1,6 +1,8 @@
-const CACHE = 'inspection-v56-print-photo-reliability';
+const CACHE = 'inspection-v58-offline-office';
 const ASSETS = [
-  './', './index.html', './move-in.html', './move-out.html', './schedule.html', './app-theme.css?v=56', './app-enhancements.js?v=56',
+  './', './index.html', './move-in.html', './move-out.html', './schedule.html', './app-theme.css?v=58', './app-enhancements.js?v=58',
+  './inspection-reports.js?v=58', './inspector-flow.js?v=58', './inspector-flow.css?v=58',
+  './office-model.js?v=58', './offline-office.js?v=58', './offline-office.css?v=58', './vendor/jszip.min.js?v=58',
   './manifest.json', './manifest-in.json', './manifest-out.json', './voice-worker.js',
   './icon-192.png', './icon-512.png', './cimco-logo.png'
 ];

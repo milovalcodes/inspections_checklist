@@ -522,7 +522,9 @@ body[data-mode="routine"] .moveonly{display:none!important}
   .strip{display:none}
 }
 </style>
-<link rel="stylesheet" href="./app-theme.css?v=56">
+<link rel="stylesheet" href="./app-theme.css?v=58">
+<link rel="stylesheet" href="./inspector-flow.css?v=58">
+<link rel="stylesheet" href="./offline-office.css?v=58">
 
 <header class="mast">
   <div class="wrap">
@@ -771,7 +773,7 @@ body[data-mode="routine"] .moveonly{display:none!important}
       <div class="eyebrow" id="wkEyebrow">Move-out</div>
       <h2 id="wkTitle">Damage worksheet</h2>
       <p class="worksheet-help" id="wkHelp" style="font-size:13px;color:var(--slate);margin:9px 0 0">
-        Every item needing attention lands here. Mark it normal wear or tenant damage and put a figure on it. Only tenant damage adds to the total.
+        Review each finding and explicitly choose its classification. Entering an estimate does not assign tenant responsibility.
       </p>
       <div class="wk" id="wk"></div>
       <div class="wtot"><span id="wkTotalLabel">Tenant damage total</span><b id="wkTotal"></b></div>
@@ -829,13 +831,14 @@ body[data-mode="routine"] .moveonly{display:none!important}
 "use strict";
 const MODE_LOCK = null;      /* null = both modes in one app */
 const ORG = "CIMCO Property Management";
-const APP_VERSION = "print-photo-reliability-v56";
+const APP_VERSION = "offline-office-v58";
 const TRANSCRIPTION_BETA_VISIBLE = false;
 let REPORT_LOGO_DATA = "";
 let REPORT_LOGO_PROMISE = null;
-const SELF_TEST = new URLSearchParams(location.search).get("selftest")==="1";
-const KEY = SELF_TEST ? "cimco.inspections.selftest.v1" : "cimco.inspections.v1";
-const PHOTO_DB = SELF_TEST ? "cimco-photos-selftest" : "cimco-photos";
+const SELF_TEST = globalThis.CIMCO_PRACTICE_MODE===true || new URLSearchParams(location.search).get("selftest")==="1";
+const TEST_NAMESPACE = (new URLSearchParams(location.search).get("suite")||(globalThis.CIMCO_PRACTICE_MODE?"practice-v58":"manual")).replace(/[^a-zA-Z0-9_-]/g,"").slice(0,32);
+const KEY = SELF_TEST ? "cimco.inspections.selftest.v1."+TEST_NAMESPACE : globalThis.CIMCO_OFFICE_DESK===true ? "cimco.office.inspections.v1" : "cimco.inspections.v1";
+const PHOTO_DB = SELF_TEST ? "cimco-photos-selftest-"+TEST_NAMESPACE : globalThis.CIMCO_OFFICE_DESK===true ? "cimco-office-photos" : "cimco-photos";
 const OFFICE_AI_CONFIG_KEY = "cimco.office-ai.config.v1";
 const OFFICE_AI_PENDING_KEY = "cimco.office-ai.pending.v1";
 
@@ -844,6 +847,8 @@ const BEDROOM_ITEMS = ["Floor","Walls / ceiling / trim","Closet","Windows / blin
 const BATHROOM_ITEMS = ["Vanity / sink / faucet","Toilet","Tub","Shower","Mirror","Window","Vent / fan","Floor","GFCI / outlets"];
 const HALF_BATH_ITEMS = ["Vanity / sink / faucet","Toilet","Mirror","Vent / fan","Floor","GFCI / outlets"];
 const T = {
+  garage: {label:"Garage", items:["Floor","Walls / ceiling","Vehicle door / opener","Remotes / keypad","Lights / outlets","Entry door / lock"]},
+  patio: {label:"Patio / lanai", items:["Floor / slab","Screens / enclosure","Doors / latches","Lights / outlets","Roof / drainage"]},
   living:  {label:"Living room", items:BEDROOM_ITEMS},
   kitchen: {label:"Kitchen", items:["Floor","Walls / ceiling","Lights","Cabinets / hardware","Sink / faucet / disposal","Refrigerator","Range / oven / hood","Microwave","Counters","Outlets / GFCI"]},
   laundry: {label:"Laundry & appliances", items:["Washer / dryer","Dishwasher","Hookups / hoses / dryer vent","Floor / walls"]},
@@ -959,10 +964,10 @@ const ROUTINE_SPACES = [
 ];
 /* Each inspected line has one simple outcome. Detailed language stays in
    the note, so reports retain context without making field marking slow. */
-const CODES = [["ok","✓","Good"],["work","×","Needs work"],["na","–","N/A"]];
-const CODE_LABEL = {ok:"Good", work:"Needs work", na:"N/A"};
+const CODES = [["ok","✓","Good"],["work","!","Needs work"],["np","–","Not present"],["nt","?","Could not check"]];
+const CODE_LABEL = {ok:"Good", work:"Needs work", np:"Not present", nt:"Could not check", na:"N/A (earlier record)"};
 const FLAGS = ["work"];
-const LEGACY_STATUS = {d:"work", b:"work", c:"work", r:"work", u:"na"};
+const LEGACY_STATUS = {d:"work", b:"work", c:"work", r:"work", u:"nt"};
 const MODE_LABEL = {in:"Move-in", out:"Move-out", ready:"Rent-ready", routine:"Routine"};
 function keysLabelForMode(mode){
   return mode==="ready" ? "Property keys on hand" : mode==="out" ? "Keys returned / on hand" : "Keys at handover";
@@ -1035,11 +1040,17 @@ let photos = {};            /* itemKey -> [{id,data}] */
 let camTarget = null;
 let lbCurrent = null;
 let PENDING_SEED = null;
+let RECORD_LOADING = false;
 
 function quickSeed(){
   const address = (document.getElementById("newAddress")?.value || "").trim();
   const unit = (document.getElementById("newUnit")?.value || "").trim();
   return {address, unit};
+}
+function propertyMatches(meta,seed){
+  const clean=value=>String(value||"").trim().toLowerCase().replace(/\s+/g," ");
+  const unit=value=>clean(value).replace(/^#\s*/,"");
+  return clean(meta.address)===clean(seed.address)&&unit(meta.unit)===unit(seed.unit);
 }
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
@@ -1062,11 +1073,13 @@ function ensureReportLogo(){
   return REPORT_LOGO_PROMISE;
 }
 
-function normalizeStatus(code){ return LEGACY_STATUS[code] || code || ""; }
+function normalizeStatus(code){ const value=LEGACY_STATUS[code]||code||""; return ["ok","work","np","nt","na"].includes(value)?value:""; }
 function strongestStatus(items,field){
   const values=items.map(it=>normalizeStatus(it[field])).filter(Boolean);
   if(values.indexOf("work")>=0) return "work";
   if(values.indexOf("ok")>=0) return "ok";
+  if(values.indexOf("nt")>=0) return "nt";
+  if(values.indexOf("np")>=0) return "np";
   if(values.indexOf("na")>=0) return "na";
   return "";
 }
@@ -1104,8 +1117,9 @@ function consolidateSpaceItems(sp){
 }
 function normalizeRecord(rec){
   if(!rec || !Array.isArray(rec.spaces)) return rec;
+  rec.meta=rec.meta||{};rec.sig=rec.sig||{t:"",i:""};rec.wk=rec.wk||{};
   const firstBedroom = rec.spaces.find(sp=>sp && sp.type==="bedroom");
-  if(firstBedroom && /^(?:bedroom(?:\s*#?\s*1)?|master bedroom)$/i.test(String(firstBedroom.name||"").trim())){
+  if(firstBedroom && (firstBedroom.checklistVersion||0)<CHECKLIST_VERSION && /^(?:bedroom(?:\s*#?\s*1)?|master bedroom)$/i.test(String(firstBedroom.name||"").trim())){
     firstBedroom.name = "Master Bedroom";
   }
   rec.spaces.forEach(sp=>(sp.items||[]).forEach(it=>{
@@ -1139,19 +1153,27 @@ function paintSaveNotice(){
   el.classList.toggle("on",!!saveNoticeText);
 }
 function showSaveNotice(){
-  saveNoticeText="✓ Saved on this device";
+  saveNoticeText="Saved on this phone";
   paintSaveNotice();
   clearTimeout(saveNoticeTimer);
-  saveNoticeTimer=setTimeout(()=>{ saveNoticeText=""; paintSaveNotice(); },1400);
+  if(typeof InspectorFlow!=="undefined") InspectorFlow.paintSaved(true);
+}
+function flushSave(){
+  clearTimeout(saveTimer);
+  try{ localStorage.setItem(KEY,JSON.stringify(LIST)); showSaveNotice(); return true; }
+  catch(e){ saveNoticeText="Could not save - storage is full"; paintSaveNotice(); if(typeof InspectorFlow!=="undefined") InspectorFlow.paintSaved(false); toast("Could not save. Use Office tools to back up your inspections."); return false; }
 }
 function save(){
-  if(cur) cur.updated = Date.now();
+  if(cur){
+    if(!RECORD_LOADING && typeof InspectionReport!=="undefined") InspectionReport.invalidateSignatures(cur);
+    cur.updated = Date.now();
+  }
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=>{
-    try{ localStorage.setItem(KEY, JSON.stringify(LIST)); showSaveNotice(); }
-    catch(e){ toast("Storage is full — export and delete an old inspection"); }
-  }, 250);
+  saveNoticeText="Saving on this phone..."; paintSaveNotice();
+  saveTimer = setTimeout(flushSave,250);
 }
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") flushSave(); });
+window.addEventListener("pagehide",flushSave);
 function toast(msg){
   const t = document.getElementById("toast");
   t.textContent = msg; t.classList.add("on");
@@ -1405,12 +1427,12 @@ function db(){
   return dbP;
 }
 async function photoPut(rec){ const d=await db(); return new Promise((res,rej)=>{ const t=d.transaction("p","readwrite"); t.objectStore("p").put(rec); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
-async function photoDelete(id){ const d=await db(); return new Promise((res,rej)=>{ const t=d.transaction("p","readwrite"); t.objectStore("p").delete(id); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+async function photoDelete(id){ if(typeof OfflineOffice!=="undefined")return OfflineOffice.trashPhoto(id);throw new Error("Recovery tools did not load. Reopen the app before removing photos."); }
 async function photoLoad(inspId){
   const d = await db();
   return new Promise((res,rej)=>{
     const out={}, t=d.transaction("p","readonly"), rq=t.objectStore("p").getAll();
-    rq.onsuccess = ()=>{ (rq.result||[]).filter(o=>o.insp===inspId).sort((a,b)=>a.ts-b.ts)
+    rq.onsuccess = ()=>{ (rq.result||[]).filter(o=>o.insp===inspId&&!o.deletedAt).sort((a,b)=>a.ts-b.ts)
       .forEach(o=>{ (out[o.key] = out[o.key]||[]).push(o); }); res(out); };
     rq.onerror = ()=>rej(rq.error);
   });
@@ -1641,6 +1663,13 @@ function newInspection(mode, from, seed){
       items: sp.items.map(it=>({t: it.t, s:"", n:"", base: normalizeStatus(it.s)}))
     }));
   }
+  if(!from && seed && seed.address){
+    const prior=LIST.filter(r=>!r.deletedAt&&r.mode===mode&&propertyMatches(r.meta,seed)).sort((a,b)=>b.updated-a.updated)[0];
+    if(prior){
+      rec.spaces=prior.spaces.map(sp=>({...sp,id:uid(),items:sp.items.map(it=>({t:it.t,s:"",n:"",base:""}))}));
+      rec.meta.readyTags=[...(prior.meta.readyTags||[])];rec.layoutSource=prior.id;
+    }
+  }
   LIST.unshift(rec); save();
   return rec;
 }
@@ -1733,12 +1762,14 @@ function go(view){
   scheduleWalkProgress();
 }
 async function openRec(rec){
+  RECORD_LOADING=true;
   cur = normalizeRecord(rec); photos = {};
   document.getElementById("wk").dataset.sig = "";
   const dt = document.getElementById("dictText"); if(dt) dt.value = "";
   go("editor");
   try{ await migrateItemPhotos(cur); }catch(e){}
-  try{ photos = await photoLoad(rec.id); renderSpaces(); }catch(e){}
+  try{ photos = await photoLoad(rec.id); renderSpaces(); }catch(e){ toast("Photos could not be opened. Try reopening this inspection before making changes."); }
+  RECORD_LOADING=false;
 }
 
 /* ---------------- home ---------------- */
@@ -1750,9 +1781,9 @@ function renderHome(){
   const btn = (mode,t,s)=>`<button class="newbtn ${mode==="out"?"alt":mode==="ready"?"ready":mode==="routine"?"routine":""}" data-new="${mode}"><b>${t}</b><span>${s}</span></button>`;
   let html = "";
   if(MODE_LOCK !== "out") html += btn("in","Start a move-in","Record condition before the keys change hands");
-  if(MODE_LOCK !== "in")  html += btn("out","Start a move-out","Compare against the move-in and price the damage");
+  if(MODE_LOCK !== "in")  html += btn("out","Start a move-out","Record condition when the tenant leaves");
   if(!MODE_LOCK) html += btn("ready","Start a rent-ready","Fast turnover walk before the property is marketed");
-  if(!MODE_LOCK) html += btn("routine","Start a routine inspection","Check an occupied property and prepare maintenance pricing");
+  if(!MODE_LOCK) html += btn("routine","Start a routine inspection","Check the condition of an occupied property");
   nb.innerHTML = html;
 
   const q = (document.getElementById("search").value||"").toLowerCase();
@@ -1802,7 +1833,7 @@ function renderEditor(){
 
   const lastConversion = Array.isArray(cur.conversions) && cur.conversions.length ? cur.conversions[cur.conversions.length-1] : null;
   document.getElementById("edFoot").textContent = lastConversion
-    ? "Converted from " + MODE_LABEL[lastConversion.from] + " to " + MODE_LABEL[lastConversion.to] + ". Completed checks, notes, photos, pricing, and signatures were retained."
+    ? "Converted from " + MODE_LABEL[lastConversion.from] + " to " + MODE_LABEL[lastConversion.to] + ". Observations, photos, and pricing were retained. Signatures require a new review."
     : cur.mode==="out" && cur.from
     ? "Baseline loaded from the move-in inspection for this address — every line shows how it was handed over."
     : cur.sourceReady ? "Created from the rent-ready walkthrough. Condition, notes, and photos were carried over — add only the move-in details."
@@ -1838,7 +1869,7 @@ function renderRail(){
   }).join("");
   renderSectionBookmarks(spaces);
   const first = spaces[0];
-  if(!ACTIVE_SPACE_ID || !document.querySelector('details[data-sp="' + ACTIVE_SPACE_ID + '"]')) setActiveSpace(first ? first.id : "");
+  if(!ACTIVE_SPACE_ID || !spaces.some(sp=>sp.id===ACTIVE_SPACE_ID)) setActiveSpace(first ? first.id : "");
   watchSpaces();
 }
 
@@ -1914,14 +1945,14 @@ function renderSpaces(){
       const baseHtml = cur.mode==="out" && it.base
         ? `<span class="base ${it.base!==it.s && it.s ? "chg" : ""}">Move-in: ${esc(CODE_LABEL[it.base]||it.base)}${it.base!==it.s && it.s ? " → " + esc(CODE_LABEL[it.s]) : ""}</span>`
         : "";
-      return `<div class="item ${flag?"flagged":""} ${it.s==="na"?"is-na":""} ${!it.s?"unreviewed":""}" data-key="${k}">
+      return `<div class="item ${flag?"flagged":""} ${["na","np","nt"].includes(it.s)?"is-na":""} ${!it.s?"unreviewed":""}" data-key="${k}">
         <div class="itop">
           <div class="iname">${esc(it.t)}${baseHtml}
             <span class="pcode">${it.s ? esc(CODE_LABEL[it.s]) : cur.mode==="routine" ? "Status: __________" : "—"}</span><span class="pfigs"></span></div>
           <button class="cam" data-cam="${k}" aria-label="Add photo of ${esc(it.t)}">📷${pics.length?`<b>${pics.length}</b>`:""}</button>
         </div>
         <div class="pad6">${CODES.map(([v,g,lab])=>
-          `<button class="k k-${v} ${it.s===v?"on":""}" data-k="${k}" data-v="${v}" aria-label="${lab}" aria-pressed="${it.s===v}">${g}<small>${lab.toUpperCase()}</small></button>`).join("")}</div>
+          `<button class="k k-${v} ${it.s===v?"on":""}" data-k="${k}" data-v="${v}" aria-label="${lab}" aria-pressed="${it.s===v}">${g}<small>${lab}</small></button>`).join("")}</div>
         <textarea class="note" data-note="${k}" placeholder="What needs work, or why it could not be tested">${esc(it.n)}</textarea>
         <div class="pnote"></div>
         <div class="thumbs">${pics.map(p=>`<img src="${p.data}" data-ph="${p.id}" alt="Photo of ${esc(it.t)}">`).join("")}</div>
@@ -1950,7 +1981,7 @@ function paintItem(sp, idx){
   const flag = FLAGS.indexOf(it.s) >= 0;
   el.classList.toggle("flagged", flag);
   el.classList.toggle("unreviewed", !it.s);
-  el.classList.toggle("is-na", it.s === "na");
+  el.classList.toggle("is-na", ["na","np","nt"].includes(it.s));
   el.querySelectorAll(".k").forEach(b => {
     const selected=b.dataset.v === it.s;
     b.classList.toggle("on",selected);
@@ -1967,7 +1998,7 @@ function paintItem(sp, idx){
   const note = el.querySelector(".note");
   if(note){
     note.placeholder = "What needs work, or why it could not be tested";
-    if(!flag && it.s!=="na") note.value = "";
+    note.value = it.n||"";
   }
   renderPrintRoomGroups();
 }
@@ -1983,10 +2014,11 @@ function paintSection(sp){
 }
 function pickBaseline(seed){
   PENDING_SEED = seed || null;
-  const ins = LIST.filter(r => r.mode === "in").sort((a,b) => b.updated - a.updated).slice(0,12);
+  const ins = LIST.filter(r => !r.deletedAt&&r.mode === "in"&&(!seed||!seed.address||propertyMatches(r.meta,seed))).sort((a,b) => b.updated - a.updated).slice(0,12);
+  if(!ins.length){PENDING_SEED=null;return openRec(newInspection("out",null,seed));}
   document.getElementById("modalBody").innerHTML =
     '<div class="eyebrow">New move-out</div><h2>Start from a move-in?</h2>' +
-    '<p style="font-size:13px;color:var(--slate);margin:9px 0 12px">Pick the move-in sheet for this unit. Every line will then show how the place was handed over.</p>' +
+    '<p style="font-size:17px;color:var(--slate);margin:9px 0 12px">Choose an earlier move-in for this property and unit, or start without one.</p>' +
     ins.map(r => '<button class="rec" data-base="' + r.id + '"><span class="badge">IN</span>' +
       '<span class="rt"><b>' + esc(title(r)) + '</b><span>' + fmtDate(r.meta.date) +
       (r.meta.tenant ? " · " + esc(r.meta.tenant) : "") + '</span></span></button>').join("") +
@@ -1995,18 +2027,9 @@ function pickBaseline(seed){
   document.getElementById("modal").classList.add("on");
 }
 function wkTotal(){
-  let tot = 0;
-  const routine = cur.mode==="routine";
-  let hasPrice = false;
-  flagged(cur).forEach(o=>{
-    const w = cur.wk[o.key];
-    if(w && String(w.c||"").trim()){ hasPrice = true; if(routine || w.k==="dmg") tot += parseFloat(w.c||0) || 0; }
-  });
-  const total = document.getElementById("wkTotal");
-  const leaveBlank = routine && !hasPrice;
-  total.textContent = leaveBlank ? "" : money(tot);
-  total.classList.toggle("empty", leaveBlank);
-  return tot;
+  const p=InspectionReport.pricing(cur),el=document.getElementById("wkTotal");
+  el.textContent=!p.priced?"Not estimated":money(p.total/100)+(p.pending.length?" (partial)":"");
+  return p.total/100;
 }
 function renderWk(){
   if(cur.mode!=="out" && cur.mode!=="routine") return;
@@ -2015,8 +2038,8 @@ function renderWk(){
   document.getElementById("wkTitle").textContent = routine ? "Damage & maintenance pricing" : "Damage worksheet";
   document.getElementById("wkHelp").textContent = routine
     ? "Items needing work collect here. Assign responsibility and add an estimated repair cost for the maintenance team."
-    : "Every item needing attention lands here. Mark it normal wear or tenant damage and put a figure on it. Only tenant damage adds to the total.";
-  document.getElementById("wkTotalLabel").textContent = routine ? "Estimated work total" : "Tenant damage total";
+    : "Review each finding and explicitly choose its classification. Entering an estimate does not assign tenant responsibility.";
+  document.getElementById("wkTotalLabel").textContent = routine ? "Estimated work total" : "Estimated tenant damage";
   document.getElementById("wkLegal").classList.toggle("hide", routine);
   const rows = flagged(cur);
   const el = document.getElementById("wk");
@@ -2150,6 +2173,7 @@ function initSig(which){
       if(stroke.length) SIG_STROKES[which].push(stroke.map(p=>({x:p.x,y:p.y,p:p.p})));
       const data=signatureSvg(SIG_STROKES[which],SIG_LEGACY[which]);
       cur.sig[which==="T"?"t":"i"] = data;
+      if(typeof InspectionReport!=="undefined") InspectionReport.recordSignature(cur,which==="T"?"t":"i");
       setPrintSignature(which,data);
       save();
     }catch(e){} };
@@ -2159,13 +2183,7 @@ function initSig(which){
 }
 
 /* every photo in walking order, numbered — used by print and by the web report */
-function photoLog(){
-  const out = []; let n = 0;
-  activeSpaces(cur).forEach(sp=>sp.items.forEach((it,i)=>{
-    (photos[sp.id+":"+i] || []).forEach(p=>out.push({n: ++n, key: sp.id+":"+i, p, sp, it}));
-  }));
-  return out;
-}
+function photoLog(rec=cur){ return InspectionReport.log(rec); }
 function figRefs(log){
   const map = {};
   log.forEach(o=>{ (map[o.key] = map[o.key] || []).push(o.n); });
@@ -2208,42 +2226,7 @@ function renderPrintMeta(){
     "<span><b>" + esc(row[0]) + "</b>" + esc(row[1]) + "</span>").join("");
 }
 
-function preparePrintView(){
-  if(!cur) return;
-  renderPrintMeta();
-  renderPrintRoomGroups();
-  setPrintSignature("T",cur.sig.t); setPrintSignature("I",cur.sig.i);
-  const sigNames = [["printSigT","tenantSigName"],["printSigI","inspSigName"]];
-  sigNames.forEach(([id,key])=>{
-    const el = document.getElementById(id);
-    if(el) el.textContent = cur && cur.meta && cur.meta[key] ? "Printed name: " + cur.meta[key] : "Printed name: ____________________";
-  });
-  const wrapup=document.getElementById("printWrapUp"), wrapupRows=[];
-  if(cur.mode!=="routine" && cur.meta.keys) wrapupRows.push([keysLabelForMode(cur.mode),cur.meta.keys]);
-  if(cur.meta.misc) wrapupRows.push(["Overall inspector notes",cur.meta.misc]);
-  if(wrapup) wrapup.innerHTML=wrapupRows.map(row=>"<div><b>"+esc(row[0])+"</b><p>"+esc(row[1])+"</p></div>").join("");
-  document.querySelectorAll("#spaces details.sec").forEach(d=>d.open = true);
-  document.querySelectorAll(".item").forEach(el=>{
-    const ta = el.querySelector(".note"), pn = el.querySelector(".pnote");
-    if(ta && pn) pn.textContent = ta.value.trim();
-  });
-
-  const log = photoLog(), refs = figRefs(log);
-  document.querySelectorAll(".item").forEach(el=>{
-    const f = el.querySelector(".pfigs"), r = refs[el.dataset.key];
-    if(f) f.textContent = r ? (r.length > 1 ? "Figs " + r[0] + "–" + r[r.length-1] : "Fig " + r[0]) : "";
-  });
-
-  const appx = document.getElementById("appendix");
-  appx.className = "appx sz-" + (cur.meta.photoSize || "md");
-  const photoMarkup = log.length
-    ? "<h3>Photo log</h3><p class=\"lead\">" + log.length + " photo" + (log.length===1?"":"s")
-      + " taken " + (fmtDate(cur.meta.date)||"on inspection") + " at " + esc(title(cur)) + ".</p>"
-      + log.map(o=>'<figure><img src="' + o.p.data + '" loading="eager" decoding="sync"><figcaption>' + esc(caption(o)) + "</figcaption></figure>").join("")
-    : "";
-  if(appx.innerHTML!==photoMarkup) appx.innerHTML=photoMarkup;
-
-}
+function preparePrintView(){ InspectionReport.prepare(); }
 
 function waitForPrintImage(img,timeoutMs){
   return new Promise(resolve=>{
@@ -2261,12 +2244,8 @@ function waitForPrintImage(img,timeoutMs){
     if(typeof img.decode==="function") img.decode().then(loaded).catch(()=>{ if(img.complete) loaded(); });
   });
 }
-async function waitForPrintImages(timeoutMs=15000){
-  const images=[...document.querySelectorAll("#appendix img")];
-  if(!images.length) return true;
-  const results=await Promise.all(images.map(img=>waitForPrintImage(img,timeoutMs)));
-  return results.every(Boolean);
-}
+async function waitForPrintImages(timeoutMs=15000){ return InspectionReport.images(timeoutMs); }
+
 let printBusy=false;
 async function printNow(){
   if(printBusy||!cur) return;
@@ -2274,6 +2253,8 @@ async function printNow(){
   const button=document.getElementById("printBtn");
   if(button){ button.disabled=true; button.setAttribute("aria-busy","true"); }
   try{
+    await ensureReportLogo();
+    flushSave();
     preparePrintView();
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     if(photoLog().length) toast("Preparing report photos…");
@@ -2287,6 +2268,7 @@ async function printNow(){
   }
 }
 window.addEventListener("beforeprint",preparePrintView);
+window.addEventListener("afterprint",()=>document.body.classList.remove("report-printing"));
 
 /* a self-contained web page: full-size photos, opens anywhere, no app needed */
 function modeTitle(rec){ return MODE_LABEL[rec.mode] || "Inspection"; }
@@ -2300,101 +2282,7 @@ function visitLabel(value){ return ({scheduled:"Scheduled inspection", maintenan
 function entryLabel(value){ return ({"tenant-present":"Tenant present", notice:"Entered with notice", representative:"Tenant representative present", "no-access":"Unable to access"})[value] || value || ""; }
 function reviewedItems(sp){ return sp.items.map((it,i)=>({it,i})).filter(o=>!!o.it.s); }
 
-function reportHTML(rec){
-  const m = rec.meta, s = stats(rec), isReady = rec.mode==="ready", isRoutine = rec.mode==="routine", log = photoLog(), refs = figRefs(log);
-  const head = isReady ? [
-    ["Date", fmtDate(m.date)], ["Inspector", m.inspector], ["Owner", m.owner],
-    ["Market status", marketLabel(m.marketStatus)], ["Work category", workLabel(rec)],
-    ["Responsible party", m.responsible], ["Estimated cost", m.estimatedCost ? money(parseFloat(m.estimatedCost)||0) : ""],
-    ...(m.keys ? [[keysLabelForMode(rec.mode), m.keys]] : [])
-  ] : isRoutine ? [
-    ["Date", fmtDate(m.date)||"________________"], ["Inspector", m.inspector||"________________"],
-    ["Tenant", m.tenant||"________________"], ["Owner", m.owner||"________________"],
-    ["Routine inspection reason", visitLabel(m.visitReason)||"________________"],
-    ["Entry / attendance", entryLabel(m.entryStatus)||"________________"],
-    ["Electric meter", m.meterE||"________________"], ["Water meter", m.meterW||"________________"]
-  ] : [
-    ["Date", fmtDate(m.date)], ["Inspector", m.inspector], ["Tenant", m.tenant], ["Owner", m.owner],
-    ["Phone", m.phone], ["Unit clean", m.clean ? m.clean.toUpperCase() : ""],
-    [keysLabelForMode(rec.mode), m.keys],
-    ["Electric meter", m.meterE], ["Water meter", m.meterW],
-    ["Forwarding address", rec.mode==="out" ? m.fwd : ""]
-  ].filter(r=>r[1]);
-
-  const roomLines = roomMatricesMarkup(rec,isRoutine);
-  const lines = activeSpaces(rec).filter(sp=>!roomFamily(sp)).map(sp=>{
-    const reviewed = isRoutine ? sp.items.map((it,i)=>({it,i})) : reviewedItems(sp);
-    if(!reviewed.length) return "";
-    const rows = reviewed.map(({it,i})=>{
-      const r = refs[sp.id+":"+i];
-      return "<tr class=\"" + (FLAGS.indexOf(it.s)>=0 ? "bad" : "") + "\"><td>" + esc(it.t) + "</td>"
-        + "<td class=\"c\">" + esc(CODE_LABEL[it.s] || (isRoutine ? "____________" : "")) + "</td>"
-        + "<td>" + esc(it.n||"") + (r ? " <span class=\"fig\">Fig " + r.join(", ") + "</span>" : "")
-        + (isRoutine && !it.n ? "<span class=\"write\"></span>" : "") + "</td></tr>";
-    }).join("");
-    return "<h2>" + esc(sp.name) + "</h2><table>" + rows + "</table>";
-  }).join("");
-
-  let wk = "";
-  if(rec.mode==="out" || isRoutine){
-    const rows = flagged(rec).filter(o=>{ const w = rec.wk[o.key]; return w && (w.k || w.c); });
-    if(rows.length){
-      let tot = 0;
-      const hasPrices = rows.some(o=>String((rec.wk[o.key]||{}).c||"").trim());
-      const tr = rows.map(o=>{
-        const w = rec.wk[o.key], amt = (isRoutine || w.k==="dmg") ? (parseFloat(w.c||0)||0) : 0;
-        tot += amt;
-        return "<tr><td>" + esc(o.sp.name + " / " + o.it.t) + "</td><td class=\"c\">"
-          + (isRoutine ? (w.k==="tenant" ? "Tenant-caused" : "Maintenance") : w.k==="dmg" ? "Tenant damage" : "Normal wear") + "</td><td class=\"c\">"
-          + (isRoutine ? (String(w.c||"").trim() ? money(amt) : "<span class=\"write\"></span>") : w.k==="dmg" ? money(amt) : "—") + "</td></tr>";
-      }).join("");
-      wk = "<h2>" + (isRoutine ? "Damage & maintenance pricing" : "Damage worksheet") + "</h2><table>" + tr
-        + "<tr class=\"tot\"><td>" + (isRoutine ? "Estimated work total" : "Tenant damage total") + "</td><td></td><td class=\"c\">" + (isRoutine && !hasPrices ? "<span class=\"write\"></span>" : money(tot)) + "</td></tr></table>";
-    }
-    if(isRoutine) wk += "<h2>Additional maintenance pricing</h2><table class=\"manual\"><tr><td>Item / location</td><td>Responsibility</td><td>Cost</td></tr><tr><td></td><td></td><td>$</td></tr><tr><td></td><td></td><td>$</td></tr><tr><td></td><td></td><td>$</td></tr></table>";
-  }
-
-  const sigs = isReady ? "" : "<h2>Sign-off</h2><div class=\"sigs\">"
-    + "<div><span>Tenant" + (m.tenantSigName ? " — " + esc(m.tenantSigName) : "") + "</span>"
-    + (rec.sig.t ? '<img src="' + rec.sig.t + '">' : "<i>not signed</i>") + "</div>"
-    + "<div><span>Inspector" + (m.inspSigName ? " — " + esc(m.inspSigName) : "") + "</span>"
-    + (rec.sig.i ? '<img src="' + rec.sig.i + '">' : "<i>not signed</i>") + "</div></div>";
-
-  const gallery = log.length
-    ? "<h2>Photo log</h2><div class=\"gal\">" + log.map(o=>
-        '<figure><img src="' + o.p.data + '" alt="' + esc(caption(o)) + '"><figcaption>'
-        + esc(caption(o)) + "</figcaption></figure>").join("") + "</div>"
-    : "";
-
-  return "<!doctype html><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
-    + "<title>" + esc(modeTitle(rec) + " — " + title(rec)) + "</title><style>"
-    + "body{font:15px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#1B2730;background:#F3F7F9;margin:0;padding:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}"
-    + ".w{max-width:900px;margin:0 auto;background:#fff;border:1px solid #D2DFE6;padding:26px;box-shadow:0 8px 26px rgba(0,46,87,.08)}"
-    + "h1{font-size:21px;text-transform:uppercase;letter-spacing:.02em;margin:0 0 2px;color:#102F46}.property{font-size:18px;margin-top:12px}"
-    + ".brand{display:grid;grid-template-columns:116px minmax(0,1fr);gap:18px;align-items:center;border-bottom:2px solid #00437D;padding-bottom:11px}.brand img{display:block;width:auto;height:54px;max-width:116px;object-fit:contain;object-position:left center;image-rendering:auto}.brand-copy{border-left:1px solid #AAB8C0;padding-left:18px}.brand .sub{margin:0 0 3px}.brand h1{font-size:20px}"
-    + ".sub{font:12px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#526D7D}"
-    + "h2{font-size:15px;text-transform:uppercase;letter-spacing:.02em;margin:22px 0 6px;border-bottom:2px solid #00437D;padding-bottom:4px;color:#102F46}"
-    + "table{width:100%;border-collapse:collapse;font-size:13.5px}"
-    + "td{border-bottom:1px solid #E1E8EC;padding:6px 8px;vertical-align:top}"
-    + "td.c{width:120px;font:12px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:#5D6B69}"
-    + ".write{display:block;height:22px;border-bottom:1px solid #A7B0B2}.manual tr:not(:first-child) td{height:34px;border-bottom:1px solid #A7B0B2}"
-    + "tr.bad td{background:#FFF5F0}tr.bad td.c{color:#B5553D;font-weight:600}tr.tot td{font-weight:700;background:#F4F0E8}"
-    + ".print-room-group p{font-size:11px;color:#5D6B69;margin:0 0 6px}.room-matrix{table-layout:fixed;font-size:12px}.room-matrix th,.room-matrix td{border:1px solid #D9D1C3;padding:5px;text-align:center;overflow-wrap:anywhere}.room-matrix th{background:#F4F0E8;font-size:11px}.room-matrix th:first-child,.room-matrix td:first-child{width:28%;text-align:left}.room-matrix td.work{background:#FCE8E5;color:#9A402B;font-weight:800}.room-matrix td.ok{color:#26715C;font-weight:700}.room-matrix td.na,.room-matrix td.blank,.room-matrix td.absent{color:#77817F}"
-    + ".meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin:14px 0}"
-    + ".meta div{border-left:3px solid #1E6C9F;padding-left:9px}.meta b{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#526D7D}"
-    + ".coverage{background:#F3F8FB;border-left:3px solid #1E6C9F;padding:9px 11px;font-weight:600}"
-    + ".fig{font:11px ui-monospace,Menlo,monospace;color:#4A5157;white-space:nowrap}"
-    + ".gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:12px}"
-    + ".gal figure{margin:0}.gal img{width:100%;border:1px solid #AAB8C0;display:block}.gal figcaption{font-size:12.5px;color:#4A5C66;margin-top:5px}"
-    + "@media print{.gal{display:block}.gal figure{display:inline-block;width:48%;vertical-align:top;margin:0 1% 14px 0}}"
-    + ".sigs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.sigs>div{min-width:0;min-height:.8in;border-bottom:1px solid #16181A;display:flex;flex-direction:column;justify-content:flex-end}.sigs span{display:block;font:10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#4A5157;margin-bottom:4px}.sigs img{display:block;width:auto;height:auto;max-width:2.35in;max-height:.58in;object-fit:contain;object-position:left bottom;image-rendering:auto}"
-    + "@media print{@page{size:Letter portrait;margin:12mm 14mm 15mm}body{background:#fff;padding:0}.w{border:0;box-shadow:none;padding:0!important;max-width:none}.brand{break-inside:avoid}.meta,.coverage,h2{break-after:avoid-page}table thead{display:table-header-group}tr,figure{break-inside:avoid}.gal{grid-template-columns:1fr 1fr}}"
-    + "</style><div class=\"w\"><div class=\"brand\"><img src=\"" + esc(REPORT_LOGO_DATA||"./cimco-logo.png") + "\" alt=\"CIMCO Property Management\"><div class=\"brand-copy\"><div class=\"sub\">" + esc(ORG) + "</div><h1>" + esc(modeTitle(rec)) + " inspection</h1></div></div>"
-    + "<h1 class=\"property\">" + esc(title(rec)) + "</h1><p class=\"coverage\">" + s.done + " of " + s.total + " lines reviewed · " + s.flags + " need work</p>"
-    + "<div class=\"meta\">" + head.map(r=>"<div><b>" + esc(r[0]) + "</b>" + esc(r[1]) + "</div>").join("") + "</div>"
-    + roomLines + lines + wk + (m.misc ? "<h2>Overall inspector notes</h2><p>" + esc(m.misc) + "</p>" : "")
-    + sigs + gallery + "</div>";
-}
+function reportHTML(rec){ return InspectionReport.html(rec); }
 
 async function sendFile(name, text, mime){
   const blob = new Blob([text], {type: mime});
@@ -2412,65 +2300,7 @@ async function sendFile(name, text, mime){
 }
 
 /* ---------------- report text ---------------- */
-function reportText(rec){
-  const m = rec.meta, s = stats(rec), L = [];
-  const isReady = rec.mode==="ready";
-  const isRoutine = rec.mode==="routine";
-  L.push(modeTitle(rec).toUpperCase() + " INSPECTION — " + ORG.toUpperCase());
-  L.push(title(rec));
-  L.push("Date: " + (fmtDate(m.date)||"—") + "   Inspector: " + (m.inspector||"—"));
-  if(isReady){
-    if(m.owner) L.push("Owner: " + m.owner);
-    if(m.marketStatus) L.push("Market status: " + marketLabel(m.marketStatus));
-    if(workLabel(rec)) L.push("Work category: " + workLabel(rec));
-    if(m.responsible) L.push("Responsible party: " + m.responsible);
-    if(m.estimatedCost) L.push("Estimated cost: " + money(parseFloat(m.estimatedCost)||0));
-    if(m.keys) L.push(keysLabelForMode(rec.mode) + ": " + m.keys);
-  }else if(isRoutine){
-    if(m.tenant) L.push("Tenant: " + m.tenant);
-    if(m.owner) L.push("Owner: " + m.owner);
-    if(m.visitReason) L.push("Routine inspection reason: " + visitLabel(m.visitReason));
-    if(m.entryStatus) L.push("Entry / attendance: " + entryLabel(m.entryStatus));
-    if(m.meterE || m.meterW) L.push("Meters — electric: " + (m.meterE||"—") + ", water: " + (m.meterW||"—"));
-  }else{
-    if(m.tenant) L.push("Tenant: " + m.tenant);
-    if(m.owner) L.push("Owner: " + m.owner);
-    if(m.clean) L.push("Unit clean: " + m.clean.toUpperCase());
-    if(m.keys) L.push(keysLabelForMode(rec.mode) + ": " + m.keys);
-    if(m.meterE || m.meterW) L.push("Meters — electric: " + (m.meterE||"—") + ", water: " + (m.meterW||"—"));
-    if(rec.mode==="out" && m.fwd) L.push("Forwarding address: " + m.fwd);
-  }
-  L.push(s.done + " of " + s.total + " lines reviewed · " + s.flags + " need work");
-  L.push("");
-
-  activeSpaces(rec).forEach(sp=>{
-    const bad = sp.items.filter(it=>FLAGS.indexOf(it.s)>=0);
-    if(!bad.length) return;
-    L.push(sp.name.toUpperCase());
-    bad.forEach(it=>{
-      L.push("  [" + CODE_LABEL[it.s].toUpperCase() + "] " + it.t
-        + (it.base ? "  (move-in: " + (CODE_LABEL[it.base]||it.base) + ")" : ""));
-      if(it.n) L.push("        " + it.n);
-    });
-    L.push("");
-  });
-  if(!s.flags) L.push("No lines need work. Everything walked was in good order.");
-
-  if(rec.mode==="out" || isRoutine){
-    const rows = flagged(rec).filter(o=>{ const w = rec.wk[o.key]; return w && (isRoutine ? (w.k || w.c) : w.k==="dmg"); });
-    if(rows.length){
-      L.push(isRoutine ? "DAMAGE & MAINTENANCE PRICING" : "TENANT DAMAGE WORKSHEET");
-      let tot = 0;
-      const hasPrices = rows.some(o=>String((rec.wk[o.key]||{}).c||"").trim());
-      rows.forEach(o=>{ const w = rec.wk[o.key], amt = parseFloat(w.c||0)||0; tot += amt;
-        L.push("  " + o.sp.name + " — " + o.it.t + (isRoutine ? " [" + (w.k==="tenant" ? "Tenant-caused" : "Maintenance") + "]" : "") + ": " + (isRoutine && !String(w.c||"").trim() ? "________" : money(amt))); });
-      L.push("  TOTAL: " + (isRoutine && !hasPrices ? "________" : money(tot)));
-      L.push("");
-    }
-  }
-  if(m.misc) L.push("OVERALL INSPECTOR NOTES\n  " + m.misc);
-  return L.join("\n");
-}
+function reportText(rec){ return InspectionReport.text(rec); }
 
 function download(name, text){
   const blob = new Blob([text], {type:"application/json"});
@@ -3681,7 +3511,7 @@ document.addEventListener("click", async e=>{
   if(nw){
     const mode = nw.dataset.new;
     const seed = quickSeed();
-    if(mode==="out" && LIST.some(r=>r.mode==="in")) return pickBaseline(seed);
+    if(mode==="out" && LIST.some(r=>r.mode==="in"&&!r.deletedAt)) return pickBaseline(seed);
     return openRec(newInspection(mode, null, seed));
   }
 
@@ -3698,9 +3528,9 @@ document.addEventListener("click", async e=>{
   if(homeDelete){
     const r = LIST.find(x=>x.id===homeDelete.dataset.delhome);
     if(!r) return;
-    if(!confirm("Delete " + title(r) + " and its photos? This cannot be undone.")) return;
-    LIST = LIST.filter(x=>x.id!==r.id); save(); await photoDeleteInsp(r.id); renderHome();
-    toast("Inspection deleted");
+    if(typeof OfflineOffice==="undefined"){toast("Recovery tools did not load. Reopen the app before removing an inspection.");return;}
+    if(!confirm("Move " + title(r) + " to Recently deleted?")) return;
+    await OfflineOffice.trashInspection(r);
     return;
   }
 
@@ -3730,8 +3560,7 @@ document.addEventListener("click", async e=>{
     const wasComplete = stats(cur).pct===100;
     const [spId, idx] = kb.dataset.k.split(":");
     const sp = cur.spaces.find(x=>x.id===spId), it = sp.items[+idx];
-    it.s = (it.s === kb.dataset.v) ? "" : kb.dataset.v;
-    if(it.s!=="work" && it.s!=="na") it.n = "";
+    it.s = kb.dataset.v;
     save(); paintItem(sp, +idx); paintSection(sp); renderHead(); markFeedback(sp, +idx); pulseProgress(); celebrateCompletion(wasComplete);
     return;
   }
@@ -3785,7 +3614,7 @@ document.addEventListener("click", async e=>{
     const space=buildSpace(type,name);
     insertSpaceNearFamily(space);
     save(); renderSpaces(); renderHead();
-    setActiveSpace(space.id);
+    jumpToSpace(space.id);
     const d = document.querySelector('details[data-sp="'+space.id+'"]');
     if(d){ d.open=true; d.scrollIntoView({behavior:"smooth", block:"center"}); }
     toast(name + " added next to related rooms");
@@ -3891,14 +3720,14 @@ document.addEventListener("click", async e=>{
   }
   if(t.id==="dupBtn"){
     const copy = JSON.parse(JSON.stringify(cur));
-    copy.id = uid(); copy.created = copy.updated = Date.now();
+    copy.id = uid(); copy.reportId=copy.id;copy.sig={t:"",i:""};copy.signatureMeta={};copy.handoffs=[];copy.receivedPackets=[];copy.followUp={};copy.created = copy.updated = Date.now();
     copy.spaces.forEach(sp=>sp.id = uid());
     LIST.unshift(copy); save(); openRec(copy); toast("Duplicated"); return;
   }
   if(t.id==="delBtn"){
-    if(!confirm("Delete this inspection and its photos? This cannot be undone.")) return;
-    const id = cur.id;
-    LIST = LIST.filter(r=>r.id!==id); save(); await photoDeleteInsp(id); go("home"); toast("Deleted"); return;
+    if(typeof OfflineOffice==="undefined"){toast("Recovery tools did not load. Reopen the app before removing an inspection.");return;}
+    if(!confirm("Move this inspection to Recently deleted?")) return;
+    await OfflineOffice.trashInspection(cur);return;
   }
 });
 
@@ -3907,7 +3736,7 @@ document.addEventListener("input", e=>{
   if(t.classList.contains("m") && cur){
     let value=t.value;
     if(t.dataset.m==="estimatedCost"){
-      value=value.replace(/[^0-9.]/g,"");
+      value=value.trim();
       if(t.value!==value) t.value=value;
     }
     cur.meta[t.dataset.m] = value; save();
@@ -3923,8 +3752,7 @@ document.addEventListener("input", e=>{
   }
   if(t.dataset.cost && cur){
     const w = cur.wk[t.dataset.cost] = cur.wk[t.dataset.cost] || {};
-    w.c = t.value.replace(/[^0-9.]/g,"");
-    if(!w.k) w.k = cur.mode==="routine" ? "maintenance" : "dmg";
+    w.c = t.value.trim();
     save(); wkTotal();
     document.querySelectorAll('[data-wear="'+t.dataset.cost+'"]').forEach(b=>b.classList.toggle("on", b.dataset.val===w.k));
     return;
@@ -3975,22 +3803,23 @@ document.getElementById("impFile").addEventListener("change", e=>{
   const f = e.target.files[0]; e.target.value = "";
   if(!f) return;
   const fr = new FileReader();
-  fr.onload = ()=>{
+  fr.onload = async ()=>{
     try{
       const data = JSON.parse(fr.result);
       const recs = Array.isArray(data) ? data : (data.records||[]);
       if(!recs.length) return toast("No inspections in that file");
       let added = 0;
-      recs.forEach(r=>{
-        if(!r || !r.spaces) return;
+      for(const r of recs){
+        if(!r || !Array.isArray(r.spaces)) continue;
         const pics = r.photos || []; delete r.photos;
-        if(LIST.some(x=>x.id===r.id)) r.id = uid();
+        if(LIST.some(x=>x.id===r.id)){r.reportId=r.reportId||r.id;r.id=uid();}
         normalizeRecord(r);
-        LIST.unshift(r); added++;
-        pics.forEach(o=>{ photoPut({id: uid(), insp: r.id, key: o.key, data: o.data, caption:o.caption||"", ts: o.ts||Date.now()}).catch(()=>{}); });
-      });
-      save(); renderHome(); toast(added + " imported");
-    }catch(err){ toast("That file could not be read"); }
+        try{await Promise.all(pics.map(o=>photoPut({id:uid(),insp:r.id,key:o.key,data:o.data,caption:o.caption||"",ts:o.ts||Date.now(),deletedAt:o.deletedAt||null,kind:o.kind||""})));}
+        catch(err){await photoDeleteInsp(r.id);throw new Error("Photos could not be restored. The backup file is unchanged.");}
+        LIST.unshift(r);added++;flushSave();
+      }
+      flushSave(); renderHome(); toast(added + " inspections restored with photos");
+    }catch(err){ renderHome();toast(err.message&&err.message.startsWith("Photos could")?err.message:"That backup could not be read. Check the file and try again."); }
   };
   fr.readAsText(f);
 });
@@ -4002,8 +3831,13 @@ initSig("T"); initSig("I");
 document.getElementById("mastSub").textContent = ORG;
 go("home");
 
-if(!SELF_TEST && "serviceWorker" in navigator){
+if(!SELF_TEST && !globalThis.CIMCO_OFFLINE_BUNDLE && "serviceWorker" in navigator){
   window.addEventListener("load", ()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
 }
 </script>
-<script src="./app-enhancements.js?v=56"></script>
+<script src="./vendor/jszip.min.js?v=58"></script>
+<script src="./office-model.js?v=58"></script>
+<script src="./inspection-reports.js?v=58"></script>
+<script src="./app-enhancements.js?v=58"></script>
+<script src="./inspector-flow.js?v=58"></script>
+<script src="./offline-office.js?v=58"></script>

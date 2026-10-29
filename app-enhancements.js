@@ -1,12 +1,12 @@
 (function(){
 "use strict";
 
-const UI_KEY="cimco.inspection.ui.v1";
+const UI_KEY=SELF_TEST?KEY+".ui":"cimco.inspection.ui.v1";
 const DELIVERY_KEY="cimco.office-delivery.config.v1";
 const OFFICE_SENDER="cimcomngmt1@gmail.com";
 const OFFICE_RECIPIENT="cimcomngmt@gmail.com";
 const OFFICE_DELIVERY_VISIBLE=false;
-const DEFAULT_PREFS={autoCollapse:true,backups:{}};
+const DEFAULT_PREFS={autoCollapse:false,backups:{}};
 let prefs=loadPrefs(), dashFilter="all", dashSort="recent";
 let dialogResolve=null, dialogReturnFocus=null, dialogHideTimer=null, photoBusy=false, retakePhotoId="";
 let captionTimer=null, pwaInstallEvent=null, pwaWaiting=null, applyingUpdate=false;
@@ -175,6 +175,9 @@ function ensureShell(){
 
 function openDialog(options){
   const shell=document.getElementById("appDialog"), form=document.getElementById("appDialogForm");
+  const workspace=document.getElementById("officeWorkspace");
+  if(workspace?.open&&!workspace.contains(shell))workspace.append(shell);
+  else if(!workspace?.open&&shell.parentElement!==document.body)document.body.append(shell);
   if(dialogResolve) closeDialog(null);
   clearTimeout(dialogHideTimer); dialogHideTimer=null;
   dialogReturnFocus=document.activeElement;
@@ -201,6 +204,7 @@ function openDialog(options){
     setTimeout(()=>{ (options.field?input:confirm).focus(); if(options.field) input.select(); },30);
   });
 }
+window.CimcoDialog={open:openDialog};
 function closeDialog(value){
   const shell=document.getElementById("appDialog");
   shell.classList.remove("on");
@@ -328,7 +332,7 @@ function decorateSpaces(){
   });
 }
 function collapsePassedRoom(spaceId){
-  if(!prefs.autoCollapse||!cur) return;
+  if(document.body.classList.contains("simple-field")||!prefs.autoCollapse||!cur) return;
   const sp=activeSpaces(cur).find(x=>x.id===spaceId);
   if(!sp) return;
   const complete=sp.items.length&&sp.items.every(it=>!!it.s), flags=sp.items.some(it=>FLAGS.indexOf(it.s)>=0);
@@ -384,7 +388,7 @@ function updateWalkTools(){
 function dashboardRow(rec){
   const s=stats(rec), name=title(rec), backed=isBackedUp(rec);
   const badge=rec.mode==="out"?"OUT":rec.mode==="ready"?"READY":rec.mode==="routine"?"ROUTINE":"IN";
-  const state=s.flags?s.flags+" need work":s.pct===100?"Complete":s.done?"In progress":"Not started";
+  const state=s.flags?s.flags+" need work":s.pct===100?"Checklist recorded":s.done?"In progress":"Not started";
   return `<div class="recrow enhanced-record" data-record="${rec.id}"><button class="rec" data-open="${rec.id}" aria-label="Open ${esc(name)}">
     <span class="badge ${rec.mode}">${badge}</span><span class="rt"><b>${esc(name)}</b><span>${MODE_LABEL[rec.mode]||rec.mode} · ${fmtDate(rec.meta.date)} · Updated ${relativeTime(rec.updated)}</span>
     <i class="record-progress"><em style="width:${s.pct}%"></em></i></span><span class="record-side"><b>${s.pct}%</b><small class="${s.flags?"attention":s.pct===100?"complete":""}">${state}</small><small class="backup-mark ${backed?"done":""}">${backed?"Backed up":"Not backed up"}</small></span></button>
@@ -395,6 +399,7 @@ function renderDashboard(){
   if(!list||!search) return;
   const q=(search.value||"").trim().toLowerCase();
   let rows=LIST.filter(rec=>{
+    if(rec.deletedAt)return false;
     const s=stats(rec), matches=!q||(title(rec)+" "+(rec.meta.tenant||"")+" "+(rec.meta.inspector||"")).toLowerCase().includes(q);
     if(!matches) return false;
     if(dashFilter==="progress") return s.done>0&&s.pct<100;
@@ -408,9 +413,9 @@ function renderDashboard(){
     if(dashSort==="type") return String(MODE_LABEL[a.mode]).localeCompare(String(MODE_LABEL[b.mode]))||b.updated-a.updated;
     return b.updated-a.updated;
   });
-  list.innerHTML=rows.length?rows.map(dashboardRow).join(""):LIST.length
+  list.innerHTML=rows.length?rows.map(dashboardRow).join(""):LIST.some(rec=>!rec.deletedAt)
     ? `<div class="empty enhanced-empty"><b>No matching inspections</b><span>Try another status or search.</span></div>`
-    : `<div class="empty enhanced-empty"><b>Nothing saved yet</b><span>Start an inspection above and it will stay available on this device.</span></div>`;
+    : globalThis.CIMCO_OFFICE_DESK?`<div class="empty enhanced-empty"><b>No inspections received yet</b><span>Choose Receive office file to open an inspector's packet.</span></div>`:`<div class="empty enhanced-empty"><b>Nothing saved yet</b><span>Start an inspection above and it will stay available on this device.</span></div>`;
   document.querySelectorAll("[data-dash-filter]").forEach(button=>button.classList.toggle("on",button.dataset.dashFilter===dashFilter));
   const sort=document.getElementById("dashboardSort"); if(sort) sort.value=dashSort;
 }
@@ -451,6 +456,7 @@ function paintPwaState(){
   else action.hidden=true;
 }
 function initPwaHealth(){
+  if(globalThis.CIMCO_OFFLINE_BUNDLE){setPwaState("ready","Local offline app","The app and its tools are contained in this file. No app server is required.");return;}
   if(SELF_TEST) return;
   const online=()=>{
     if(pwaWaiting) setPwaState("update","Update available","A newer inspection app is ready to install.");
@@ -501,6 +507,7 @@ function hidePhotoProgress(){ const panel=document.getElementById("photoProgress
 async function processPhotos(files){
   if(photoBusy||!files.length||!camTarget||!cur) return;
   photoBusy=true; let saved=0, firstNew=null, prior=retakePhotoId?findPhoto(retakePhotoId):null;
+  document.body.dataset.photoSaving="true";
   try{
     for(let i=0;i<files.length;i++){
       setPhotoProgress(i,files.length,"Preparing "+files.length+" photo"+(files.length===1?"":"s"));
@@ -513,10 +520,10 @@ async function processPhotos(files){
       await photoDelete(retakePhotoId).catch(()=>{});
       Object.keys(photos).forEach(key=>{ photos[key]=photos[key].filter(photo=>photo.id!==retakePhotoId); });
     }
-    renderSpaces();
+    save(); renderSpaces();
     toast(saved?(retakePhotoId?"Photo replaced":saved+" photo"+(saved===1?"":"s")+" saved"):"No photos could be added");
   }catch(e){ toast("Photos are not available in this browser"); }
-  finally{ retakePhotoId=""; photoBusy=false; hidePhotoProgress(); updateHealth(); }
+  finally{ retakePhotoId=""; photoBusy=false; delete document.body.dataset.photoSaving; hidePhotoProgress(); updateHealth(); }
 }
 
 ensureShell();
@@ -579,21 +586,21 @@ document.addEventListener("click",event=>{
       retakePhotoId=photo.id; camTarget=photo.key; document.getElementById("lb").classList.remove("on"); document.getElementById("camIn").click(); return;
     }
     if(t.id==="lbDel"){
-      const ok=await openDialog({eyebrow:"Condition photo",title:"Delete this photo?",message:"The photo will be removed from this inspection and its exported report.",confirmLabel:"Delete photo",danger:true});
+      const ok=await openDialog({eyebrow:"Condition photo",title:"Delete this photo?",message:"The photo will move to Recently deleted. You can restore it later.",confirmLabel:"Move to Recently deleted",danger:true});
       if(!ok) return;
       clearTimeout(captionTimer); await photoDelete(lbCurrent).catch(()=>{}); Object.keys(photos).forEach(key=>{photos[key]=photos[key].filter(photo=>photo.id!==lbCurrent);});
-      document.getElementById("lb").classList.remove("on"); renderSpaces(); updateHealth(); toast("Photo deleted"); return;
+      document.getElementById("lb").classList.remove("on"); save(); renderSpaces(); updateHealth(); toast("Photo deleted"); return;
     }
     if(t.hasAttribute("data-delhome")){
       const rec=LIST.find(x=>x.id===t.dataset.delhome); if(!rec) return;
-      const ok=await openDialog({eyebrow:"Saved inspection",title:"Delete "+title(rec)+"?",message:"The inspection and all of its condition photos will be permanently removed from this device.",confirmLabel:"Delete inspection",danger:true});
+      const ok=await openDialog({eyebrow:"Saved inspection",title:"Delete "+title(rec)+"?",message:"The inspection and its photos will move to Recently deleted. You can restore them later.",confirmLabel:"Move to Recently deleted",danger:true});
       if(!ok) return;
-      LIST=LIST.filter(x=>x.id!==rec.id); delete prefs.backups[rec.id]; savePrefs(); save(); await photoDeleteInsp(rec.id); renderHome(); renderBar(); toast("Inspection deleted"); return;
+      await OfflineOffice.trashInspection(rec);renderBar();return;
     }
     if(t.id==="delBtn"){
-      const ok=await openDialog({eyebrow:"Current inspection",title:"Delete this inspection?",message:"The inspection and all of its condition photos will be permanently removed from this device.",confirmLabel:"Delete inspection",danger:true});
+      const ok=await openDialog({eyebrow:"Current inspection",title:"Delete this inspection?",message:"The inspection and its photos will move to Recently deleted. You can restore them later.",confirmLabel:"Move to Recently deleted",danger:true});
       if(!ok) return; const id=cur.id;
-      LIST=LIST.filter(rec=>rec.id!==id); delete prefs.backups[id]; savePrefs(); save(); await photoDeleteInsp(id); go("home"); toast("Inspection deleted"); return;
+      await OfflineOffice.trashInspection(cur);return;
     }
     if(t.hasAttribute("data-additem")){
       const sp=cur.spaces.find(x=>x.id===t.dataset.additem); if(!sp) return;
@@ -607,11 +614,9 @@ document.addEventListener("click",event=>{
     }
     if(t.hasAttribute("data-delsp")){
       const index=cur.spaces.findIndex(x=>x.id===t.dataset.delsp); if(index<0) return; const sp=cur.spaces[index];
-      const ok=await openDialog({eyebrow:"Room details",title:"Remove "+sp.name+"?",message:"Every checklist result, note, and attached photo in this space will be removed.",confirmLabel:"Remove space",danger:true});
+      const ok=await openDialog({eyebrow:"Room details",title:"Remove "+sp.name+"?",message:"This area and its observations will move to Recently deleted. Its photos will be kept.",confirmLabel:"Remove space",danger:true});
       if(ok){
-        const removedId=sp.id, removedPhotos=Object.keys(photos).filter(key=>key.startsWith(removedId+":")).flatMap(key=>photos[key]||[]);
-        await Promise.all(removedPhotos.map(photo=>photoDelete(photo.id).catch(()=>{}))); Object.keys(photos).filter(key=>key.startsWith(removedId+":")).forEach(key=>delete photos[key]);
-        cur.spaces.splice(index,1); save(); renderSpaces(); renderHead(); updateHealth(); toast("Space removed");
+        await OfflineOffice.trashRoom(sp);
       } return;
     }
     if(t.dataset.add==="other"){
@@ -638,7 +643,7 @@ document.addEventListener("input",event=>{
   if(event.target.id!=="photoCaption") return;
   const photo=findPhoto(lbCurrent); if(!photo) return;
   photo.caption=event.target.value;
-  clearTimeout(captionTimer); captionTimer=setTimeout(()=>{ photoPut(photo).then(()=>showSaveNotice()).catch(()=>toast("Caption could not be saved")); },220);
+  clearTimeout(captionTimer); captionTimer=setTimeout(()=>{ photoPut(photo).then(()=>{save();showSaveNotice();}).catch(()=>toast("Caption could not be saved")); },220);
 });
 document.addEventListener("change",event=>{
   if(event.target.id!=="camIn") return;
@@ -653,7 +658,7 @@ async function runSelfTests(){
   try{
     localStorage.removeItem(KEY); LIST=[]; photos={};
     const rec=newInspection("in",null,{address:"100 Test Avenue",unit:"2A"}); cur=rec;
-    rec.spaces[0].items[0].s="work"; rec.spaces[0].items[0].n="Test note"; rec.meta.keys="Front door key — 2"; rec.meta.misc="Overall QA note"; rec.sig.t="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E"; rec.wk[rec.spaces[0].id+":0"]={k:"dmg",c:"125.00"};
+    rec.spaces[0].items[0].s="work"; rec.spaces[0].items[0].n="Test note"; rec.meta.keys="Front door key — 2"; rec.meta.misc="Overall QA note"; rec.sig.t="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E"; InspectionReport.recordSignature(rec,"t"); rec.wk[rec.spaces[0].id+":0"]={k:"dmg",c:"125.00"};
     const bed=buildSpace("bedroom","Bedroom 2"), bath=buildSpace("bathroom","Bathroom 2"); insertSpaceNearFamily(bed); insertSpaceNearFamily(bath); groupRelatedRooms(rec);
     const families=rec.spaces.map(roomFamily), lastBed=families.lastIndexOf("bedroom"), firstBath=families.indexOf("bathroom");
     check("Related rooms remain grouped",lastBed>=0&&firstBath>lastBed);
@@ -663,13 +668,13 @@ async function runSelfTests(){
     convertInspectionForm("out");
     const carried=cur.spaces.flatMap(sp=>sp.items).find(item=>item.n==="Test note");
     check("Form conversion preserves completed work",!!carried&&carried.s==="work");
-    check("Form conversion preserves signatures",!!cur.sig.t);
+    check("Form conversion archives old signatures and requires renewed sign-off",!cur.sig.t&&cur.signatureHistory.some(row=>row.party==="t"));
     check("Form conversion preserves pricing",Object.values(cur.wk).some(row=>row.c==="125.00"));
     const report=reportHTML(cur); check("Printable report includes the property",report.includes("100 Test Avenue")); check("Printable report includes photos",report.includes("data:image/")); check("Photo captions reach reports",report.includes("Test caption")); check("Key inventory reaches reports",report.includes("Front door key — 2")); check("Overall inspector notes reach reports",report.includes("Overall QA note"));
-    preparePrintView(); check("Print waits for every report photo to load",document.querySelectorAll("#appendix img").length===1&&await waitForPrintImages(1000));
+    preparePrintView(); check("Print waits for every report photo to load",document.querySelectorAll("#professionalReport figure img").length===1&&await waitForPrintImages(1000));
     convertInspectionForm("ready"); const readyReport=reportHTML(cur); check("Rent-ready reports label property keys",readyReport.includes("Property keys on hand")&&readyReport.includes("Front door key — 2"));
     const payload=JSON.stringify({type:"cimco-inspection",v:1,records:[Object.assign({},cur,{photos:[photo]})]}); const imported=JSON.parse(payload); check("Photo export/import payload round-trips",imported.records[0].photos[0].caption==="Test caption");
-    check("Signature data is exportable",JSON.stringify(cur).includes("data:image/svg+xml"));
+    check("Archived signature data is exportable",JSON.stringify(cur).includes("data:image/svg+xml"));
     check("Office PDF delivery has a fixed recipient",OFFICE_RECIPIENT==="cimcomngmt@gmail.com"&&OFFICE_SENDER==="cimcomngmt1@gmail.com");
     check("Office delivery accepts only Apps Script endpoints",!!validDeliveryEndpoint("https://script.google.com/macros/s/test-deployment_123/exec")&&!validDeliveryEndpoint("https://example.com/send"));
     check("Office delivery controls are paused",!OFFICE_DELIVERY_VISIBLE&&!document.getElementById("finishCard"));

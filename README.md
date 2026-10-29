@@ -1,75 +1,78 @@
-# CIMCO Property Inspection — Compact Field Flow 23.0
+# CIMCO Property Inspection - Offline Office v58
 
-This build keeps the field inspection app offline-first and adds optional automatic walkthrough analysis on the always-on office computer. It does not use an OpenAI API key, a ChatGPT account, or a cloud transcription service.
+An offline-first app for move-in, move-out, rent-ready, and routine inspections.
 
-## Field workflow
+## Inspector workflow
 
-1. Start or reopen an inspection on the phone.
-2. Use **Office AI walkthrough → Analyze video / audio**.
-3. Choose the inspector's recording and keep the page open. For video, the phone first makes a temporary audio-only copy to reduce the upload; if that is unsupported, it safely sends the original.
-4. The office computer transcribes the recording and matches observations to the exact checklist.
-5. Review the proposed Good, Needs work, and N/A results, then apply them to the sheet.
+1. Choose **Start inspection**, or open a saved inspection under **Continue an inspection**.
+2. Choose any room or area, in any order. Return with **All rooms**. Add bedrooms, full or half bathrooms, garages, patios, or custom spaces during the visit. **Room options** offers renaming and custom checklist items.
+3. Record **Good**, **Needs work**, **Not present**, or **Could not check**. Explain problems and inspection limits; common reasons include Power off and Water off. Add photos and notes to any result.
+4. **Save and finish later** returns home. Reopening restores the selected room. Saved on this phone does not mean sent to the office.
+5. Choose **Review / PDF**, resolve missing information, and preview the report before saving or printing. Incomplete inspections remain clearly identified in the report.
 
-The upload percentage and the office-processing percentage are one continuous progress display. A weak phone connection no longer discards the job: the page keeps reconnecting, and a reopened inspection can recover its recent matching office job without uploading the recording again.
+The interface uses larger text, full labels, and generous touch targets. Rooms do not close or advance automatically. Repeated taps do not clear results. **Undo** reverses the last checklist selection or bulk marking. Notes remain when a result changes.
 
-## Flexible room groups
+## Different house layouts
 
-Every inspection template starts with **Master Bedroom**. A quick-add panel near the top of the walkthrough adds Bedroom 2, guest rooms, full bathrooms, half bathrooms, living areas, and other spaces without sending the inspector to the end of the form. Bedrooms and bathrooms remain adjacent on screen. Printed/PDF reports replace repeated room sections with compact shared-checklist matrices, while exceptions and photographs retain their individual room names.
+There is no required room sequence or room-count setup. Custom names and checklist items are retained. Another inspection of the same type at the same address and unit can reuse the latest layout on that device with blank results, notes, estimates, and signatures. Move-out creation from a move-in preserves the existing baseline workflow. Layouts can move between devices in an inspection backup.
 
-Room checklists use one decision per physical feature: related components such as shower walls and handles, cabinet hardware, window coverings, and HVAC controls are consolidated into concise lines. Existing saved inspections are upgraded in place while retaining their statuses, notes, and photos. In room matrices, **Needs work** prints as a clear × on a subtle pink background so it cannot be mistaken for Good.
+Older N/A results remain labeled as earlier N/A records; the app does not guess whether they meant absent or untested. Legacy Not tested results become Could not check.
 
-The printable room matrix refreshes immediately whenever a status changes and refreshes once more at print startup. This prevents a recently changed or cleared mark from appearing with its previous value in the final PDF.
+## Office tools
 
-Print/PDF now preserves the prepared photo appendix and waits for every condition photo to finish decoding before the browser print dialog opens. If a stored image cannot be read, the app stops and shows an error instead of silently producing a report without photos.
+See [OFFLINE-SHARING.md](OFFLINE-SHARING.md) for the v58 phone-to-Windows workflow. Portable ZIP packets carry inspection data, photographs, move-in comparison evidence, and a self-contained printable report. LocalSend can transfer them over local Wi-Fi without internet or an inspection backend.
 
-Printed and downloadable reports use the current CIMCO logo in a compact corporate header. Header and body content share the same internal print gutter, so they remain aligned even when browser margins are set to None or Custom and browser-generated URL headers are disabled.
+SHA-256 covers packet identity, timestamps, and payload. Imports validate images before allowing a receipt. Repeated imports are idempotent; conflicting condition versions stay separate. Only a matching returned receipt confirms the particular packet. Receipts are manually identified acknowledgements, not authenticated signatures.
 
-On wider screens, a sticky left-side room bookmark lists every inspection area, shows reviewed and exception counts, highlights the room currently in view, and jumps directly to a selected room. Narrow screens use a compact **Jump to room** selector. Both controls are screen-only and stay out of printed reports.
+Office Desk adds shared property layouts with revision checks, urgent/repair/cleaning flags, assignments, work status, completion photos, and Recently deleted. Work progress stays separate from signed observations. Comparisons use exact normalized room names, types, and checklist text, without inferring responsibility.
 
-Pricing fields display an automatic dollar prefix. Totals and report values are normalized to two-decimal currency formatting, so entering `50` is shown as `$50.00` in the final report.
+Complete backups include records, photos, layouts, original packet snapshots, receipts, and deleted items. Restore validates files and requires an empty app. Ordinary packets add visits to a populated app. Full personal backups can contain access notes; office packets omit them.
 
-The normal checklist, photos, signatures, reports, and manual dictation remain available without the office connection. Inspection records still live on the phone unless the inspector exports them.
+Scheduling and backups are under **Office tools & backups** on the home screen. Within an inspection, open **Property details**, then **Office tools**, for estimates, backups, report export, and form conversion.
 
-## Important privacy boundary
+Inspectors record conditions. Responsibility classifications and estimates are separate office-review decisions. Entering a cost never automatically selects tenant damage. Invalid amounts are not silently changed into positive estimates.
 
-Only the selected walkthrough recording and a temporary checklist map are sent to the office computer. The bridge deletes the uploaded media when processing finishes. It retains the transcript and proposed results for up to 24 hours so a phone can reconnect after a weak signal.
+Automatic office email delivery remains paused. The implementation and private setup instructions remain in [office-delivery](office-delivery/README.md). Optional office walkthrough analysis remains hidden. Normal inspections need no cloud account or office connection.
 
-The office connection address and pairing password are stored only on the paired phone. Bug reports exclude the address, password, inspection contents, photos, and media.
+## Reports and signatures
 
-## Publishing the field app
+Printing, PDF printing, shareable HTML, and copied report text use one report model. Reports include property details, an ID and content version, coverage counts, findings and inspection limits, every area's checklist and notes, office classifications and estimates, signature status, and numbered photographs with captions.
 
-Upload only the contents of the packaged `website-upload` folder to GitHub Pages. Do not upload the `office-computer` folder, its `config.json`, or its `data` folder.
+- Room notes, Good-result notes, unreviewed items, and photo references are retained.
+- Missing amounts show Not estimated; incomplete estimates show a partial subtotal. An explicitly entered zero stays zero.
+- Photos belong to the requested inspection. Added-to-inspection dates are not claimed as verified camera capture dates.
+- Changing signed content, photographs, or inspection type archives the previous signatures and requires renewed review. Earlier signatures without version metadata remain in the record and are not presented as current sign-off. Version identifiers detect changes; they are not cryptographic signature certificates.
+- Printing waits for report images to decode and stops if an image fails.
+- Routine reports retain handwriting space and additional maintenance-pricing rows.
+- Property and report identity appear in printed footers. Page X of Y uses CSS page-margin counters in supporting browsers. Phone PDF output depends on the device's browser and print service.
 
-After publishing, open the site once on Wi-Fi. On iPhone use Safari → Share → Add to Home Screen. On Android use Chrome → Install app or Add to Home Screen.
+## Saving and recovery
 
-## Office setup
+Production browser storage and photo-database keys are preserved. Saves flush when backgrounded and when finishing later. Storage failures are shown. Backup restoration waits for photographs before reporting success.
 
-On the office Windows computer:
+Records remain on the device. Back up after field work; local saving is not a central-office backup. Do not publish real inspection records, photographs, pairing details, or private office configuration.
 
-1. Open PowerShell as Administrator in the `office-computer` folder.
-2. Run `Set-ExecutionPolicy -Scope Process Bypass`, then `./SETUP-BETA.ps1`.
-3. Start `START-CIMCO-BRIDGE.cmd` and leave that window open for the first test.
-4. Run `./SETUP-FIELD-TUNNEL.ps1` to create the private HTTPS field address.
-5. Copy the displayed office address and pairing password into **Set up office connection** on an inspector's phone.
-6. After testing, run `./INSTALL-AUTO-START.ps1` so the bridge starts when the office user signs in.
+## Verification
 
-The one-time setup downloads the local language models. Allow roughly 5–6 GB and use a reliable office connection. Processing speed depends on the office computer; a supported NVIDIA GPU is faster, while CPU-only mode still works.
+Run:
 
-Run `./CHECK-BRIDGE.ps1` whenever the phone cannot connect. See `FIELD-CONNECTION.md` for pairing and troubleshooting.
+```text
+node tests/static-check.mjs
+node tests/report-check.mjs
+node tests/office-model-check.mjs
+python tests/build-offline.py
+node tests/make-office-demo.mjs
+python tests/package-release.py
+```
 
-## Record keeping
+Serve the project locally and open `tests/regression.html` for the browser checks. Each test namespace uses separate storage and a separate photo database. Checks cover autosave, conversion, signature archival, photos, flexible room selection, custom layouts, notes, Undo, pricing, reopening after a fresh render, and clean results on repeat visits.
 
-The printed/PDF report removes app controls and unreviewed clutter. Routine reports preserve blank lines for maintenance handwriting, and their estimated work total remains blank until at least one price is entered.
+`node tests/report-check.mjs --samples` generates demonstration HTML for all four inspection types under `tmp/qa-v57/`. Sample names, findings, and images are fictitious.
 
-## Keys, notes, and office delivery
+## Publishing
 
-Move-in, move-out, and rent-ready forms now keep the property key inventory and overall inspector notes in a dedicated, easy-to-reach card. Common key types can be added with one tap, and both fields save automatically and appear in reports. The inspection screen also includes a compact section navigator and denser field layout to reduce scrolling.
+The offline ZIP includes self-contained Office Desk, Practice, and Field App files, instructions, license, and a fictional example packet. There are no external script, stylesheet, image, or font dependencies. Keep local app filenames and folders stable; browser file storage varies. A standalone HTML file is not a verified phone installation method. Practice always uses isolated storage.
 
-Automatic office delivery is temporarily hidden from the field app. Its implementation and setup instructions remain preserved in [`office-delivery/`](office-delivery/README.md) so it can be restored later without rebuilding the feature.
+The separate website ZIP is an optional update for the existing installed field app. Publish only its static `website-upload` contents when rollout is authorized. Keep the existing origin and paths so devices retain records. The v58 service worker caches all report, field, office, and vendor files. Exclude `output/`, `tmp/`, tests, real records, and private office configuration. Office Desk and file handoff require no publishing.
 
-## Regression checks
-
-- Run `node tests/static-check.mjs` after changing the app. It validates script syntax, mode parity, shared assets, and the offline cache list.
-- Open `tests/regression.html` through a local web server to run the browser checks. They use isolated test-only storage and cover autosave, form conversion, room grouping, pricing, signatures, photos, export/import data, and printable report generation.
-
-This is a beta. Review every proposed result before applying it, and review the completed report before it is signed or filed.
+Before field rollout, check camera access, offline reopening, signatures, and PDF saving on the inspectors' actual iPhone and Android devices. Desktop verification does not establish physical-device behavior.

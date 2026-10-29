@@ -1,0 +1,113 @@
+/* Field interface: readable controls, flexible room navigation, office tools tucked away. */
+@media screen{
+  body.simple-field{font:18px/1.5 Arial,Helvetica,sans-serif;padding-bottom:100px;color:#173247;background:#f1f5f8}
+  .simple-field button,.simple-field input,.simple-field select,.simple-field textarea{font-family:inherit}
+  .simple-field button:focus-visible,.simple-field summary:focus-visible,.simple-field a:focus-visible{outline:3px solid #00437d;outline-offset:3px}
+  .simple-field .mast .sub{font:600 13px/1.4 Arial,sans-serif;letter-spacing:.02em}
+  .simple-field .mast .lede{font-size:17px;margin:12px 0 0}
+  .simple-field .mast h1{font:700 26px/1.2 Arial,sans-serif}
+  .simple-field .mast:after{display:none}.simple-field .mast{background:#00437d;border-bottom:0;box-shadow:none}
+  .simple-field .card{padding:20px;border-radius:12px;box-shadow:none;background:#fff;margin:14px 0}
+  .simple-field .card h2{font:700 24px/1.25 Arial,sans-serif;letter-spacing:0}
+  .simple-field .eyebrow,.simple-field .f>span,.simple-field label>span{font:600 16px/1.4 Arial,sans-serif;letter-spacing:0;text-transform:none;color:#40596b}
+  .simple-field .in{font:18px/1.45 Arial,sans-serif;min-height:54px;padding:12px;border-color:#8fa7b8}
+  .simple-field .in::placeholder{color:#5b6f7d}.simple-field .f em{font-size:15px}
+  .simple-field .act,.simple-field .mini,.simple-field .seg button,.simple-field .key-quick button{font:600 17px/1.3 Arial,sans-serif;letter-spacing:0;text-transform:none;min-height:54px;padding:12px 16px;white-space:normal}
+  .simple-field #rail,.simple-field #fieldPulse,.simple-field #walkTools,.simple-field .section-bookmarks,.simple-field .room-jump-mobile,.simple-field #walkProgress,.simple-field .tally,.simple-field #strip,.simple-field #block,.simple-field .legend,.simple-field #edFoot,.simple-field #edEyebrow,.simple-field #printRoomGroups,.simple-field #dictCard{display:none!important}
+  .simple-field .field-heading-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .simple-field .field-heading-actions .act{font-size:16px;min-height:48px;flex:1 1 120px;padding:10px}
+  .simple-field #edAddr{font:700 25px/1.3 Arial,sans-serif;overflow-wrap:anywhere}
+  .simple-field #fieldSummary{font-size:17px;margin:6px 0}
+  .simple-field #fieldSaveStatus{font-size:16px;font-weight:600;color:#205e4e;margin:8px 0 0}
+  .simple-field #fieldSaveStatus.save-error{color:#983b21}
+  .simple-field .inspection-nav{position:static;grid-template-columns:repeat(3,minmax(0,1fr));box-shadow:none;padding:4px;gap:4px;margin:12px 0}
+  .simple-field .inspection-nav button{font:600 17px/1.3 Arial,sans-serif;min-height:56px;padding:10px 6px;color:#173247}
+  .simple-field .room-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+  .simple-field .room-card{display:flex;flex-direction:column;gap:8px;text-align:left;min-height:106px;padding:16px;border:1px solid #8ea7b9;border-left:4px solid #00437d;border-radius:10px;background:#fff;color:#173247}
+  .simple-field .room-card b{font:700 21px/1.3 Arial,sans-serif;overflow-wrap:anywhere}
+  .simple-field .room-card span{font:400 16px/1.4 Arial,sans-serif;color:#40596b}
+  .simple-field .room-card.checked{border-left-color:#28715b;background:#f4faf7}
+  .simple-field .room-card:hover{background:#edf4fa}
+  .simple-field #roomDirectory>p{margin-top:8px;color:#40596b;font-size:18px}
+  .simple-field #addSpaces{margin:22px 0 0;padding:16px 0 0;border:0;border-top:1px solid #cad7e0;border-radius:0;background:#fff;box-shadow:none}
+  .simple-field .roomtools-head b{font:700 21px/1.3 Arial,sans-serif}.simple-field .roomtools-head span{font:400 17px/1.4 Arial,sans-serif;margin-top:6px}
+  .simple-field .roomtools-head>.eyebrow{display:none}.simple-field .roomtools-note{font-size:16px}
+  .simple-field .roomquick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .simple-field .roomquick .mini{padding:12px 8px}.simple-field .roomquick .mini.room-primary{font-size:17px}
+  .simple-field .field-room-head{display:flex;align-items:center;gap:16px;margin:16px 0}
+  .simple-field .field-room-head h2{font:700 24px/1.3 Arial,sans-serif;margin:0}
+  .simple-field #fieldPropertyTitle{font:16px/1.4 Arial,sans-serif;color:#40596b;margin:0 0 4px;overflow-wrap:anywhere}
+  .simple-field #spaces .sec{box-shadow:none;border:1px solid #c3d2dd;border-radius:12px}
+  .simple-field #spaces .sec:not(.field-active){display:none!important}
+  .simple-field .sec>summary{display:none}
+  .simple-field .sec>summary .caret,.simple-field .sec>summary .count,.simple-field .room-state{display:none}
+  .simple-field .room-settings{margin:0 18px 10px}
+  .simple-field .room-settings>summary{font:600 17px/1.4 Arial,sans-serif;min-height:52px;padding:12px 0;color:#00437d;cursor:pointer}
+  .simple-field .sectools{padding:0;display:flex;gap:8px;flex-wrap:wrap}
+  .simple-field .sectools .mini{flex:1 1 150px}
+  .simple-field .item{padding:22px 18px;border-top:1px solid #c7d5df;background:#fff;scroll-margin-top:16px}
+  .simple-field .item.flagged{background:#fff6f2}.simple-field .item.is-nt{background:#fff9ed}
+  .simple-field .itop{align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .simple-field .iname{font:700 21px/1.35 Arial,sans-serif;flex:1 1 170px;display:block}
+  .simple-field .base{display:block;font:400 16px/1.4 Arial,sans-serif;margin:6px 0}
+  .simple-field .cam{width:auto;height:auto;min-height:52px;min-width:110px;padding:12px;font:600 17px/1.3 Arial,sans-serif;color:#00437d}
+  .simple-field .pad6{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0 10px}
+  .simple-field .k{min-height:64px;padding:10px;display:flex;justify-content:center;align-items:center;gap:10px;font:700 21px/1.3 Arial,sans-serif;border:1px solid #809bad;color:#173247;background:#fff;box-shadow:none}
+  .simple-field .k small{font:600 18px/1.3 Arial,sans-serif;text-transform:none;letter-spacing:0;margin:0;white-space:normal;min-width:0;color:inherit}
+  .simple-field .k.on{background:#00437d!important;border-color:#00437d!important;color:#fff!important;box-shadow:inset 0 0 0 2px #fff,0 0 0 2px #00437d}
+  .simple-field .note{display:none;min-height:110px;font:18px/1.5 Arial,sans-serif;width:100%;margin-top:12px;padding:12px;border:1px solid #91a9bb}
+  .simple-field .flagged .note,.simple-field .is-nt .note,.simple-field .note.has-note{display:block}
+  .simple-field .add-note{min-height:48px;padding:10px 0;font:600 17px/1.4 Arial,sans-serif;background:transparent;border:0;color:#00437d;text-decoration:underline}
+  .simple-field .quick-reasons{display:none;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .simple-field .is-nt .quick-reasons{display:flex}
+  .simple-field .quick-reasons button{min-height:48px;padding:10px 12px;border:1px solid #9bb0bf;border-radius:8px;background:#fff;font:16px/1.3 Arial,sans-serif;color:#173247}
+  .simple-field .thumbs img{width:86px;height:70px}.simple-field .thumbs{gap:10px;margin-top:12px}
+  .simple-field .room-done{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:18px}
+  .simple-field .room-done .act{font-size:17px}
+  .simple-field #reviewIssues{display:grid;gap:10px;margin:16px 0}
+  .simple-field .review-fix{display:flex;justify-content:space-between;gap:12px;align-items:center;min-height:60px;padding:14px;text-align:left;border:1px solid #b2c2cf;border-radius:8px;background:#fff7ec;color:#713f1d;font:17px/1.4 Arial,sans-serif}
+  .simple-field #reviewCost{font-size:17px;color:#40596b;margin:16px 0}
+  .simple-field #signatureNotice{padding:14px;background:#fff2e6;border-left:4px solid #ac5727;font-size:17px;margin:16px 0}
+  .simple-field .signCard p,.simple-field #ackText{font:17px/1.5 Arial,sans-serif!important}
+  .simple-field .sigbox .eyebrow{font-size:18px;margin:14px 0}.simple-field .sigbox .row{flex-wrap:wrap}.simple-field .sigbox .row input{min-width:0;flex:1}
+  .simple-field #metaBox>summary{display:none}.simple-field #metaBox .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .simple-field #officePanel>p{margin:10px 0 16px}.simple-field #officePanel .row{flex-wrap:wrap;margin:16px 0}.simple-field #officePanel #wkCard{padding:16px 0;border:0}
+  .simple-field #officePanel .wkrow{grid-template-columns:1fr;gap:12px;padding:16px 0}.simple-field #officePanel .wkrow .wn{font-size:18px}
+  .simple-field .key-quick{gap:8px}.simple-field .field-entry>label>small{font-size:17px}.simple-field .field-entry>label>span{font:600 18px/1.4 Arial,sans-serif}.simple-field .field-notes-head p{font-size:17px}.simple-field .autosave-pill{display:none}
+  .simple-field .field-entry{padding:16px}.simple-field #keyInventory,.simple-field #overallNotes{font:18px/1.5 Arial,sans-serif;min-height:140px}
+  .simple-field .bar{padding:12px 14px calc(12px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr .7fr 1.2fr;gap:8px;box-shadow:none}
+  .simple-field .bar .act{font:600 17px/1.25 Arial,sans-serif;min-height:56px;padding:10px 6px}
+  .simple-field .home-save-label{grid-column:1/-1;font:16px/1.4 Arial,sans-serif;color:#40596b;text-align:center}
+  .simple-field #simpleStart>summary,.simple-field #homeOffice>summary{font:700 22px/1.3 Arial,sans-serif;min-height:54px;display:list-item;cursor:pointer;padding:10px}
+  .simple-field #simpleStart{border-top:3px solid #00437d}.simple-field .start-inner{padding-top:14px}
+  .simple-field .start-inner>.eyebrow,.simple-field .start-inner>h2{display:none}
+  .simple-field #homeOffice>.card{padding:16px 0;border:0;box-shadow:none}
+  .simple-field #homeOffice .health-grid{grid-template-columns:1fr}.simple-field #homeOffice .health-item b{font-size:18px}.simple-field #homeOffice .health-item small{font-size:16px}
+  .simple-field .newbtn{min-height:96px;padding:16px}.simple-field .newbtn b{font-size:21px}.simple-field .newbtn span{font-size:17px}
+  .simple-field .dashboard-tools{display:none}.simple-field .record-side{min-width:0}.simple-field .record-side small{font:16px/1.4 Arial,sans-serif}.simple-field .record-side>b{display:none}
+  .simple-field .rec .badge{font-size:12px}.simple-field .rec .rt>b{font:700 20px/1.3 Arial,sans-serif}.simple-field .rec .rt>span{font:16px/1.4 Arial,sans-serif;margin-top:6px}
+  .simple-field .enhanced-record .rec{grid-template-columns:64px minmax(0,1fr);gap:12px;padding:18px 14px}.simple-field .record-side{grid-column:2;justify-items:start}.simple-field .backup-mark{display:none!important}.simple-field .record-progress{display:none}
+  .simple-field .recdelete{display:none}.simple-field .recrow{display:block}
+  .simple-field .record-side small{display:block!important}
+  .simple-field .record-side .backup-mark{display:none!important}
+  .simple-field .app-dialog h2{font:700 24px/1.3 Arial,sans-serif}.simple-field .dialog-copy{font:18px/1.5 Arial,sans-serif}.simple-field .dialog-field>span{font:600 17px/1.4 Arial,sans-serif}.simple-field .dialog-close{width:46px;height:46px}.simple-field .app-dialog{padding:24px;max-height:88vh}
+  .simple-field .photo-panel{grid-template-columns:1fr;gap:12px}.simple-field .photo-panel label>span{font:17px/1.4 Arial,sans-serif}.simple-field .photo-panel .in{font-size:18px}.simple-field .lbtools{flex-wrap:wrap}
+  #reportPreview{padding:0;border:1px solid #8ba4b7;border-radius:10px;width:min(100% - 20px,1000px);max-width:none;height:90vh;max-height:95vh;background:#fff;color:#173247}
+  #reportPreview[open]{display:flex;flex-direction:column}#reportPreview::backdrop{background:#00243dbb}
+  #reportPreview .preview-actions{display:flex;gap:12px;justify-content:space-between;padding:14px;border-bottom:1px solid #b8cbd9;flex-wrap:wrap}
+  #reportPreview iframe{width:100%;flex:1;border:0;background:#fff;min-height:0}
+  body.simple-field[data-view="editor"] #propertyDetails,body.simple-field[data-view="editor"] #fieldNotesCard,body.simple-field[data-view="editor"] #roomDirectory,body.simple-field[data-view="editor"] #spaces,body.simple-field[data-view="editor"] .field-room-head,body.simple-field[data-view="editor"] #reviewPanel,body.simple-field[data-view="editor"] #officePanel{display:none}
+  body.simple-field[data-field-panel="details"] #propertyDetails,body.simple-field[data-field-panel="notes"] #fieldNotesCard,body.simple-field[data-field-panel="rooms"] #roomDirectory,body.simple-field[data-field-panel="room"] #spaces,body.simple-field[data-field-panel="room"] .field-room-head,body.simple-field[data-field-panel="review"] #reviewPanel,body.simple-field[data-field-panel="office"] #officePanel{display:block}
+  body.simple-field[data-field-panel="room"] .field-room-head{display:flex}
+  .simple-field .item.just-marked,.simple-field .just-marked .k.on{animation:none;transform:none}.simple-field #celebrate{display:none}
+}
+@media screen and (max-width:600px){
+  .simple-field .card{padding:16px}.simple-field .room-cards{grid-template-columns:1fr}.simple-field .room-card{min-height:92px}
+  .simple-field #metaBox .grid{grid-template-columns:1fr}.simple-field #metaBox .f.full{grid-column:auto}
+  .simple-field .field-heading-actions .act{flex:1 1 100px}
+  .simple-field .pad6{gap:8px}.simple-field .k{gap:6px;padding:10px 6px}.simple-field .k small{font-size:17px}.simple-field .room-done{grid-template-columns:1fr}
+  .simple-field .room-settings{margin:0 14px 10px}.simple-field .item{padding:20px 14px}.simple-field .field-room-head h2{font-size:22px}
+  .simple-field .signCard .sigs{grid-template-columns:1fr}.simple-field .sigbox .row{display:grid;grid-template-columns:1fr auto}
+  .simple-field .bar{gap:6px;padding-left:10px;padding-right:10px}.simple-field .bar .act{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){.simple-field *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}

@@ -14,14 +14,19 @@
 </head>
 <body>
   <main class="panel"><h1>Inspection App regression check</h1><p class="sub">Runs against isolated test storage and never touches real inspection records.</p><div class="status" id="status">Running checks…</div><ul id="results"></ul><pre id="error"></pre></main>
-  <iframe id="app" title="Test app" src="../index.html?selftest=1&amp;suite=56"></iframe>
+  <iframe id="app" title="Test app" src="../index.html?selftest=1&amp;suite=58"></iframe>
+  <iframe id="office" title="Test office device" src="../index.html?selftest=1&amp;suite=58-office"></iframe>
+  <script src="./field-check.js"></script>
+  <script src="./office-check.js"></script>
   <script>
     const frame=document.getElementById("app"),status=document.getElementById("status"),results=document.getElementById("results"),error=document.getElementById("error");
     frame.addEventListener("load",async()=>{
       try{
         const api=frame.contentWindow.__CIMCO_TEST__;
         if(!api||typeof api.run!=="function") throw new Error("The inspection test API did not load.");
-        const checks=await api.run();
+        const office=document.getElementById('office');
+        if(!office.contentWindow.__CIMCO_OFFICE__)await new Promise(resolve=>office.addEventListener('load',resolve,{once:true}));
+        const checks=[...await api.run(),...await runFieldChecks(frame.contentWindow),...await runOfficeChecks(frame.contentWindow,office.contentWindow)];
         results.innerHTML=checks.map(check=>"<li>"+check.name+"</li>").join("");
         status.textContent=checks.length+" checks passed"; status.className="status pass";
       }catch(err){ status.textContent="Regression check failed"; status.className="status fail"; error.textContent=err&&err.stack||String(err); }
