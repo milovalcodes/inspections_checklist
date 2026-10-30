@@ -14,13 +14,13 @@
 </head>
 <body>
   <main class="panel"><h1>Inspection App regression check</h1><p class="sub">Runs against isolated test storage and never touches real inspection records.</p><div class="status" id="status">Running checks…</div><ul id="results"></ul><pre id="error"></pre></main>
-  <iframe id="app" title="Test app" src="../index.html?selftest=1&amp;suite=60"></iframe>
-  <iframe id="office" title="Test office device" src="../index.html?selftest=1&amp;suite=60-office"></iframe>
-  <iframe id="practice" title="Practice app" src="../index.html?practice=1&amp;suite=60-practice-check"></iframe>
-  <script src="./field-check.js"></script>
-  <script src="./office-check.js"></script>
-  <script src="./guide-check.js"></script>
-  <script src="./checklist-check.js"></script>
+  <iframe id="app" title="Test app" src="../index.html?selftest=1&amp;suite=61"></iframe>
+  <iframe id="office" title="Test office device" src="../index.html?selftest=1&amp;suite=61-office"></iframe>
+  <iframe id="practice" title="Practice app" src="../index.html?practice=1&amp;suite=61-practice-check"></iframe>
+  <script src="./field-check.js?v=61"></script>
+  <script src="./office-check.js?v=61"></script>
+  <script src="./guide-check.js?v=61"></script>
+  <script src="./checklist-check.js?v=61"></script>
   <script>
     const frame=document.getElementById("app"),status=document.getElementById("status"),results=document.getElementById("results"),error=document.getElementById("error");
     frame.addEventListener("load",async()=>{

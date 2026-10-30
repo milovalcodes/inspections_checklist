@@ -129,7 +129,7 @@ watchSpaces=function(){if(SPACE_OBSERVER){SPACE_OBSERVER.disconnect();SPACE_OBSE
 renderBar=function(){
   const bar=document.getElementById('bar');
   if(document.body.dataset.view==='home'){bar.innerHTML='<div class="home-save-label">Inspections stay on this phone. Use Office tools for backups.</div>';return;}
-  bar.innerHTML='<button type="button" class="act" data-field-panel="rooms">All rooms</button><button type="button" class="act" data-undo '+(!lastChange||lastChange.id!==cur.id?'disabled':'')+'>Undo</button><button type="button" class="act solid" data-field-panel="review">Finish & send</button>';
+  bar.innerHTML='<button type="button" class="act" data-field-panel="rooms">All rooms</button><button type="button" class="act" data-undo '+(!lastChange||lastChange.id!==cur.id?'disabled':'')+'>Undo</button><button type="button" class="act solid" data-field-panel="review">Finish / PDF</button>';
 };
 document.addEventListener('click',async event=>{
   const t=event.target.closest('button');if(!t)return;

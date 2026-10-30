@@ -1,8 +1,8 @@
-# CIMCO Property Inspection - Simple Offline Visits v60
+# CIMCO Property Inspection - Simple Offline Visits v61
 
 An offline-first app for move-in, move-out, rent-ready, and routine inspections.
 
-## Offline visits and guided finish (v60)
+## Offline visits and guided finish (v61)
 
 The app runs locally after its static files are installed, or from the self-contained offline distribution. Inspection records, planned visits, preferences, photos and receipts stay in local browser storage. There is no account, backend, automatic synchronization, online note generation, or external font dependency. File transfers can use local Wi-Fi sharing or USB. Initial installation and an optional hosted-app update are separate from offline field use.
 
@@ -10,13 +10,13 @@ The office can choose **Prepare a visit**, select a saved property layout or sta
 
 Manual inspections remember a name explicitly entered by the inspector. **Show only unchecked items** leaves findings visible while an explanation is missing. **Mark remaining items Good** is visible at the room footer and still requires confirmation; it never overwrites recorded results. Suggested notes are item-specific and require an explicit tap. They append to existing notes and support Undo. Problem photo reminders are optional.
 
-**Finish & send** offers three steps: Check, Sign, Send. Missing checks and signatures require an explicit draft acknowledgement before preparation. Files prepared before a signature or later edit cannot be reused as the current report. The top status display distinguishes local saving from an office confirmation. Sharing or saving does not confirm receipt; the office must return the matching confirmation file.
+**Finish / PDF** offers three steps: Check, Sign, PDF / Print. Saving as PDF or printing is the primary finish action and never requires an office file or receipt. Sending is inside a collapsed **Send to office (optional)** section. Missing checks and signatures remain identified in the report; preparing an optional office copy requires a draft acknowledgement when unfinished. Files prepared before a signature or later edit cannot be reused as the current report. The top status display distinguishes local saving from an office confirmation. Sharing or saving does not confirm receipt; the office must return the matching confirmation file.
 
 **Try a practice inspection** opens separate storage with a persistent Practice mode banner, fictional house and short walkthrough. Practice and real records never merge automatically. The offline package includes dedicated Field Practice and Office Practice files with links back to their corresponding real app files.
 
 Complete backups include planned visits and the remembered inspector. They can capture current in-memory work even when browser storage is full, and the save-failure status remains visible. Restore requires an empty inspection and visit list. Backup creation is a file export; keep a copy with the office.
 
-## Default house checklist (v60)
+## Default house checklist (v61)
 
 New base forms start with Master Bedroom, Bedroom 2, Master bath, and Bathroom 2. Inspectors can remove any area under Room options and restore it from Recently deleted. New rooms receive unused numbered names after deletions. Saved inspections, assigned visits and property-specific layouts retain their existing structure.
 
@@ -28,7 +28,7 @@ HVAC, Thermostat and Air filter are independent areas in every new base inspecti
 2. Choose any room or area, in any order. Return with **All rooms**. Add bedrooms, full or half bathrooms, garages, patios, or custom spaces during the visit. **Room options** offers renaming and custom checklist items.
 3. Record **Good**, **Needs work**, **Not present**, or **Could not check**. Explain problems and inspection limits; common reasons include Power off and Water off. Add photos and notes to any result.
 4. **Save and finish later** returns home. Reopening restores the selected room. Saved on this phone does not mean sent to the office.
-5. Choose **Finish & send**, resolve missing information, review signatures, and preview the report before transferring it. Incomplete or unsigned reports remain clearly identified.
+5. Choose **Finish / PDF**, resolve missing information, review signatures, and save the report as a PDF or print it. Office sharing is optional. Incomplete or unsigned reports remain clearly identified.
 
 The interface uses larger text, full labels, and generous touch targets. Rooms do not close or advance automatically. Repeated taps do not clear results. **Undo** reverses the last checklist selection or bulk marking. Notes remain when a result changes.
 
@@ -40,7 +40,7 @@ Older N/A results remain labeled as earlier N/A records; the app does not guess 
 
 ## Office tools
 
-See [OFFLINE-SHARING.md](OFFLINE-SHARING.md) for the v60 phone-to-Windows workflow. Portable ZIP packets carry inspection data, photographs, move-in comparison evidence, and a self-contained printable report. LocalSend can transfer them over local Wi-Fi without internet or an inspection backend.
+See [OFFLINE-SHARING.md](OFFLINE-SHARING.md) for the v61 phone-to-Windows workflow. Portable ZIP packets carry inspection data, photographs, move-in comparison evidence, and a self-contained printable report. LocalSend can transfer them over local Wi-Fi without internet or an inspection backend.
 
 SHA-256 covers packet identity, timestamps, and payload. Imports validate images before allowing a receipt. Repeated imports are idempotent; conflicting condition versions stay separate. Only a matching returned receipt confirms the particular packet. Receipts are manually identified acknowledgements, not authenticated signatures.
 
@@ -94,6 +94,6 @@ Serve the project locally and open `tests/regression.html` for the browser check
 
 The offline ZIP includes self-contained Office Desk, Practice, and Field App files, instructions, license, and a fictional example packet. There are no external script, stylesheet, image, or font dependencies. Keep local app filenames and folders stable; browser file storage varies. A standalone HTML file is not a verified phone installation method. Practice always uses isolated storage.
 
-The separate website ZIP is an optional update for the existing installed field app. Publish only its static `website-upload` contents when rollout is authorized. Keep the existing origin and paths so devices retain records. The v60 service worker caches all report, field, office, and vendor files. Exclude `output/`, `tmp/`, tests, real records, and private office configuration. Office Desk and file handoff require no publishing.
+The separate website ZIP is an optional update for the existing installed field app. Publish only its static `website-upload` contents when rollout is authorized. Keep the existing origin and paths so devices retain records. The v61 service worker caches all report, field, office, and vendor files. Exclude `output/`, `tmp/`, tests, real records, and private office configuration. Office Desk and file handoff require no publishing.
 
 Before field rollout, check camera access, offline reopening, signatures, and PDF saving on the inspectors' actual iPhone and Android devices. Desktop verification does not establish physical-device behavior.
