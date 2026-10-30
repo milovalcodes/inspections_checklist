@@ -13,8 +13,8 @@ for(const page of pages){
   const inline=html.match(/<script>\s*"use strict";([\s\S]*?)<\/script>/);
   assert.ok(inline,`${page} main script is present`);
   new Function('"use strict";'+inline[1]);
-  assert.match(html,/app-theme\.css\?v=59/);
-  assert.match(html,/app-enhancements\.js\?v=59/);
+  assert.match(html,/app-theme\.css\?v=60/);
+  assert.match(html,/app-enhancements\.js\?v=60/);
   assert.match(html,/id="fieldNotesCard"/);
   assert.match(html,/id="keyInventory"[^>]*data-m="keys"/);
   assert.match(html,/id="overallNotes"[^>]*data-m="misc"/);
@@ -38,13 +38,13 @@ const theme=read("app-theme.css");
 assert.match(theme,/\.rec \.badge\{width:58px;[^}]*white-space:nowrap;overflow:hidden\}/,"record badges contain long labels");
 assert.match(theme,/\.cam\{width:44px;height:44px\}/,"mobile photo controls keep a full tap target");
 assert.match(theme,/\.inspection-nav\{position:sticky/,"compact section navigation stays available while walking");
-assert.match(read("tests/regression.html"),/selftest=1&amp;suite=59/,"browser tests use a release-specific isolated URL");
+assert.match(read("tests/regression.html"),/selftest=1&amp;suite=60/,"browser tests use a release-specific isolated URL");
 for(const marker of ["convertInspectionForm","photoPut","reportHTML","signatureSvg","insertSpaceNearFamily"]){
   assert.ok(general.includes(marker),`${marker} remains available`);
 }
 
 const worker=read("service-worker.js");
-for(const asset of ["index.html","move-in.html","move-out.html","app-theme.css?v=59","app-enhancements.js?v=59","inspection-reports.js?v=59","inspector-flow.js?v=59","inspector-flow.css?v=59"]){
+for(const asset of ["index.html","move-in.html","move-out.html","app-theme.css?v=60","app-enhancements.js?v=60","inspection-reports.js?v=60","inspector-flow.js?v=60","inspector-flow.css?v=60"]){
   assert.ok(worker.includes(asset),`${asset} is cached for offline use`);
 }
 assert.match(worker,/self\.skipWaiting\(\)/,"new offline builds activate without waiting for every old tab to close");
@@ -63,6 +63,6 @@ assert.deepEqual(JSON.parse(read("office-delivery/appsscript.json")).oauthScopes
 
 
 assert.ok(!general.includes("fonts.googleapis.com"),"field app has no external font dependency");
-for(const name of ["visit-model.js","field-guide.js","field-guide.css"])assert.ok(worker.includes(name+"?v=59"),name+" cached for offline use");
+for(const name of ["visit-model.js","field-guide.js","field-guide.css"])assert.ok(worker.includes(name+"?v=60"),name+" cached for offline use");
 
 console.log("CIMCO static regression checks passed.");

@@ -29,6 +29,7 @@ function state(raw={}){
 }
 function suggestions(item){
   const s=String(item||'').toLowerCase();
+  if(/(?:air|a\/c|hvac) filter|^filter condition/.test(s))return ['Air filter needs replacement.','Air filter is missing.','Air filter does not fit correctly.'];
   if(/sink|faucet|toilet|tub|shower|hookup|hose/.test(s))return ['Water leaking at this fixture.','Fixture does not operate.','Cleaning needed at this fixture.'];
   if(/window|blind|screen/.test(s))return ['Window does not open or close.','Lock does not secure.','Screen is torn.'];
   if(/door|lock|deadbolt|gate/.test(s))return ['Does not close properly.','Lock does not secure.','Visible damage to the surface.'];
@@ -38,5 +39,11 @@ function suggestions(item){
   if(/refrigerator|range|oven|microwave|washer|dryer|dishwasher/.test(s))return ['Did not operate when tested.','Visible damage to the appliance.','Cleaning needed inside the appliance.'];
   return ['Visible damage; add the location below.','Cleaning needed; add the location below.'];
 }
-return {visit,file,merge,state,suggestions,date};
+function replacementActions(item){
+  const s=String(item||'').toLowerCase(),out=[];
+  if(/batter(?:y|ies)|thermostat|alarms?|detectors?|remotes?|keypads?|doorbells?/.test(s))out.push({kind:'batteries',label:'Batteries (if fitted)',note:'Batteries need replacement.'});
+  if(/(?:air|a\/c|hvac) filter|^filter condition/.test(s))out.push({kind:'filter',label:'Air filter',note:'Air filter needs replacement.'});
+  return out;
+}
+return {visit,file,merge,state,suggestions,replacementActions,date};
 })();

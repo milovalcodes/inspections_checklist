@@ -5,7 +5,7 @@ async function runFieldChecks(win){
   const click=async selector=>{const el=doc.querySelector(selector);if(!el)throw new Error('Missing control '+selector);el.click();await tick();};
   try{
     const rec=await api.create('out',{address:'SAMPLE FIELD TEST',unit:'A'});
-    check('New inspection begins with a freely selectable room list',doc.body.dataset.fieldPanel==='rooms'&&doc.querySelectorAll('.room-card').length===7);
+    check('New inspection begins with a freely selectable room list',doc.body.dataset.fieldPanel==='rooms'&&doc.querySelectorAll('.room-card').length===12);
     const bath=rec.spaces.find(s=>s.type==='bathroom');
     await click('[data-room-open="'+bath.id+'"]');
     check('An inspector can begin in any room',doc.body.dataset.fieldPanel==='room'&&doc.querySelector('.field-active').dataset.sp===bath.id);

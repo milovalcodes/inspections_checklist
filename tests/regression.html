@@ -14,12 +14,13 @@
 </head>
 <body>
   <main class="panel"><h1>Inspection App regression check</h1><p class="sub">Runs against isolated test storage and never touches real inspection records.</p><div class="status" id="status">Running checks…</div><ul id="results"></ul><pre id="error"></pre></main>
-  <iframe id="app" title="Test app" src="../index.html?selftest=1&amp;suite=59"></iframe>
-  <iframe id="office" title="Test office device" src="../index.html?selftest=1&amp;suite=59-office"></iframe>
-  <iframe id="practice" title="Practice app" src="../index.html?practice=1&amp;suite=59-practice-check"></iframe>
+  <iframe id="app" title="Test app" src="../index.html?selftest=1&amp;suite=60"></iframe>
+  <iframe id="office" title="Test office device" src="../index.html?selftest=1&amp;suite=60-office"></iframe>
+  <iframe id="practice" title="Practice app" src="../index.html?practice=1&amp;suite=60-practice-check"></iframe>
   <script src="./field-check.js"></script>
   <script src="./office-check.js"></script>
   <script src="./guide-check.js"></script>
+  <script src="./checklist-check.js"></script>
   <script>
     const frame=document.getElementById("app"),status=document.getElementById("status"),results=document.getElementById("results"),error=document.getElementById("error");
     frame.addEventListener("load",async()=>{
@@ -30,7 +31,7 @@
         if(!office.contentWindow.__CIMCO_OFFICE__)await new Promise(resolve=>office.addEventListener('load',resolve,{once:true}));
         const practice=document.getElementById('practice');
         if(!practice.contentWindow.__CIMCO_GUIDE__)await new Promise(resolve=>practice.addEventListener('load',resolve,{once:true}));
-        const checks=[...await api.run(),...await runFieldChecks(frame.contentWindow),...await runOfficeChecks(frame.contentWindow,office.contentWindow),...await runGuideChecks(frame.contentWindow,office.contentWindow,practice.contentWindow)];
+        const checks=[...await api.run(),...await runFieldChecks(frame.contentWindow),...await runOfficeChecks(frame.contentWindow,office.contentWindow),...await runGuideChecks(frame.contentWindow,office.contentWindow,practice.contentWindow),...await runChecklistChecks(frame.contentWindow,office.contentWindow)];
         results.innerHTML=checks.map(check=>"<li>"+check.name+"</li>").join("");
         status.textContent=checks.length+" checks passed"; status.className="status pass";
       }catch(err){ status.textContent="Regression check failed"; status.className="status fail"; error.textContent=err&&err.stack||String(err); }

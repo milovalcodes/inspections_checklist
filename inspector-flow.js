@@ -94,9 +94,9 @@ function shell(){
   const directory=document.createElement('section');directory.id='roomDirectory';directory.className='card noprint';directory.innerHTML='<h2>Rooms and areas</h2><p>Choose any area. Walk the house in the order that works for you.</p><div class="room-cards" id="roomCards"></div>';
   document.getElementById('spaces').before(directory);
   const add=document.getElementById('addSpaces');directory.append(add);
-  add.querySelector('.roomtools-head b').textContent='Add a room or area';add.querySelector('.roomtools-head span').textContent='Add rooms as you find them. Rename them under Room options.';
+  add.querySelector('.roomtools-head b').textContent='Add a room or area';add.querySelector('.roomtools-head span').textContent='Add rooms as you find them. Use Room options to rename or remove an area.';
   add.querySelector('.roomtools-note').textContent='This layout is kept with the property inspection.';
-  add.querySelector('.roomquick').insertAdjacentHTML('beforeend','<button class="mini" data-add="garage">+ Garage</button><button class="mini" data-add="patio">+ Patio / lanai</button>');
+  add.querySelector('.roomquick').insertAdjacentHTML('beforeend','<button class="mini" data-add="garage">+ Garage</button><button class="mini" data-add="patio">+ Patio / lanai</button><button class="mini" data-add="hvac">+ HVAC</button><button class="mini" data-add="thermostat">+ Thermostat</button><button class="mini" data-add="filter">+ Air filter</button>');
   const roomHead=document.createElement('div');roomHead.className='field-room-head noprint';roomHead.innerHTML='<button type="button" class="act" data-field-panel="rooms">← All rooms</button><div><p id="fieldPropertyTitle"></p><h2 id="fieldRoomTitle">Choose an area</h2></div>';document.getElementById('spaces').before(roomHead);
   const review=document.createElement('section');review.id='reviewPanel';review.className='card noprint';review.innerHTML='<h2 id="reviewTitle">Review inspection</h2><div id="reviewIssues"></div><p id="reviewCost"></p><p id="signatureNotice" role="status" hidden></p><button type="button" class="act solid" data-preview-report>Preview report / Save PDF</button>';
   document.getElementById('editor').append(review);review.append(document.getElementById('signCard'));

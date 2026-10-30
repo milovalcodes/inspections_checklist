@@ -4,7 +4,7 @@ import base64
 import re
 
 root = Path(__file__).resolve().parents[1]
-out = root / "output" / "releases" / "offline-v59"
+out = root / "output" / "releases" / "offline-v60"
 out.mkdir(parents=True, exist_ok=True)
 source = (root / "index.html").read_text(encoding="utf-8")
 logo = "data:image/png;base64," + base64.b64encode((root / "cimco-logo.png").read_bytes()).decode("ascii")

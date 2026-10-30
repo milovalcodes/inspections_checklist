@@ -519,10 +519,10 @@ body[data-mode="routine"] .moveonly{display:none!important}
   .strip{display:none}
 }
 </style>
-<link rel="stylesheet" href="./app-theme.css?v=59">
-<link rel="stylesheet" href="./inspector-flow.css?v=59">
-<link rel="stylesheet" href="./offline-office.css?v=59">
-<link rel="stylesheet" href="./field-guide.css?v=59">
+<link rel="stylesheet" href="./app-theme.css?v=60">
+<link rel="stylesheet" href="./inspector-flow.css?v=60">
+<link rel="stylesheet" href="./offline-office.css?v=60">
+<link rel="stylesheet" href="./field-guide.css?v=60">
 
 <header class="mast">
   <div class="wrap">
@@ -835,7 +835,7 @@ let REPORT_LOGO_DATA = "";
 let REPORT_LOGO_PROMISE = null;
 const PRACTICE = globalThis.CIMCO_PRACTICE_MODE===true || new URLSearchParams(location.search).get("practice")==="1";
 const SELF_TEST = PRACTICE || new URLSearchParams(location.search).get("selftest")==="1";
-const TEST_NAMESPACE = (new URLSearchParams(location.search).get("suite")||(PRACTICE?(globalThis.CIMCO_OFFICE_DESK?"office-practice-v59":"inspector-practice-v59"):"manual")).replace(/[^a-zA-Z0-9_-]/g,"").slice(0,32);
+const TEST_NAMESPACE = (new URLSearchParams(location.search).get("suite")||(PRACTICE?(globalThis.CIMCO_OFFICE_DESK?"office-practice-v60":"inspector-practice-v60"):"manual")).replace(/[^a-zA-Z0-9_-]/g,"").slice(0,32);
 const KEY = SELF_TEST ? "cimco.inspections.selftest.v1."+TEST_NAMESPACE : globalThis.CIMCO_OFFICE_DESK===true ? "cimco.office.inspections.v1" : "cimco.inspections.v1";
 const PHOTO_DB = SELF_TEST ? "cimco-photos-selftest-"+TEST_NAMESPACE : globalThis.CIMCO_OFFICE_DESK===true ? "cimco-office-photos" : "cimco-photos";
 const OFFICE_AI_CONFIG_KEY = "cimco.office-ai.config.v1";
@@ -855,13 +855,17 @@ const T = {
   guestroom:{label:"Guest room", items:BEDROOM_ITEMS},
   bathroom:{label:"Bathroom", items:BATHROOM_ITEMS},
   halfbath:{label:"Half bath", items:HALF_BATH_ITEMS},
-  systems: {label:"Safety & systems", items:["Smoke / CO alarms","HVAC / thermostat / filter","Water heater","Electrical panel","Main water shutoff","Locks / deadbolts"]},
+  hvac: {label:"HVAC", items:["Cooling / heating operation","Airflow / vents","Condensate drain / pan / float switch","Outdoor unit / clearance"]},
+  thermostat: {label:"Thermostat", items:["Temperature setting / response","Batteries (if fitted)"]},
+  filter: {label:"Air filter", items:["Air filter condition / fit"]},
+  systems: {label:"Safety & systems", items:["Smoke / CO alarms","Water heater","Electrical panel","Main water shutoff","Locks / deadbolts","Electronic lock batteries (if fitted)"]},
   outside: {label:"Outside", items:["Yard / landscaping","Exterior doors / locks","Exterior lights","Fence / gates","Shed / outbuildings","Roof / siding / gutters","Screens / lanai","Garage / carport","Driveway / walkways","Pool","Mailbox"]},
   other:   {label:"Other space", items:["Floor","Walls / ceiling","Lights","Windows","Doors","Outlets / switches"]}
 };
 const DEFAULT_SPACES = [
   ["living","Living room"],["kitchen","Kitchen"],["laundry","Laundry & appliances"],
-  ["bedroom","Master Bedroom"],["bathroom","Master bath"],["systems","Safety & systems"],["outside","Outside"]
+  ["bedroom","Master Bedroom"],["bedroom","Bedroom 2"],["bathroom","Master bath"],["bathroom","Bathroom 2"],
+  ["hvac","HVAC"],["thermostat","Thermostat"],["filter","Air filter"],["systems","Safety & systems"],["outside","Outside"]
 ];
 /* The rent-ready beta's real field checks, consolidated so each core line is
    a distinct decision. Property-specific checks stay off until selected. */
@@ -869,14 +873,15 @@ const READY_SPACES = [
   ["rr-safety","Safety & access",[
     "Smoke / CO alarms and extinguisher (present, tested, in date)",
     "Exterior doors / locks (deadbolts work and locks re-keyed)",
+    "Electronic lock batteries (if fitted)",
     "Windows / bedroom egress (open, latch, and are not blocked)",
     "GFCI outlets / electrical panel (test, reset, labeled, no exposed wiring)",
     "Moisture / mold / rails (no leak, odor, staining, or loose safety rail)"
   ]],
-  ["rr-hvac","HVAC & utilities",[
-    "A/C cooling / thermostat (reaches set point and holds)",
-    "A/C filter / condensate (fresh filter; drain, pan, and float switch clear)",
-    "Outdoor A/C unit (level, coils clear, vegetation cut back)",
+  ["hvac","HVAC",T.hvac.items],
+  ["thermostat","Thermostat",T.thermostat.items],
+  ["filter","Air filter",T.filter.items],
+  ["rr-utilities","Utilities",[
     "Water heater (safe setting; no rust, leaks, or missing discharge pipe)",
     "Utilities on (power, water, and gas in the correct account)"
   ]],
@@ -897,7 +902,9 @@ const READY_SPACES = [
     "Whole-house professional clean (including cabinets, appliances, baseboards, tracks)"
   ]],
   ["bedroom","Master Bedroom",BEDROOM_ITEMS],
+  ["bedroom","Bedroom 2",BEDROOM_ITEMS],
   ["bathroom","Master bath",BATHROOM_ITEMS],
+  ["bathroom","Bathroom 2",BATHROOM_ITEMS],
   ["rr-exterior","Exterior & grounds",[
     "Roof / gutters / drainage (visually sound; water directed away)",
     "Irrigation / landscaping / grass (runs; trimmed; no roof overgrowth)",
@@ -940,22 +947,26 @@ const ROUTINE_SPACES = [
     "Smoking / unusual odors","Unauthorized occupants / pets"
   ]],
   ["routine-safety","Safety & electrical",[
-    "Smoke alarms","CO alarms","GFCI outlets","Outlets / switches / exposed wiring","Doors / locks / emergency exits"
+    "Smoke alarms","CO alarms","GFCI outlets","Outlets / switches / exposed wiring","Doors / locks / emergency exits","Electronic lock batteries (if fitted)"
   ]],
   ["routine-moisture","Water, leaks & mold",[
     "Visible mold / mildew","Ceilings / walls / water staining","Kitchen sink / cabinets / supply lines",
     "Bathroom fixtures / toilet / tub / shower","Water heater / shutoffs / standing water"
   ]],
-  ["routine-systems","HVAC & appliances",[
-    "A/C cooling / thermostat","A/C filter / vents / condensate","Refrigerator / freezer",
-    "Oven / range / vent hood","Dishwasher / disposal / washer / dryer"
+  ["hvac","HVAC",T.hvac.items],
+  ["thermostat","Thermostat",T.thermostat.items],
+  ["filter","Air filter",T.filter.items],
+  ["routine-appliances","Appliances",[
+    "Refrigerator / freezer","Oven / range / vent hood","Dishwasher / disposal / washer / dryer"
   ]],
   ["routine-interior","Interior condition",[
     "Floors / carpet / tile","Walls / ceilings / paint","Windows / screens / blinds",
     "Interior doors / closets","Cabinets / counters / fixtures"
   ]],
   ["bedroom","Master Bedroom",BEDROOM_ITEMS],
+  ["bedroom","Bedroom 2",BEDROOM_ITEMS],
   ["bathroom","Master bath",BATHROOM_ITEMS],
+  ["bathroom","Bathroom 2",BATHROOM_ITEMS],
   ["routine-exterior","Exterior & grounds",[
     "Yard / landscaping / debris","Exterior walls / roof / gutters","Driveway / walkways / fencing",
     "Exterior lights / house numbers","Garage / carport / pool / patio / lanai"
@@ -1513,12 +1524,15 @@ function groupRelatedRooms(rec){
 }
 function nextSpaceName(type){
   const spaces = (cur&&Array.isArray(cur.spaces)) ? cur.spaces : [];
-  if(type==="bedroom") return "Bedroom " + Math.max(2, spaces.filter(sp=>sp.type==="bedroom").length + 1);
+  if(type==="bedroom"||type==="bathroom"){
+    const label=type==="bedroom"?"Bedroom ":"Bathroom ";let number=2;
+    while(spaces.some(sp=>String(sp.name).trim().toLowerCase()===(label+number).toLowerCase()))number++;
+    return label+number;
+  }
   if(type==="guestroom"){
     const count=spaces.filter(sp=>sp.type==="guestroom").length;
     return count ? "Guest room " + (count+1) : "Guest room";
   }
-  if(type==="bathroom") return "Bathroom " + Math.max(2, spaces.filter(sp=>sp.type==="bathroom").length + 1);
   if(type==="halfbath"){
     const count=spaces.filter(sp=>sp.type==="halfbath").length;
     return count ? "Half bath " + (count+1) : "Half bath";
@@ -3834,11 +3848,11 @@ if(!SELF_TEST && !globalThis.CIMCO_OFFLINE_BUNDLE && "serviceWorker" in navigato
   window.addEventListener("load", ()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
 }
 </script>
-<script src="./vendor/jszip.min.js?v=59"></script>
-<script src="./office-model.js?v=59"></script>
-<script src="./inspection-reports.js?v=59"></script>
-<script src="./app-enhancements.js?v=59"></script>
-<script src="./inspector-flow.js?v=59"></script>
-<script src="./offline-office.js?v=59"></script>
-<script src="./visit-model.js?v=59"></script>
-<script src="./field-guide.js?v=59"></script>
+<script src="./vendor/jszip.min.js?v=60"></script>
+<script src="./office-model.js?v=60"></script>
+<script src="./inspection-reports.js?v=60"></script>
+<script src="./app-enhancements.js?v=60"></script>
+<script src="./inspector-flow.js?v=60"></script>
+<script src="./offline-office.js?v=60"></script>
+<script src="./visit-model.js?v=60"></script>
+<script src="./field-guide.js?v=60"></script>

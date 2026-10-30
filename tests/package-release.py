@@ -18,11 +18,11 @@ for entry in re.findall(r"'\./([^']*)'", asset_block):
 for name in assets:
     assert (root / name).is_file(), f"Missing app asset: {name}"
     assert (root / name).resolve().is_relative_to(root.resolve()), f"Asset outside app: {name}"
-package = out / "CIMCO-Inspection-v59-website.zip"
+package = out / "CIMCO-Inspection-v60-website.zip"
 with zipfile.ZipFile(package, "w", zipfile.ZIP_DEFLATED) as archive:
     for name in assets:
         archive.write(root / name, "website-upload/" + name)
-    archive.writestr("READ-ME-FIRST.txt", "CIMCO Inspection v59 - optional existing field app update\n\n"
+    archive.writestr("READ-ME-FIRST.txt", "CIMCO Inspection v60 - optional existing field app update\n\n"
         "Upload the contents of website-upload to the existing website location. "
         "Keep the same origin and paths so phones retain saved inspections.\n\n"
         "Only static app files are included. No inspection records, condition photos, "
@@ -34,17 +34,17 @@ with zipfile.ZipFile(package) as archive:
     assert "website-upload/service-worker.js" in archive.namelist()
     for entry in archive.namelist():
         assert not any(part in entry for part in ["output/", "tmp/", "office-delivery", "config.json"])
-    manifest = {"version": "v59", "files": archive.namelist(),
+    manifest = {"version": "v60", "files": archive.namelist(),
                 "sha256": hashlib.sha256(package.read_bytes()).hexdigest()}
-(out / "v59-package-manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+(out / "v60-package-manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 print(f"Verified {len(assets)} static app files in {package}")
 
-offline_dir = out / "offline-v59"
+offline_dir = out / "offline-v60"
 names = ["CIMCO-Field-App.html", "CIMCO-Field-Practice.html", "CIMCO-Office-Desk.html", "CIMCO-Office-Practice.html",
          "examples/SAMPLE-Office-Packet.zip", "examples/SAMPLE-Visit-File.json", "examples/OPEN-REPORT.html"]
 guide = (root / "OFFLINE-SHARING.md").read_text(encoding="utf-8")
 (offline_dir / "READ-ME-FIRST.txt").write_text(guide, encoding="utf-8")
-offline_package = out / "CIMCO-Inspection-v59-offline.zip"
+offline_package = out / "CIMCO-Inspection-v60-offline.zip"
 with zipfile.ZipFile(offline_package, "w", zipfile.ZIP_DEFLATED) as archive:
     for name in names:
         assert (offline_dir / name).is_file(), f"Build offline files first: {name}"
@@ -54,7 +54,7 @@ with zipfile.ZipFile(offline_package, "w", zipfile.ZIP_DEFLATED) as archive:
 with zipfile.ZipFile(offline_package) as archive:
     assert archive.testzip() is None
     assert set(archive.namelist()) == set(names + ["READ-ME-FIRST.txt", "JSZIP-LICENSE.md"])
-    offline_manifest = {"version": "v59", "files": archive.namelist(),
+    offline_manifest = {"version": "v60", "files": archive.namelist(),
                         "sha256": hashlib.sha256(offline_package.read_bytes()).hexdigest()}
-(out / "v59-offline-manifest.json").write_text(json.dumps(offline_manifest, indent=2), encoding="utf-8")
+(out / "v60-offline-manifest.json").write_text(json.dumps(offline_manifest, indent=2), encoding="utf-8")
 print(f"Verified self-contained office distribution: {offline_package}")
