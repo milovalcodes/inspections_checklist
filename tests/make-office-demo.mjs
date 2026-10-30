@@ -5,7 +5,7 @@ import {webcrypto} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url),JSZip=require('../vendor/jszip.min.js');
-const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),out=path.join(root,'output/releases/offline-v61/examples');fs.mkdirSync(out,{recursive:true});
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),out=path.join(root,'output/releases/offline-v62/examples');fs.mkdirSync(out,{recursive:true});
 const core=fs.readFileSync(path.join(root,'index.html'),'utf8').replace(/\r\n/g,'\n'),office=fs.readFileSync(path.join(root,'offline-office.js'),'utf8').replace(/\r\n/g,'\n');
 const ctx={console,crypto:webcrypto,TextEncoder,FLAGS:['work'],MODE_LABEL:{in:'Move-in',out:'Move-out',routine:'Routine',ready:'Rent-ready'},ORG:'CIMCO Property Management',REPORT_LOGO_DATA:'data:image/png;base64,'+fs.readFileSync(path.join(root,'cimco-logo.png')).toString('base64'),cur:null,photos:{}};vm.createContext(ctx);
 function extract(source,name){const a=source.indexOf('function '+name+'(');if(a<0)throw new Error(name);const tail=source.slice(a),line=tail.slice(0,tail.indexOf('\n')),end=line.trim().endsWith('}')?line.length:tail.indexOf('\n}')+2;vm.runInContext(tail.slice(0,end),ctx);}

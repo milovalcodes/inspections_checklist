@@ -120,11 +120,12 @@ const CSS=`
 .inspection-report th{background:#eef4f8;text-align:left;font-size:8pt;padding:1.5mm 2mm;border-bottom:1pt solid #b7c8d5}
 .inspection-report td{padding:1.5mm 2mm;border-bottom:.5pt solid #d8e1e8;vertical-align:top;white-space:pre-wrap}
 .inspection-report tr{break-inside:avoid-page}.inspection-report thead{display:table-header-group}
+.inspection-report .r-room-title th{background:#fff;border:0;padding:2.5mm 0 1.5mm}.inspection-report .r-room-title h3{margin:0}
 .inspection-report .r-item{width:30%}.inspection-report .r-result{width:19%}.inspection-report .r-work td{background:#fff5f1}
 .inspection-report .r-nt td{background:#fff9ee}.inspection-report .r-muted{color:#40596b;font-size:8.5pt}
 .inspection-report .r-finding{padding:2.5mm 0;border-bottom:.5pt solid #d8e1e8;break-inside:avoid-page}
 .inspection-report .r-finding p{margin-top:1mm;white-space:pre-wrap}.inspection-report .r-ref{font-size:8pt;color:#00437d}
-.inspection-report .r-text{white-space:pre-wrap}.inspection-report .r-signatures{display:grid;grid-template-columns:1fr 1fr;gap:8mm;break-inside:avoid-page}
+.inspection-report .r-text{white-space:pre-wrap;orphans:3;widows:3}.inspection-report .r-signatures{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8mm;break-inside:avoid-page}
 .inspection-report .r-signature{border-bottom:.5pt solid #8196a6;padding:2mm 0;min-height:23mm}
 .inspection-report .r-signature img{display:block;width:auto;height:auto;max-width:60mm;max-height:16mm;margin:1mm 0}
 .inspection-report .r-photo-log{break-before:auto}.inspection-report .r-photos{font-size:0}
@@ -135,8 +136,11 @@ const CSS=`
 .inspection-report .r-record{margin-top:4mm;border-top:.5pt solid #c5d1da;padding-top:2mm;font-size:8pt;color:#40596b}
 .inspection-report .r-write{display:block;height:9mm;border-bottom:.5pt solid #9eafbc}
 .inspection-report .r-totals{padding:3mm;background:#eef4f8;margin-top:2mm;break-inside:avoid-page}
-.inspection-report .r-pricing{break-inside:avoid-page}.inspection-report .r-section>p.r-muted{break-after:avoid-page}
+.inspection-report .r-section>p.r-muted{break-after:avoid-page}
 .inspection-report .r-short-followup{break-inside:avoid-page}
+.inspection-report .r-short-pricing{break-inside:avoid-page}.inspection-report .r-pricing table{break-after:avoid-page}
+.inspection-report .r-long-content,.inspection-report tr.r-long-content{break-inside:auto}.inspection-report .r-long-content p{orphans:3;widows:3}
+.inspection-report .r-photo-description{margin:3mm 0}.inspection-report .r-photo-description h3{font-size:10pt}
 .inspection-report .r-compare img{display:block;width:100%;height:48mm;object-fit:contain;background:#f2f5f8}.inspection-report .r-compare th,.inspection-report .r-compare td{width:50%}.inspection-report .r-urgent{color:#922e17}
 @media screen{.inspection-report{padding:6mm}.inspection-report .r-photo-log{margin-top:8mm}}
 @media print{
@@ -145,13 +149,25 @@ const CSS=`
  body.report-printing>*:not(#professionalReport){display:none!important}
  #professionalReport{display:block!important;margin:0!important;padding:0!important;width:100%!important}
  .inspection-report{max-width:none;padding:0;font-size:9.3pt}.inspection-report .r-brand,.inspection-report .r-meta,.inspection-report .r-summary{break-inside:avoid-page}
- .inspection-report .r-photos{orphans:1;widows:1}.inspection-report .r-photo-log>h2{break-after:avoid-page}
+ .inspection-report .r-photos{orphans:1;widows:1}.inspection-report .r-photo-log{break-before:page}.inspection-report .r-photo-log>h2{break-after:avoid-page}
 }
 @media screen and (max-width:560px){.inspection-report .r-meta{grid-template-columns:1fr 1fr}.inspection-report figure{width:100%;margin-right:0}.inspection-report .r-signatures{grid-template-columns:1fr}}
 `;
 function footerCSS(rec){
-  const content=JSON.stringify(title(rec)+" | "+String(rec.reportId||rec.id||"").toUpperCase()).replace(/</g,"\\3c ");
-  return "@page{@bottom-left{content:"+content+";font:7pt Arial;color:#40596b}@bottom-right{content:'Page ' counter(page) ' of ' counter(pages);font:7pt Arial;color:#40596b}}";
+  // The complete address and ID stay in the report; keep the running footer on one line.
+  const short=(value,max)=>{const s=String(value).replace(/\s+/g,' ').trim();return s.length>max?s.slice(0,max-3)+'...':s;};
+  const content=JSON.stringify(short(title(rec),40)+" | "+short(String(rec.reportId||rec.id||'').toUpperCase(),20)).replace(/</g,"\\3c ");
+  return "@page{@bottom-left{content:"+content+";font:7pt Arial;color:#40596b;white-space:nowrap;width:80%}@bottom-right{content:'Page ' counter(page) ' of ' counter(pages);font:7pt Arial;color:#40596b;text-align:right;width:20%}}";
+}
+function longContent(value){const text=String(value||'');return text.length>1000||text.split('\n').length>12;}
+function photoEvidence(entries){
+  const descriptions=[];
+  const figures=entries.map(o=>{
+    const caption=String(o.caption||''),extended=caption.length>320||caption.split('\n').length>4||o.title.length>180;
+    if(extended)descriptions.push('<section class="r-photo-description"><h3>'+e(o.label+' - full description')+'</h3><p class="r-text"><b>'+e(o.title)+'</b>\n'+e(caption)+'</p></section>');
+    return '<figure><img src="'+e(o.data)+'" alt="'+e(o.alt)+'" loading="eager"><figcaption><b>'+e(o.title.length>180?o.label:o.title)+'</b><br>'+e(extended?'See '+o.label+' in Extended photo descriptions below.':caption)+'<br><span class="r-muted">'+e(o.date)+'</span></figcaption></figure>';
+  }).join('');
+  return '<div class="r-photos">'+figures+'</div>'+(descriptions.length?'<section class="r-section"><h2>Extended photo descriptions</h2>'+descriptions.join('')+'</section>':'');
 }
 function body(rec,map){
   const m=rec.meta||{},d=model(rec,map),s=d.s,c=d.counts;
@@ -170,21 +186,21 @@ function body(rec,map){
   const findings=[];
   activeSpaces(rec).forEach(sp=>sp.items.forEach((it,i)=>{if(["work","nt"].includes(it.s))findings.push({sp,it,key:sp.id+":"+i});}));
   findings.sort((a,b)=>Number(!!b.it.urgent)-Number(!!a.it.urgent));
-  if(findings.length) content+=`<section class="r-section"><h2>Findings and inspection limits</h2>${findings.map((o,i)=>`<div class="r-finding"><b>${i+1}. ${e(o.sp.name)} / ${e(o.it.t)} - ${e(labels[o.it.s])}</b>${o.it.urgent?'<p class="r-urgent"><b>URGENT - office attention requested</b></p>':""}${o.it.category?'<p>'+e(({repair:"Repair needed",cleaning:"Cleaning needed",other:"Office review"})[o.it.category]||o.it.category)+'</p>':""}<p>${e(o.it.n||"No explanation recorded. Inspector review needed.")}</p>${refs(o.key)}</div>`).join("")}</section>`;
+  if(findings.length) content+=`<section class="r-section"><h2>Findings and inspection limits</h2>${findings.map((o,i)=>`<div class="r-finding${longContent(o.it.n)?' r-long-content':''}"><b>${i+1}. ${e(o.sp.name)} / ${e(o.it.t)} - ${e(labels[o.it.s])}</b>${o.it.urgent?'<p class="r-urgent"><b>URGENT - office attention requested</b></p>':""}${o.it.category?'<p>'+e(({repair:"Repair needed",cleaning:"Cleaning needed",other:"Office review"})[o.it.category]||o.it.category)+'</p>':""}<p>${e(o.it.n||"No explanation recorded. Inspector review needed.")}</p>${refs(o.key)}</div>`).join("")}</section>`;
   if(m.misc) content+=`<section class="r-section"><h2>Overall inspector notes</h2><p class="r-text">${e(m.misc)}</p></section>`;
   if(m.officeInstructions) content+=`<section class="r-section"><h2>Visit instructions supplied by office</h2><p class="r-text">${e(m.officeInstructions)}</p></section>`;
   if(m.keys) content+=`<section class="r-section"><h2>${e(keysLabelForMode(rec.mode))}</h2><p class="r-text">${e(m.keys)}</p></section>`;
   content+=`<section class="r-section"><h2>Detailed checklist</h2><p class="r-muted">Results describe the recorded observations. Move-in comparisons appear where results differ. Unchecked items are not confirmed Good.</p>`;
   activeSpaces(rec).forEach(sp=>{
-    content+=`<h3>${e(sp.name)}</h3><table><thead><tr><th class="r-item">Item</th><th class="r-result">Result</th><th>Notes / photo references</th></tr></thead><tbody>`;
-    content+=sp.items.map((it,i)=>`<tr class="r-${e(it.s||"blank")}"><td>${e(it.t)}${it.base&&it.base!==it.s?`<div class="r-muted">Move-in: ${e(labels[it.base]||it.base)}</div>`:""}</td><td>${e(labels[it.s]||labels[""])}</td><td>${e(it.n||"")}${rec.mode==="routine"&&!it.n?'<span class="r-write"></span>':""}${d.refs[sp.id+":"+i]?"<br>"+refs(sp.id+":"+i):""}</td></tr>`).join("");
+    content+=`<table><colgroup><col class="r-item"><col class="r-result"><col></colgroup><thead><tr class="r-room-title"><th colspan="3"><h3>${e(sp.name)}</h3></th></tr><tr><th>Item</th><th>Result</th><th>Notes / photo references</th></tr></thead><tbody>`;
+    content+=sp.items.map((it,i)=>`<tr class="r-${e(it.s||"blank")}${longContent(it.n)?' r-long-content':''}"><td>${e(it.t)}${it.base&&it.base!==it.s?`<div class="r-muted">Move-in: ${e(labels[it.base]||it.base)}</div>`:""}</td><td>${e(labels[it.s]||labels[""])}</td><td>${e(it.n||"")}${rec.mode==="routine"&&!it.n?'<span class="r-write"></span>':""}${d.refs[sp.id+":"+i]?"<br>"+refs(sp.id+":"+i):""}</td></tr>`).join("");
     content+="</tbody></table>";
   });
   content+="</section>";
   if(["out","routine"].includes(rec.mode)&&d.pricing.rows.length){
     const routine=rec.mode==="routine",p=d.pricing;
     const kinds={wear:"Normal wear",dmg:"Tenant damage",maintenance:"Maintenance",tenant:"Tenant-caused"};
-    content+=`<section class="r-section r-pricing"><h2>Office review - responsibility and estimates</h2><p class="r-muted">Condition findings do not automatically assign responsibility. Amounts are estimates recorded for office review.</p><table><thead><tr><th>Item / location</th><th>Classification</th><th>Recorded estimate</th></tr></thead><tbody>`;
+    content+=`<section class="r-section r-pricing${p.rows.length<=5?' r-short-pricing':''}"><h2>Office review - responsibility and estimates</h2><p class="r-muted">Condition findings do not automatically assign responsibility. Amounts are estimates recorded for office review.</p><table><thead><tr><th>Item / location</th><th>Classification</th><th>Recorded estimate</th></tr></thead><tbody>`;
     content+=p.rows.map(o=>`<tr><td>${e(o.sp.name)} / ${e(o.it.t)}</td><td>${e(kinds[o.kind]||"Pending review")}</td><td>${o.cents!==null?money(o.cents/100):o.raw?"Invalid estimate - review needed":"Not estimated"}</td></tr>`).join("");
     content+=`</tbody></table><div class="r-totals"><b>${routine?"Estimated work":"Estimated tenant damage"}: ${!p.priced?"Not estimated":money(p.total/100)+(p.pending.length?" - partial subtotal":"")}</b><p>${p.pending.length?p.pending.length+" item(s) need classification or an estimate.":"All listed classifications and applicable estimates have been entered."}</p></div></section>`;
   }
@@ -201,9 +217,9 @@ function body(rec,map){
   content+=`<footer class="r-record">CIMCO Property Management | ${e(title(rec))} | Report ${e(d.id)} | Inspection version ${e(d.hash)}</footer>`;
   if(d.pics.length){
     const size=m.photoSize==="lg"?"large":m.photoSize==="sm"?"small":"medium";
-    content+=`<section class="r-section r-photo-log r-${size}"><h2>Photo evidence - ${d.pics.length} photo${d.pics.length===1?'':'s'}</h2><div class="r-photos">`;
-    content+=d.pics.map(o=>`<figure><img src="${e(o.p.data)}" alt="Photo ${o.n}: ${e(o.sp.name+" / "+o.it.t)}" loading="eager"><figcaption><b>Photo ${o.n} - ${e(o.sp.name)} / ${e(o.it.t)}</b><br>${e(o.p.caption||o.it.n||labels[o.it.s]||"Condition photo")}<br><span class="r-muted">${o.p.ts?"Added to inspection "+e(new Date(o.p.ts).toLocaleDateString("en-US")):"Capture date not recorded"}</span></figcaption></figure>`).join("");
-    content+="</div></section>";
+    content+=`<section class="r-section r-photo-log r-${size}"><h2>Photo evidence - ${d.pics.length} photo${d.pics.length===1?'':'s'}</h2>`;
+    content+=photoEvidence(d.pics.map(o=>({data:o.p.data,alt:'Photo '+o.n+': '+o.sp.name+' / '+o.it.t,label:'Photo '+o.n,title:'Photo '+o.n+' - '+o.sp.name+' / '+o.it.t,caption:o.p.caption||o.it.n||labels[o.it.s]||'Condition photo',date:o.p.ts?'Added to inspection '+new Date(o.p.ts).toLocaleDateString('en-US'):'Capture date not recorded'})));
+    content+="</section>";
   }
   if(typeof OfflineOffice!=="undefined")content+=OfflineOffice.extraReport(rec,map,"evidence");
   return content+'</article>';
@@ -236,5 +252,5 @@ function text(rec){
   if(typeof OfflineOffice!=="undefined"){const comparisons=OfflineOffice.comparisonRows(rec);if(comparisons.length){lines.push("MOVE-IN / CURRENT PHOTO COMPARISONS");for(const row of comparisons)lines.push(row.room+" / "+row.item+": move-in "+fmtDate(row.beforeDate)+" ("+row.before.length+" photos), current "+fmtDate(row.afterDate)+" ("+row.after.length+" photos)");}}
   return lines.join("\n");
 }
-return {html,body,model,log,photoMap,pricing,amount,fingerprint,readiness,signOffIssues,signOffVersion,prepare,images,text,recordSignature,invalidateSignatures,validSignature,clearSignature:(rec,key)=>archiveSignature(rec,key,'Signature cleared for renewed review')};
+return {html,body,model,log,photoMap,photoEvidence,longContent,pricing,amount,fingerprint,readiness,signOffIssues,signOffVersion,prepare,images,text,recordSignature,invalidateSignatures,validSignature,clearSignature:(rec,key)=>archiveSignature(rec,key,'Signature cleared for renewed review')};
 })();

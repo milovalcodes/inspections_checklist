@@ -519,10 +519,10 @@ body[data-mode="routine"] .moveonly{display:none!important}
   .strip{display:none}
 }
 </style>
-<link rel="stylesheet" href="./app-theme.css?v=61">
-<link rel="stylesheet" href="./inspector-flow.css?v=61">
-<link rel="stylesheet" href="./offline-office.css?v=61">
-<link rel="stylesheet" href="./field-guide.css?v=61">
+<link rel="stylesheet" href="./app-theme.css?v=62">
+<link rel="stylesheet" href="./inspector-flow.css?v=62">
+<link rel="stylesheet" href="./offline-office.css?v=62">
+<link rel="stylesheet" href="./field-guide.css?v=62">
 
 <header class="mast">
   <div class="wrap">
@@ -835,7 +835,7 @@ let REPORT_LOGO_DATA = "";
 let REPORT_LOGO_PROMISE = null;
 const PRACTICE = globalThis.CIMCO_PRACTICE_MODE===true || new URLSearchParams(location.search).get("practice")==="1";
 const SELF_TEST = PRACTICE || new URLSearchParams(location.search).get("selftest")==="1";
-const TEST_NAMESPACE = (new URLSearchParams(location.search).get("suite")||(PRACTICE?(globalThis.CIMCO_OFFICE_DESK?"office-practice-v61":"inspector-practice-v61"):"manual")).replace(/[^a-zA-Z0-9_-]/g,"").slice(0,32);
+const TEST_NAMESPACE = (new URLSearchParams(location.search).get("suite")||(PRACTICE?(globalThis.CIMCO_OFFICE_DESK?"office-practice-v62":"inspector-practice-v62"):"manual")).replace(/[^a-zA-Z0-9_-]/g,"").slice(0,32);
 const KEY = SELF_TEST ? "cimco.inspections.selftest.v1."+TEST_NAMESPACE : globalThis.CIMCO_OFFICE_DESK===true ? "cimco.office.inspections.v1" : "cimco.inspections.v1";
 const PHOTO_DB = SELF_TEST ? "cimco-photos-selftest-"+TEST_NAMESPACE : globalThis.CIMCO_OFFICE_DESK===true ? "cimco-office-photos" : "cimco-photos";
 const OFFICE_AI_CONFIG_KEY = "cimco.office-ai.config.v1";
@@ -3848,11 +3848,11 @@ if(!SELF_TEST && !globalThis.CIMCO_OFFLINE_BUNDLE && "serviceWorker" in navigato
   window.addEventListener("load", ()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
 }
 </script>
-<script src="./vendor/jszip.min.js?v=61"></script>
-<script src="./office-model.js?v=61"></script>
-<script src="./inspection-reports.js?v=61"></script>
-<script src="./app-enhancements.js?v=61"></script>
-<script src="./inspector-flow.js?v=61"></script>
-<script src="./offline-office.js?v=61"></script>
-<script src="./visit-model.js?v=61"></script>
-<script src="./field-guide.js?v=61"></script>
+<script src="./vendor/jszip.min.js?v=62"></script>
+<script src="./office-model.js?v=62"></script>
+<script src="./inspection-reports.js?v=62"></script>
+<script src="./app-enhancements.js?v=62"></script>
+<script src="./inspector-flow.js?v=62"></script>
+<script src="./offline-office.js?v=62"></script>
+<script src="./visit-model.js?v=62"></script>
+<script src="./field-guide.js?v=62"></script>
